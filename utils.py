@@ -15,6 +15,8 @@ def text_from_document(file_path) -> dict:
     
     return(page_text)
 
+
+
 def process_documents(input_path):
     """ Retrieves text from input file or folder and returns dictionary"""
     
