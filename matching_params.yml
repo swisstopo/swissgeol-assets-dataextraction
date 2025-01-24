@@ -1,0 +1,22 @@
+table_of_contents:
+  en:
+    - "table of contents"
+    - "contents"
+    - "index"
+    - "overview"
+    - "summary"
+    - "list of topics"
+  de:
+    - "inhalt"
+    - "inhaltsverzeichnis"
+    - "übersicht"
+    - "index"
+    - "zusammenfassung"
+    - "kapitelübersicht"
+  fr:
+    - "table des matières"
+    - "sommaire"
+    - "index"
+    - "aperçu"
+    - "résumé"
+    - "liste des chapitres"
