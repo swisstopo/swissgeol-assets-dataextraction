@@ -102,22 +102,17 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
     Merges raw lines into logical lines if PyMuPDF splits them unnecessarily.
     """
     merged_lines = []
-    current_line_words = []
+    current_words = []
 
     for naive_line in naive_lines:
         for word in naive_line.words:
-            if current_line_words:
+            if current_words:
+                previous_word = current_words[-1]
+                if not is_same_line(word, previous_word):
+                    merged_lines.append(TextLine(current_words))
+                    current_words = []
 
-                previous_word = current_line_words[-1]
-                if not is_same_line(previous_word, word):
-
-                    merged_lines.append(TextLine(current_line_words))
-                    current_line_words = []
-            current_line_words.append(word)
-        
-        if current_line_words:
-            merged_lines.append(TextLine(current_line_words))
-            current_line_words = []
+            current_words.append(word)
 
     return merged_lines
 
