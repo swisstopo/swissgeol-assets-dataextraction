@@ -133,7 +133,7 @@ class TOCExtractor:
                     break
 
             if not line_matched:
-                print(f"Unmatched line: {line.line_text()}")
+                print(f"First unmatched line: {line.line_text()}")
                 break
 
         return TOC(entries=toc_entries) if toc_entries else None
