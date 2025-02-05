@@ -7,8 +7,7 @@ def text_from_document(doc) -> dict:
     Returns dictionary with pagenumber as key and all text on that page as item"""
 
     page_text= {}
-    for page_index, page in enumerate(doc):
-        page_number = page_index + 1
+    for page_number, page in enumerate(doc,start=1):
         text = page.get_text()
         
         page_text[page_number]= text
