@@ -1,4 +1,4 @@
-import fitz
+import pymupdf
 import os
 from collections import defaultdict
 
@@ -21,7 +21,7 @@ def process_documents(input_path):
     results = {}
     
     if os.path.isfile(input_path):
-        with fitz.Document(input_path) as doc:
+        with pymupdf.Document(input_path) as doc:
 
             results[os.path.basename(input_path)] = text_from_document(doc)
 
@@ -30,7 +30,7 @@ def process_documents(input_path):
 
             if filename.lower().endswith('.pdf'):
                 file_path = os.path.join(input_path, filename)
-                with fitz.Document(file_path) as doc:
+                with pymupdf.Document(file_path) as doc:
                     results[filename] = text_from_document(doc)
     else:
         print(f"Input path is invalid: {input_path}")
@@ -40,7 +40,7 @@ def process_documents(input_path):
 
 class TextWord:
 
-    def __init__(self, rect: fitz.Rect, text: str, page: int):
+    def __init__(self, rect: pymupdf.Rect, text: str, page: int):
         self.rect = rect
         self.text = text
         self.page_number = page
@@ -71,7 +71,7 @@ class TextLine:
         return ' '.join([word.text for word in self.words])
     
 
-def create_text_lines(doc: fitz.Document) -> list[TextLine]:
+def create_text_lines(doc: pymupdf.Document) -> list[TextLine]:
  
     lines = [] 
 
@@ -82,7 +82,7 @@ def create_text_lines(doc: fitz.Document) -> list[TextLine]:
         words_by_line = defaultdict(list)
 
         for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
-            rect = fitz.Rect(x0, y0, x1, y1) * page.rotation_matrix
+            rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
             text_word = TextWord(rect=rect, text=word, page=page_number)
             words.append(text_word)
 
@@ -121,3 +121,10 @@ def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool: ## do
     Determines whether two words belong to the same line based on their y-coordinates.
     """
     return abs(previous_word.rect.y0 - current_word.rect.y0) <= 2.0
+
+def extract_words(page, page_number):
+    words= []
+    for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
+            rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
+            text_word = TextWord(rect=rect, text=word, page=page_number)
+            words.append(text_word)

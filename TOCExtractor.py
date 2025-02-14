@@ -83,9 +83,9 @@ class TOCExtractor:
         Returns:
             TOC | None: The extracted TOC or None if not found.
         """
-        # toc = self.extract_by_bookmarks(doc)
-        # if toc:
-        #     return toc
+        toc = self.extract_by_bookmarks(doc)
+        if toc:
+            return toc
         # Try extracting by keywords
         keywords = self.table_of_contents.get(language, [])
         found_keywords = find_keywords_in_lines(text_lines, keywords)
