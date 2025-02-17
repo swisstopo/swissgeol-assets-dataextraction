@@ -125,6 +125,7 @@ def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool: ## do
 def extract_words(page, page_number):
     words= []
     for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
-            rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
-            text_word = TextWord(rect=rect, text=word, page=page_number)
-            words.append(text_word)
+        rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
+        text_word = TextWord(rect=rect, text=word, page=page_number)
+        words.append(text_word)
+    return words        

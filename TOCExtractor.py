@@ -1,8 +1,7 @@
 import fitz
 import regex
 from typing import Union
-from utils import TextLine
-import yaml
+from text import TextLine
 
 from keyword_finding import find_keywords_in_lines
 

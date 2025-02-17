@@ -1,4 +1,4 @@
-from utils import TextWord, TextLine
+from text import TextWord, TextLine
 import regex
 
 
