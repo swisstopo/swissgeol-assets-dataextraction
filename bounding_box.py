@@ -19,3 +19,26 @@ def expand_bbox(rect, margin):
     Expands a bounding box by a some margin.
     """
     return pymupdf.Rect(rect.x0 - margin, rect.y0 - margin, rect.x1 + margin, rect.y1 + margin)
+
+def cluster_drawings(drawings):
+    """
+    Cluster overlapping drawings into groups
+    """
+    clusters = []
+    expanded_bboxes = [expand_bbox(pymupdf.Rect(d["rect"]), 5) for d in drawings]    
+    for bbox in expanded_bboxes:
+        added = False
+        
+        for cluster in clusters:
+            if any(bbox_overlap(bbox, pymupdf.Rect(existing_bbox)) for existing_bbox in cluster):
+                cluster.append(bbox)
+                added = True
+                break
+        
+        if not added:
+            clusters.append([bbox])  # new cluster
+    
+    # Merge bounding boxes inside each cluster
+    merged_clusters = [merge_bounding_boxes(cluster) for cluster in clusters]
+    
+    return merged_clusters

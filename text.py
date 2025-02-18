@@ -49,6 +49,14 @@ class TextWord:
         return f"TextWord({self.rect}, {self.text})"
 
 
+def extract_words(page, page_number):
+    words= []
+    for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
+        rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
+        text_word = TextWord(rect=rect, text=word, page=page_number)
+        words.append(text_word)
+    return words        
+
 class TextLine:
 
     def __init__(self, words: list[TextWord]):
@@ -71,29 +79,22 @@ class TextLine:
         return ' '.join([word.text for word in self.words])
     
 
-def create_text_lines(doc: pymupdf.Document) -> list[TextLine]:
- 
-    lines = [] 
+def create_text_lines(page, page_number) -> list[TextLine]:
 
-    for page_index, page in enumerate(doc):
-        page_number = page_index + 1
+    words =[]
+    words_by_line = defaultdict(list)
 
-        words =[]
-        words_by_line = defaultdict(list)
-
-        for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
-            rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
-            text_word = TextWord(rect=rect, text=word, page=page_number)
-            words.append(text_word)
+    for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
+        rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
+        text_word = TextWord(rect=rect, text=word, page=page_number)
+        words.append(text_word)
 
 
-            key = f"{block_no}_{line_no}"
-            words_by_line[key].append(text_word)
+        key = f"{block_no}_{line_no}"
+        words_by_line[key].append(text_word)
 
-        text_lines = [TextLine(words) for words in words_by_line.values() if words]
-        merged_text_lines = merge_text_lines(text_lines)
-        lines.extend(merged_text_lines)
-    return lines
+    text_lines = [TextLine(words) for words in words_by_line.values() if words]
+    return merge_text_lines(text_lines)
 
 
 def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
@@ -113,6 +114,9 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
 
             current_words.append(word)
 
+    if current_words:
+        merged_lines.append(TextLine(current_words))
+
     return merged_lines
 
 
@@ -121,11 +125,3 @@ def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool: ## do
     Determines whether two words belong to the same line based on their y-coordinates.
     """
     return abs(previous_word.rect.y0 - current_word.rect.y0) <= 2.0
-
-def extract_words(page, page_number):
-    words= []
-    for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
-        rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
-        text_word = TextWord(rect=rect, text=word, page=page_number)
-        words.append(text_word)
-    return words        
