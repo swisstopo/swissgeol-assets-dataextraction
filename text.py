@@ -125,3 +125,71 @@ def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool: ## do
     Determines whether two words belong to the same line based on their y-coordinates.
     """
     return abs(previous_word.rect.y0 - current_word.rect.y0) <= 2.0
+
+
+
+class TextBlock:
+    def __init__(self, lines: list[TextLine]):
+
+        self.lines = lines
+        self.top = min([line.rect.y0 for line in lines])
+        self.left = min([line.rect.x0 for line in lines])
+        self.bottom = max([line.rect.y1 for line in lines])
+        self.right = max([line.rect.x1 for line in lines])
+        self.rect = pymupdf.Rect(self.left, self.top, self.right, self.bottom)
+
+
+def overlaps(line, line2) -> bool:
+    vertical_margin = 15
+    ref_rect = pymupdf.Rect(line.rect.x0, line.rect.y0 - vertical_margin, line.rect.x1, line.rect.y1 + vertical_margin)
+    return ref_rect.intersects(line2.rect)
+
+
+def adjacent_lines(lines: list[TextLine]) -> list[set[int]]:
+    result = [set() for _ in lines]
+    for index, line in enumerate(lines):
+        for index2, line2 in enumerate(lines):
+            if index2 > index:
+                if overlaps(line, line2):
+                    result[index].add(index2)
+                    result[index2].add(index)
+    return result
+
+
+def apply_transitive_closure(data: list[set[int]]) -> bool:
+    found_new_relation = False
+    for index, adjacent_indices in enumerate(data):
+        new_adjacent_indices = set()
+        for adjacent_index in adjacent_indices:
+            new_adjacent_indices.update(
+                new_index
+                for new_index in data[adjacent_index]
+                if new_index not in data[index]
+            )
+
+        for new_adjacent_index in new_adjacent_indices:
+            data[index].add(new_adjacent_index)
+            data[new_adjacent_index].add(index)
+            found_new_relation = True
+    return found_new_relation
+
+
+def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
+    """sort lines into TextBlocks"""
+    data = adjacent_lines(text_lines)
+
+    while apply_transitive_closure(data):
+        pass
+
+    blocks: list[TextBlock] = []
+    remaining_indices = {index for index, _ in enumerate(data)}
+    for index, adjacent_indices in enumerate(data):
+        if index in remaining_indices:
+            selected_indices = adjacent_indices
+            selected_indices.add(index)
+            blocks.append(TextBlock(
+                [text_lines[selected_index] for selected_index in sorted(list(selected_indices))]
+            ))
+            remaining_indices.difference_update(selected_indices)
+
+    return blocks
