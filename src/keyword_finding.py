@@ -25,3 +25,4 @@ def find_keywords_in_lines(text_lines: list[TextLine],keywords : list[str]):
 
 def get_keywords_by_language(language, params):
     return params.get("table_of_contents", {}).get(language, [])
+

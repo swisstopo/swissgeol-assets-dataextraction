@@ -1,11 +1,13 @@
 import pymupdf
 import numpy as np
 import matplotlib.pyplot as plt
-from text import TextWord
-import matplotlib.pyplot as plt
 from scipy.spatial.distance import pdist, squareform
 from scipy.sparse.csgraph import laplacian
 import os
+import math
+from collections import defaultdict
+from text import TextWord
+
 
 def is_digitally_born(page: pymupdf.Page) -> bool:
     bboxes = page.get_bboxlog()
@@ -92,6 +94,25 @@ def classify_wordpos(words: list[TextWord]):
         "height_std":float(height_std)
     }
  
+def calculate_distance(word1, word2):
+    """Calculate Euclidean distance between two TextWord objects based on x0 and y0"""
+    x_dist = word1.rect.x0 - word2.rect.x0
+    y_dist = word1.rect.y0 - word2.rect.y0
+    return math.sqrt(x_dist**2 + y_dist**2)
+
+def closest_word_distances(words):
+    """Calculate distances between each word and its closest neighbor"""
+    if not words or len(words) < 2:
+        return []
+
+    distances = []
+    for i, word in enumerate(words):
+        other_words = words[:i] + words[i+1:]  # Exclude current word
+        closest_word = min(other_words, key=lambda w: calculate_distance(word, w))
+        distances.append(calculate_distance(word, closest_word))
+
+    return distances
+
 
 def process_documents(input_path, function):
     """ Retrieves text from input file or folder and executes function (has to take doc as input and return a dictionary)"""
@@ -114,3 +135,31 @@ def process_documents(input_path, function):
         print(f"Input path is invalid: {input_path}")
     
     return results
+
+def y0_word_cluster(all_words, tolerance: int = 10):
+   
+    if not all_words:
+        return []
+
+    # Dictionary to hold clusters, keys are representative y0 values
+    grouped_y0 = defaultdict(list)
+
+    for word in all_words:
+        y0 = word.rect.y0
+        matched_y0 = None
+
+        # Check if y0 is within tolerance of an existing cluster
+        for key in grouped_y0:
+            if abs(key - y0) <= tolerance:
+                matched_y0 = key
+                break
+
+        # Add to an existing cluster or create a new one
+        if matched_y0 is not None:
+            grouped_y0[matched_y0].append(word)
+        else:
+            grouped_y0[y0].append(word)
+
+    clusters = list(grouped_y0.values())
+
+    return clusters
