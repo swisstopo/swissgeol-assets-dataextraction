@@ -1,3 +1,7 @@
+# Page Classification for Borehole and Maps in Assets
+
+## **Purpose** 
+
 The purpose of this project is to develop a method for classifying document pages as either **text-based** or **image-based** (e.g., borehole profiles, maps, text, title pages). This classification aims to support the structural analysis of reports within [Assets](assets.swissgeol.ch). By categorizing document pages, we aim to facilitate the identification of borehole profiles and maps in PDFs, ultimately linking extracted assets to boreholes effectively.
 
 ---
@@ -72,23 +76,22 @@ The structure of the repository is:
     - `layout_parser.ipynb`: Uses layout parser to identiy layout of pages in pdf files
     - `corner_detection.ipynb`: Followed tutorial for corner detection within image.
     - `pdf_type.ipynb`: naiv approach to classifying pages into digitally or scanned pdfs.
-    - `find_documents.ipynb`: ## find all files with certain keyword in all subfolders of base directory and extend legaldocs futher described in [Legal Docs](https://ltwiki.adr.admin.ch:8443/pages/viewpage.action?pageId=637241440&spaceKey=LG&title=Legal%2BDocs).
+    - `find_documents.ipynb`: finds all files with certain keyword in all subfolders of base directory. It also extends legaldocs futher described in [Legal Docs](https://ltwiki.adr.admin.ch:8443/pages/viewpage.action?pageId=637241440&spaceKey=LG&title=Legal%2BDocs).
 
 - `matching_params.yml`: contains list of keywords for TOC
 - `.gitigore`
 - `README.md`
 
 ## How to run classify_scanned_page.ipynb
-
-To run classify_scanned_page.ipynb 
+1. Install dependencies:
 ```
 pip install -r requirements.txt
 ```
-A subfolder in the local `data/inputs/` directory is required as an **input directory**. 
-The structure should be as described above (subfolder should be calles, maps, boreprofile, title_page or text) and you should have ground truths.
-
-Run classidy_scanned_page.ipynb
-
+2. Ensure the input directory exists: `data/input/{maps, boreprofile, title_page, text}`
+3. Run the notebook:
+```
+jupyter notebook notebooks/classify_scanned_page.ipynb
+```
 
 ## Further infos on some of the Notebooks
 
@@ -106,10 +109,10 @@ This notebook is used to **create input pages** for `classify_scanned_page.ipynb
    - `out_dir`: The target directory where the extracted page will be stored.
 
 3. **Set `out_dir` to one of the following categories**:  
-   - `"boreprofile"` → For borehole profile pages.  
-   - `"maps"` → For map pages.  
-   - `"text"` → For continuous text pages.  
-   - `"title_page"` → For title pages.  
+   - `"boreprofile"`: For borehole profile pages.  
+   - `"maps"`: For map pages.  
+   - `"text"`: For continuous text pages.  
+   - `"title_page"`: For title pages.  
 
 4. **Extracted pages will be saved to** `data/input/{out_dir}/`  
    - Example: If `out_dir = "maps"`, the page will be saved in `data/input/maps/`.  
@@ -131,7 +134,7 @@ Classifies pages of digitally born PDFs by analyzing their content and categoriz
 
 ### extract_images.ipynb
 
-Extracts images and drawings from digitally born documents ( and from scanned pdfs if drawings are detected via OCR). It also visualizes the detected structures by drawing bounding boxes around:
+Extracts images and drawings from digitally born documents (and from scanned pdfs if drawings are detected via OCR). It also visualizes the detected structures by drawing bounding boxes around:
 - **Text Lines**
 - **Text Blocks**
 - **Drawings**
@@ -139,17 +142,16 @@ Extracts images and drawings from digitally born documents ( and from scanned pd
 **How It Works**
 
 1. Specify the input file name and path inside the notebook.
-2.The notebook processes the document and extracts:
-- Images and Drawings
+2. The notebook processes the document and extracts images and drawings
 3. It clusters drawings and text and draws bounding boxes around detected elements to visualize  behavior.
 4. Saves results in `data/test/filename/`
 
 
 TODO:
-asset-notebook.ipynb
-asset-notebook_S3.ipynb
-layout_parser.ipynb
-corner_detection.ipynb
-pdf_type.ipynb
-find_documents.ipynb
+- asset-notebook.ipynb
+- asset-notebook_S3.ipynb
+- layout_parser.ipynb
+- corner_detection.ipynb
+- pdf_type.ipynb
+- find_documents.ipynb
 
