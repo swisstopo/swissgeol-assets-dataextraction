@@ -10,6 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def main(input_dir, output_dir,ground_truth_path = None):
+    
     logging.info(f"Starting page classification for input folder: {input_dir}")
 
     results = classify_pdf(input_dir)
