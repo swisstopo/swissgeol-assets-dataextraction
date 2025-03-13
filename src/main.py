@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def main(input_dir, output_dir,ground_truth_path = None):
-    
+
     logging.info(f"Starting page classification for input folder: {input_dir}")
 
     results = classify_pdf(input_dir)
@@ -34,17 +34,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run PDF page classification")
     
     parser.add_argument(
-        "--input_dir", type=str, required=True,
+        "-i", "--input_dir", type=str, required=True,
         help="Path to the input directory containing PDF files."
     )
     
     parser.add_argument(
-        "--output_dir", type=str, required=True,
+        "-o", "--output_dir", type=str, required=True,
         help="Path to save classification results CSV."
     )
     
     parser.add_argument(
-        "--ground_truth_path", type=str, required=False,
+        "-g", "--ground_truth_path", type=str, required=False,
         help="(Optional) Path to the ground truth CSV file for evaluation."
     )
 

@@ -88,15 +88,15 @@ The structure of the repository is:
 pip install -r requirements.txt
 ```
 2. Ensure the input directory exists: `data/input/{maps, boreprofile, title_page, text}`
-3. Specify the input directory, output file, and optionally, the ground truth file to run the classification:
+3. Specify the input directory (--input_dir, -i), output dircetory (--outpur_dir, -o), and optionally, the ground truth (--ground_truth_path, -g) file to run the classification:
 ```
-python src/main.py --input_dir replace/with/path --output_file replace/with/path.csv --ground_truth_path replace/with/path.csv
+python src/main.py --input_dir replace/with/path --output_file replace/with/path --ground_truth_path replace/with/path.csv
 ```
+or 
+```
+python src/main.py -i replace/with/path -o replace/with/path -g replace/with/path.csv
+``` 
 
-Example:
-```
-python src/main.py --input_dir data/input/maps --output_dir data/ --ground_truth_path data/ground_truth_maps.csv
-```
 
 ## Further infos on some of the Notebooks
 
