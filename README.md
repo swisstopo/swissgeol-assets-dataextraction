@@ -13,7 +13,7 @@ The purpose of this project is to develop a method for classifying document page
     - **Text Positioning Analysis**: Identify potential image regions by analyzing text placement or density.
     - **Rule-Based Methods**: Use heuristic approaches, such as keyword detection, to distinguish different images/ drawings.
 
-The classification process for scanned documents is handled in **`classify_scanned_page.ipynb`**.
+The classification process for scanned documents is executed in **`src/main.py`** and handled in .
 
 ---
 
@@ -88,9 +88,14 @@ The structure of the repository is:
 pip install -r requirements.txt
 ```
 2. Ensure the input directory exists: `data/input/{maps, boreprofile, title_page, text}`
-3. Run the notebook:
+3. Specify the input directory, output file, and optionally, the ground truth file to run the classification:
 ```
-jupyter notebook notebooks/classify_scanned_page.ipynb
+python src/main.py --input_dir replace/with/path --output_file replace/with/path.csv --ground_truth_path replace/with/path.csv
+```
+
+Example:
+```
+python src/main.py --input_dir data/input/maps --output_dir data/ --ground_truth_path data/ground_truth_maps.csv
 ```
 
 ## Further infos on some of the Notebooks
