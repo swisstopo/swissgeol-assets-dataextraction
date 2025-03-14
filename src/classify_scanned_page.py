@@ -4,15 +4,15 @@ import numpy as np
 import pandas as pd
 import regex
 import logging
-from collections import defaultdict
-from tabulate import tabulate
+import logging
+logger = logging.getLogger(__name__)
 
-from text import extract_words, create_text_lines, create_text_blocks
-from utils import TextWord, closest_word_distances, y0_word_cluster
-from keyword_finding import find_keywords_in_lines
-from title_page import title_page_type
+from .text import extract_words, create_text_lines, create_text_blocks, TextLine
+from .utils import TextWord, closest_word_distances, y0_word_cluster
+from .keyword_finding import find_keywords_in_lines
+from .title_page import title_page_type
+from .detect_language import detect_language_of_page
 
-keywords_boreprofile = ["bohrung", "bohrprofil", "sondage"]
 
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
@@ -26,15 +26,52 @@ def find_maps_pattern(words: list[TextWord]) -> regex.Match | None:
                  if (match := pattern.search(word.text))), None)
 
 
-def classify_on_keywords(lines: list[str], words: list[TextWord]) -> str | None:
+def is_description(line: TextLine, material_description):
+    """Check if the line is a material description."""
+    line_text = line.line_text().lower()
+    return any(
+        line_text.find(word) > -1 for word in material_description["including_expressions"]
+    ) and not any(line_text.find(word) > -1 for word in material_description["excluding_expressions"])
 
-    if find_keywords_in_lines(lines, keywords_boreprofile):
+def detect_material_description(lines: list[TextLine], material_description: dict) -> bool:
+    """Detects if the page contains a material description."""
+    material_description = [
+            line
+            for line in lines
+            if is_description(line, material_description)
+        ]
+
+    ## bbox of material description
+    if material_description:
+        start_line = min(material_description, key=lambda line: line.rect.y0)
+        end_line = max(material_description, key=lambda line: line.rect.y1)
+        start = (start_line.rect.x0, start_line.rect.y0)
+        end = (end_line.rect.x1, end_line.rect.y1)
+        material_description_bbox = pymupdf.Rect(start[0], start[1], end[0], end[1])
+
+        ##TODO: check for lines in bbox not in material description, check valid size of bbox to be a material description
+        
+    return material_description
+
+def classify_on_keywords(lines: list[str], words: list[TextWord], matching_params: dict, language:str) -> str | None:
+    """    Classifies a page based on keywords or patterns defined in matching_params for the given language"""
+
+    if language not in matching_params["material_description"]:
+        logging.warning(f"Language '{language}' not supported. Using default german language.")
+        language = "de"
+
+    if detect_material_description(lines, matching_params["material_description"].get(language, {})):
+        pass
+    
+    if find_keywords_in_lines(lines, matching_params["boreprofile"].get(language, [])):
         return "Boreprofile"
     if find_maps_pattern(words):
         return "Map"  
     return None
 
-def classify_page(page, page_number, filename) -> dict:
+
+def classify_page(page, page_number, filename, matching_params, language) -> dict:
+
     text = page.get_text()
     words = extract_words(page, page_number)
     if not words:
@@ -61,7 +98,7 @@ def classify_page(page, page_number, filename) -> dict:
     if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
         classification = "Title Page" if title_page_type(text) else "Text"
     else:
-        classify_keywords = classify_on_keywords(lines, words)
+        classify_keywords = classify_on_keywords(lines, words, matching_params, language)
         if classify_keywords:
             classification = classify_keywords
         else:
@@ -74,38 +111,33 @@ def classify_page(page, page_number, filename) -> dict:
             else:
                 classification = "Map"
 
-    return {"Filename": filename, "Page Number": page_number, "Classification": classification}
+    return {"Filename": filename,
+            "Page Number": page_number,
+            "Classification": classification}
 
-def classify_pdf(pdf_path: str)-> pd.DataFrame:
+def classify_pdf(file_path, matching_params)-> pd.DataFrame:
     """Processes a pdf File, classfies each page"""
-    classification_counts = defaultdict(int)
     classification_data = []
-    total_pages = 0
 
-    for filename in os.listdir(pdf_path):
-        if filename.lower().endswith('.pdf'):
-            file_path = os.path.join(pdf_path, filename)
+    if not os.path.isfile(file_path) or not file_path.lower().endswith('.pdf'):
+        logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")
+        return pd.DataFrame()
+    
+    filename = os.path.basename(file_path)
+    with pymupdf.Document(file_path) as doc:
+        for page_number, page in enumerate(doc, start = 1):
+            
+            ##detect language
+            language = detect_language_of_page(page)
 
-            with pymupdf.Document(file_path) as doc:
-                for page_index, page in enumerate(doc):
-                    total_pages += 1
-                    page_number = page_index + 1
+            ##classify page
+            page_classification = classify_page(page,
+                                                page_number,
+                                                filename,
+                                                matching_params, 
+                                                language)   
 
-                    ##classify page
-                    page_classification = classify_page(page, page_number, filename)
-
-                    ##update classification count
-                    classification_data.append(page_classification)
-                    classification_counts[page_classification["Classification"]] += 1
-                    
-
-    df = pd.DataFrame(classification_data)
-
-    # classification summary
-    summary = pd.DataFrame.from_dict(classification_counts, orient='index', columns=['Count'])
-    summary['Percentage'] = (summary['Count'] / total_pages * 100).round(2)
-
-    logging.info("Classification Summary:")
-    logging.info(tabulate(summary, headers="keys", tablefmt="grid"))
-
-    return df
+            ##update classification count
+            classification_data.append(page_classification)
+  
+    return classification_data

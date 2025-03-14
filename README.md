@@ -13,7 +13,7 @@ The purpose of this project is to develop a method for classifying document page
     - **Text Positioning Analysis**: Identify potential image regions by analyzing text placement or density.
     - **Rule-Based Methods**: Use heuristic approaches, such as keyword detection, to distinguish different images/ drawings.
 
-The classification process for scanned documents is executed in **`src/main.py`** and handled in .
+The classification process for scanned documents is executed in **`main.py`**.
 
 ---
 
@@ -67,8 +67,7 @@ The structure of the repository is:
 - src/
     - includes python util scripts, needed for the execution of the classification or other jupyter notebooks
 - notebooks/
-    - `classify_scanned_page.ipynb`: classifies scanned pdfs into text, maps, boreprofile, infogeol title page
-    - `create_testdata.ipynb`: notebook used to create input data for `classify_scanned_page.ipynb`. Takes 
+    - `create_testdata.ipynb`: notebook used to create input data for `classify_scanned_page.py`. Takes 
     - `classify_digital_page.ipynb`:
     - `extract_images.ipynb`: Extracts images/ drawings from digitally boren pdfs. Draws boudning boxes for text, and drawings for pdfs.
     - `asset-notebook.ipynb`: Extracts Table of Content out odf pdfs.
@@ -77,20 +76,20 @@ The structure of the repository is:
     - `corner_detection.ipynb`: Followed tutorial for corner detection within image.
     - `pdf_type.ipynb`: naiv approach to classifying pages into digitally or scanned pdfs.
     - `find_documents.ipynb`: finds all files with certain keyword in all subfolders of base directory. It also extends legaldocs futher described in [Legal Docs](https://ltwiki.adr.admin.ch:8443/pages/viewpage.action?pageId=637241440&spaceKey=LG&title=Legal%2BDocs).
-
+- `main.py`: executes classification process
 - `matching_params.yml`: contains list of keywords for TOC
 - `.gitigore`
 - `README.md`
 
-## How to run classify_scanned_page.ipynb
+## How to run classify_scanned_page.py
 1. Install dependencies:
 ```
 pip install -r requirements.txt
 ```
 2. Ensure the input directory exists: `data/input/{maps, boreprofile, title_page, text}`
-3. Specify the input directory (--input_dir, -i), output dircetory (--outpur_dir, -o), and optionally, the ground truth (--ground_truth_path, -g) file to run the classification:
+3. Specify the input directory/ file(--input_path, -i), output path (--output_path, -o), and optionally, the ground truth (--ground_truth_path, -g) file to run the classification:
 ```
-python src/main.py --input_dir replace/with/path --output_file replace/with/path --ground_truth_path replace/with/path.csv
+python src/main.py --input_path replace/with/path --output_path replace/with/path --ground_truth_path replace/with/path.csv
 ```
 or 
 ```
@@ -102,7 +101,7 @@ python src/main.py -i replace/with/path -o replace/with/path -g replace/with/pat
 
 ### create_testdata.ipynb
 
-This notebook is used to **create input pages** for `classify_scanned_page.ipynb` from original reports.
+This notebook is used to **create input pages** for `classify_scanned.py` from original reports.
 
 **How it works**
 1. **Place the original reports (PDFs) in** `data/input/`  

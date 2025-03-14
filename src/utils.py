@@ -6,7 +6,8 @@ from scipy.sparse.csgraph import laplacian
 import os
 import math
 from collections import defaultdict
-from text import TextWord
+
+from .text import TextWord
 
 
 def is_digitally_born(page: pymupdf.Page) -> bool:
@@ -112,29 +113,6 @@ def closest_word_distances(words):
         distances.append(calculate_distance(word, closest_word))
 
     return distances
-
-
-def process_documents(input_path, function):
-    """ Retrieves text from input file or folder and executes function (has to take doc as input and return a dictionary)"""
-    
-    results = {}
-    
-    if os.path.isfile(input_path):
-        with pymupdf.Document(input_path) as doc:
-
-            results[os.path.basename(input_path)] = function(doc)
-
-    elif os.path.isdir(input_path):
-        for filename in os.listdir(input_path):
-
-            if filename.lower().endswith('.pdf'):
-                file_path = os.path.join(input_path, filename)
-                with pymupdf.Document(file_path) as doc:
-                    results[filename] = function(doc)
-    else:
-        print(f"Input path is invalid: {input_path}")
-    
-    return results
 
 def y0_word_cluster(all_words, tolerance: int = 10):
    

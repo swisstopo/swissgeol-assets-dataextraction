@@ -1,5 +1,6 @@
-from text import TextWord, TextLine
 import regex
+
+from .text import TextWord, TextLine
 
 
 def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
@@ -22,7 +23,3 @@ def find_keywords_in_lines(text_lines: list[TextLine],keywords : list[str]):
                                        "line": line})
     
     return found_keywords
-
-def get_keywords_by_language(language, params):
-    return params.get("table_of_contents", {}).get(language, [])
-
