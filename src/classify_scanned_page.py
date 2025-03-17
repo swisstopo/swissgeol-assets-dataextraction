@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 import regex
 import logging
-import logging
 logger = logging.getLogger(__name__)
 
 from .text import extract_words, create_text_lines, create_text_blocks, TextLine
@@ -33,12 +32,14 @@ def classify_on_keywords(lines: list[str], words: list[TextWord], matching_param
         logging.warning(f"Language '{language}' not supported. Using default german language.")
         language = "de"
 
-    if detect_material_description(lines, matching_params["material_description"].get(language, {})):
-        pass
+    material_descriptions = detect_material_description(lines, words, matching_params["material_description"].get(language, {}))
+
+    if material_descriptions:
+        for description in material_descriptions:
+            if description.noise < 1.75:
+                return "Boreprofile" 
     
-    if find_keywords_in_lines(lines, matching_params["boreprofile"].get(language, [])):
-        return "Boreprofile"
-    if find_maps_pattern(words):
+    if find_maps_pattern(words): ## refine this
         return "Map" 
 
     return None
@@ -49,6 +50,8 @@ def classify_page(page, page_number, filename, matching_params, language) -> dic
     text = page.get_text()
     words = extract_words(page, page_number)
     if not words:
+        logger.info("blank page")
+
         return {"Filename": filename, "Page Number": page_number, "Classification": "Unknown"}
 
     # Compute word distances and line attributes
@@ -66,28 +69,25 @@ def classify_page(page, page_number, filename, matching_params, language) -> dic
                     for line in block.lines
                     for word in line.words if len(line.words) > 1)
 
-    classification = "Unknown"
-
     #Rule-based classification
-    if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3: ## classify based on how much text is in a textblock
-        classification = "Title Page" if title_page_type(text) else "Text"
-    else:
-        classification = classify_on_keywords(lines, words, matching_params, language) 
-        
-        if not classification:
-            clusters = cluster_text_elements(lines, key = "y0") 
-            filtered_clusters = [cluster for cluster in clusters if len(cluster) > 1]
-            longest_cluster = max(map(len, filtered_clusters), default=0)
+    classification = classify_on_keywords(lines, words, matching_params, language) 
 
-            if median_distance is not None and median_distance < 20 and longest_cluster > 4:
-                classification = "Boreprofile"
-            else:
-                classification = "Map"
-        
-    ## check if any classification is None
     if classification is None:
-        logger.info("something in your logic misses a case")
-        classification = "Unknown"
+        if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3: ## classify based on how much text is in a textblock
+            classification = "Title Page" if title_page_type(text) else "Text"
+        else:
+            classification = "Unknown"
+
+        # if not classification:
+        #     clusters = cluster_text_elements(lines, key = "y0") 
+        #     filtered_clusters = [cluster for cluster in clusters if len(cluster) > 1]
+        #     longest_cluster = max(map(len, filtered_clusters), default=0)
+
+        #     if median_distance is not None and median_distance < 20 and longest_cluster > 4:
+        #         classification = "Boreprofile"
+        #     else:
+        #         classification = "Map"
+
 
     return {"Filename": filename,
             "Page Number": page_number,
