@@ -114,30 +114,44 @@ def closest_word_distances(words):
 
     return distances
 
-def y0_word_cluster(all_words, tolerance: int = 10):
+def cluster_text_elements(elements, key="y0", tolerance: int = 10):
+    """ cluster text elements based on coordinates of bounding box
+    
+    Args: 
+        elements: List of object containing a `rect` attribute with x0 or y0 etc
+        key: attribute clustering is based on (y0 or x0)
+        tolerance: max allowed difference between entries and a cluster key"""
    
-    if not all_words:
+    if not elements:
         return []
+    
+    ## make sure that key is acutally input we allow
+    if not isinstance(key, str):
+        raise TypeError(f"Expected 'key' to be a string, got {type(key)} instead.")
+    valid_keys = {"y0", "x0"}
 
-    # Dictionary to hold clusters, keys are representative y0 values
-    grouped_y0 = defaultdict(list)
+    if key not in valid_keys:
+        raise ValueError(f"Invalid key '{key}'. Must be one of {valid_keys}.")
 
-    for word in all_words:
-        y0 = word.rect.y0
-        matched_y0 = None
+    # Dictionary to hold clusters, keys are representative attribute values
+    grouped = defaultdict(list)
 
-        # Check if y0 is within tolerance of an existing cluster
-        for key in grouped_y0:
-            if abs(key - y0) <= tolerance:
-                matched_y0 = key
+    for element in elements:
+        attribute = getattr(element.rect, key)
+        matched_key = None
+
+        # Check if attribute is within tolerance of an existing cluster
+        for existing_key in grouped:
+            if abs(existing_key - attribute) <= tolerance:
+                matched_key = existing_key
                 break
 
         # Add to an existing cluster or create a new one
-        if matched_y0 is not None:
-            grouped_y0[matched_y0].append(word)
+        if matched_key is not None:
+            grouped[matched_key].append(element)
         else:
-            grouped_y0[y0].append(word)
+            grouped[attribute].append(element)
 
-    clusters = list(grouped_y0.values())
+    clusters = list(grouped.values())
 
     return clusters

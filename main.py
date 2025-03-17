@@ -38,6 +38,7 @@ def process_pdfs(pdf_files: list, **matching_params) -> pd.DataFrame:
     with tqdm(total=len(pdf_files)) as pbar:
 
         for pdf in pdf_files:
+            pbar.set_description(f"Processing {os.path.basename(pdf)}")
             for entry in classify_pdf(pdf, matching_params):
                 results.append(entry)
             pbar.update(1)

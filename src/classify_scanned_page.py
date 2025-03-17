@@ -8,11 +8,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 from .text import extract_words, create_text_lines, create_text_blocks, TextLine
-from .utils import TextWord, closest_word_distances, y0_word_cluster
+from .utils import TextWord, closest_word_distances, cluster_text_elements
 from .keyword_finding import find_keywords_in_lines
 from .title_page import title_page_type
 from .detect_language import detect_language_of_page
-
+from .material_description import detect_material_description
 
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
@@ -26,35 +26,8 @@ def find_maps_pattern(words: list[TextWord]) -> regex.Match | None:
                  if (match := pattern.search(word.text))), None)
 
 
-def is_description(line: TextLine, material_description):
-    """Check if the line is a material description."""
-    line_text = line.line_text().lower()
-    return any(
-        line_text.find(word) > -1 for word in material_description["including_expressions"]
-    ) and not any(line_text.find(word) > -1 for word in material_description["excluding_expressions"])
-
-def detect_material_description(lines: list[TextLine], material_description: dict) -> bool:
-    """Detects if the page contains a material description."""
-    material_description = [
-            line
-            for line in lines
-            if is_description(line, material_description)
-        ]
-
-    ## bbox of material description
-    if material_description:
-        start_line = min(material_description, key=lambda line: line.rect.y0)
-        end_line = max(material_description, key=lambda line: line.rect.y1)
-        start = (start_line.rect.x0, start_line.rect.y0)
-        end = (end_line.rect.x1, end_line.rect.y1)
-        material_description_bbox = pymupdf.Rect(start[0], start[1], end[0], end[1])
-
-        ##TODO: check for lines in bbox not in material description, check valid size of bbox to be a material description
-        
-    return material_description
-
 def classify_on_keywords(lines: list[str], words: list[TextWord], matching_params: dict, language:str) -> str | None:
-    """    Classifies a page based on keywords or patterns defined in matching_params for the given language"""
+    """Classifies a page based on keywords or patterns defined in matching_params for the given language"""
 
     if language not in matching_params["material_description"]:
         logging.warning(f"Language '{language}' not supported. Using default german language.")
@@ -66,11 +39,12 @@ def classify_on_keywords(lines: list[str], words: list[TextWord], matching_param
     if find_keywords_in_lines(lines, matching_params["boreprofile"].get(language, [])):
         return "Boreprofile"
     if find_maps_pattern(words):
-        return "Map"  
+        return "Map" 
+
     return None
 
 
-def classify_page(page, page_number, filename, matching_params, language) -> dict:
+def classify_page(page, page_number, filename, matching_params, language) -> dict: ##rules based maybe instead 1. identify as borehole, 2. map 3. title page 4. rest text
 
     text = page.get_text()
     words = extract_words(page, page_number)
@@ -94,15 +68,14 @@ def classify_page(page, page_number, filename, matching_params, language) -> dic
 
     classification = "Unknown"
 
-    # Rule-based classification
-    if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
+    #Rule-based classification
+    if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3: ## classify based on how much text is in a textblock
         classification = "Title Page" if title_page_type(text) else "Text"
     else:
-        classify_keywords = classify_on_keywords(lines, words, matching_params, language)
-        if classify_keywords:
-            classification = classify_keywords
-        else:
-            clusters = y0_word_cluster(lines)
+        classification = classify_on_keywords(lines, words, matching_params, language) 
+        
+        if not classification:
+            clusters = cluster_text_elements(lines, key = "y0") 
             filtered_clusters = [cluster for cluster in clusters if len(cluster) > 1]
             longest_cluster = max(map(len, filtered_clusters), default=0)
 
@@ -110,6 +83,11 @@ def classify_page(page, page_number, filename, matching_params, language) -> dic
                 classification = "Boreprofile"
             else:
                 classification = "Map"
+        
+    ## check if any classification is None
+    if classification is None:
+        logger.info("something in your logic misses a case")
+        classification = "Unknown"
 
     return {"Filename": filename,
             "Page Number": page_number,
