@@ -38,10 +38,6 @@ def classify_text_density(words, page_size):
     avg_word_height = float(np.mean(word_heights))
     std_word_height = float(np.std(word_heights))
 
-    density_threshold = 0.0001
-    height_threshold = page_size[1] * 0.02
-
-
     return {
         "text_density": text_density,
         "text_area": text_area,
@@ -62,21 +58,12 @@ def classify_wordpos(words: list[TextWord]):
     widths = np.array([word.rect.x1 - word.rect.x0 for word in words])
     heights = np.array([word.rect.y1 - word.rect.y0 for word in words])
 
-    # plt.hist2d(x_positions, y_positions, bins=(20, 20), cmap='Blues')
-    # plt.xlabel("X Position")
-    # plt.ylabel("Y Position")
-    # plt.gca().invert_yaxis()
-    # plt.title("Text Bounding Box Distribution")
-    # plt.colorbar(label="Frequency")
-    # plt.show()
-
-    # Compute pairwise Euclidean distances
-    dist_matrix = squareform(pdist(y_positions.reshape(-1, 1))) #instead use boundingbox?
-    threshold = np.percentile(dist_matrix, 20) 
-    graph_matrix = (dist_matrix < threshold).astype(int)
-    lap_matrix = laplacian(graph_matrix, normed=True)
+    # # Compute pairwise Euclidean distances
+    # dist_matrix = squareform(pdist(y_positions.reshape(-1, 1))) #instead use boundingbox?
+    # threshold = np.percentile(dist_matrix, 20) 
+    # graph_matrix = (dist_matrix < threshold).astype(int)
+    # lap_matrix = laplacian(graph_matrix, normed=True)
    
-     
     # Compute spacing bewtween word to next word
     y_spacing = np.diff(np.sort(y_positions)) 
     x_spacing = np.diff(np.sort(x_positions))
@@ -86,7 +73,6 @@ def classify_wordpos(words: list[TextWord]):
     width_std = np.std(widths)
     height_std = np.std(heights)
     
-
     return {
         "mean_y_spacing": mean_y_spacing,
         "median_x_spacing": median_x_spacing,

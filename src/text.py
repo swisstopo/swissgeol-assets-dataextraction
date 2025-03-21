@@ -69,7 +69,7 @@ class TextLine:
             self.rect.include_rect(word.rect)
         self.words = words
         self.page_number = words[0].page_number
-
+        self.font_size = self.compute_font_size()
 
     
     def __repr__(self) -> str:
@@ -78,6 +78,8 @@ class TextLine:
     def line_text(self):
         return ' '.join([word.text for word in self.words])
     
+    def compute_font_size(self):
+        return abs(self.rect.y1 - self.rect.y0)
 
 def create_text_lines(page, page_number) -> list[TextLine]:
 

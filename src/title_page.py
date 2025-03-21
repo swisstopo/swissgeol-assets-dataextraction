@@ -1,3 +1,6 @@
+from .text import TextLine
+import logging
+logger = logging.getLogger(__name__)
 
 title_page_substrings = {
     "page_de_garde_1": [
@@ -123,3 +126,21 @@ def is_title_page(text: str, substrings: list[list[str]]) -> bool:
         for substring_list in substrings
     ]
     return len([evaluation for evaluation in evaluations if evaluation]) / len(evaluations) >= 0.7
+
+def sparse_title_page(lines: list[TextLine]):
+    # if len(lines) > 30: # too many lines -> prob no sparse title page
+    #     return False
+    
+    # not_right_aligned_lines = [line for line in lines if line.rect.x0 > 50] 
+    # if len(not_right_aligned_lines) < 2:
+    #     return False
+    
+    font_sizes = [line.font_size for line in lines]
+
+    multiple_sizes = len(set(font_sizes)) > 5
+    large_font = max(font_sizes)>20
+
+    if multiple_sizes > 5 and large_font > 20:
+        logger.info((multiple_sizes,large_font, len(lines)))
+        return True
+    return False
