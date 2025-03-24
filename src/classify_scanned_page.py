@@ -3,6 +3,7 @@ import pymupdf
 import numpy as np
 import regex
 import logging
+from pathlib import Path
 logger = logging.getLogger(__name__)
 
 from .text import extract_words, create_text_lines, create_text_blocks, TextLine
@@ -78,7 +79,6 @@ def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: f
 
 
 def classify_page(page, page_number, matching_params, language) -> dict: ##inclusion based instead! 1. identify as borehole, 2. map 3. title page 4. rest text
-    
     page_size = (page.rect.width, page.rect.height)
     text = page.get_text()
     words = extract_words(page, page_number)
@@ -132,15 +132,15 @@ def classify_page(page, page_number, matching_params, language) -> dict: ##inclu
 
     return classification
 
-def classify_pdf(file_path, matching_params)-> dict:
+def classify_pdf(file_path: Path, matching_params)-> dict:
     """Processes a pdf File, classfies each page"""
-    classification = []
 
-    if not os.path.isfile(file_path) or not file_path.lower().endswith('.pdf'):
+    if not file_path.is_file() or file_path.suffix.lower() != '.pdf':
         logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")
         return []
-    
-    filename = os.path.basename(file_path)
+
+    classification = []
+
     with pymupdf.Document(file_path) as doc:
         for page_number, page in enumerate(doc, start = 1):
             
@@ -152,5 +152,5 @@ def classify_pdf(file_path, matching_params)-> dict:
                                                 language)   
             classification.append(page_classification)
   
-    return {"filename": filename,
+    return {"filename": file_path.name,
             "classification": classification}

@@ -5,7 +5,7 @@ import yaml
 import json
 from tqdm import tqdm
 from dotenv import load_dotenv
-
+from pathlib import Path
 from src.classify_scanned_page import classify_pdf
 from src.evaluation import evaluate_results
 
@@ -21,13 +21,13 @@ if mlflow_tracking:
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
-def get_pdf_files(input_path: str) -> list:
+def get_pdf_files(input_path: Path) -> list[Path]:
     """Returns a list of PDF files from a directory or a single file."""
-    if os.path.isdir(input_path):
-        return [os.path.join(input_path, f) for f in os.listdir(input_path) if f.lower().endswith('.pdf')]
-    elif os.path.isfile(input_path) and input_path.lower().endswith('.pdf'):
+    if input_path.is_dir():
+        return [f for f in input_path.rglob("*.pdf")]
+    elif input_path.is_file() and input_path.suffix.lower() == '.pdf':
         return [input_path]
-    
+
     logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
     return []
 
@@ -35,12 +35,12 @@ def read_params(params_name: str) -> dict:
     with open(params_name) as f:
         return yaml.safe_load(f)
 
-def setup_mlflow(input_path, output_path, ground_truth_path, matching_params):
+def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dict):
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
     mlflow.set_tag("input_path", str(input_path))
-    mlflow.set_tag("output_path", str(output_path))
+
     if ground_truth_path:
         mlflow.set_tag("ground_truth_path", str(ground_truth_path))
 
@@ -65,11 +65,11 @@ def flatten_dict(d, parent_key='', sep='.') -> dict:
             items.append((new_key, v))
     return dict(items)
 
-def process_pdfs(pdf_files: list, **matching_params) -> list[dict]:
+def process_pdfs(pdf_files: list[Path], **matching_params) -> list[dict]:
     results = []
     with tqdm(total=len(pdf_files)) as pbar:
         for pdf in pdf_files:
-            pbar.set_description(f"Processing {os.path.basename(pdf)}")
+            pbar.set_description(f"Processing {pdf.name}")
             classification_data = classify_pdf(pdf, matching_params)
             if classification_data:
                 results.append(classification_data)
@@ -77,7 +77,9 @@ def process_pdfs(pdf_files: list, **matching_params) -> list[dict]:
 
     return results
 
-def main(input_path: str, output_path: str, ground_truth_path: str = None):
+def main(input_path: str, ground_truth_path: str = None):
+    input_path= Path(input_path)
+    ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
     pdf_files = get_pdf_files(input_path)
     if not pdf_files:
         logger.error("No valid PDFs found.")
@@ -85,9 +87,9 @@ def main(input_path: str, output_path: str, ground_truth_path: str = None):
 
     matching_params = read_params("matching_params.yml")
 
-    # Start MLflow tracking
+    # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, output_path, ground_truth_path, matching_params)
+        setup_mlflow(input_path, ground_truth_path, matching_params)
 
     logger.info(f"Start classifying {len(pdf_files)} PDF files")
     
@@ -99,8 +101,10 @@ def main(input_path: str, output_path: str, ground_truth_path: str = None):
         return
 
     # Save to JSON
-    with open(output_path, "w") as json_file:
-        json.dump(results, json_file, indent = 4)
+    output_file = Path("data") / "prediction.json"
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+    with output_file.open("w") as json_file:
+        json.dump(results, json_file, indent=4)
 
     if ground_truth_path:
         evaluate_results(results, ground_truth_path)
@@ -115,13 +119,10 @@ if __name__ == "__main__":
         "-i", "--input_path", type=str, required=True,
         help="Path to the input directory containing PDF files."
     )
-    parser.add_argument(
-        "-o", "--output_path", type=str, required=True,
-        help="Path to save classification results JSON."
-    )
+
     parser.add_argument(
         "-g", "--ground_truth_path", type=str, required=False,
         help="(Optional) Path to the ground truth JSON file for evaluation."
     )
     args = parser.parse_args()
-    main(args.input_path, args.output_path, args.ground_truth_path)
+    main(args.input_path, args.ground_truth_path)

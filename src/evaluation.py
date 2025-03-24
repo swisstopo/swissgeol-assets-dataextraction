@@ -81,17 +81,17 @@ def log_metrics_to_mlflow(stats, total_files, total_pages):
         fp = s["false_positives"]
         tn = s["true_negatives"]
 
-        total = tp + fn + fp + tn
-        accuracy = (tp + tn) / total if total else 0.0
+        # accuracy = (tp + tn) / total if total else 0.0
         precision = tp / (tp + fp) if (tp + fp) else 0.0
         recall = tp / (tp + fn) if (tp + fn) else 0.0
+        f1 = 2 * ( precision * recall) / (precision + recall) if (precision + recall) else 0.0
 
-        mlflow.log_metric(f"{label}_accuracy", accuracy)
+        mlflow.log_metric(f"F1 {label}", f1)
         mlflow.log_metric(f"{label}_precision", precision)
         mlflow.log_metric(f"{label}_recall", recall)
 
         logger.info(f"Class: {label}")
-        logger.info(f" Accuracy: {accuracy:.2%}, Precision: {precision:.2%}, Recall: {recall:.2%}")
+        logger.info(f" F1: {f1:.2%}, Precision: {precision:.2%}, Recall: {recall:.2%}")
 
     mlflow.log_metric("total_pages", total_pages)
     mlflow.log_metric("total_files", total_files)
@@ -150,6 +150,7 @@ def evaluate_results(predictions, ground_truth_path, output_dir="evaluation"):
 
     stats, total_files, total_pages = compute_confusion_stats(class_dict, gt_dict)
     stats_path = save_confusion_stats(stats, output_dir)
+
     log_metrics_to_mlflow(stats, total_files, total_pages)
     mlflow.log_artifact(str(stats_path))
     create_page_comparison(class_dict, gt_dict, output_dir)
