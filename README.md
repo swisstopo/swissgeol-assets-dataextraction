@@ -25,12 +25,15 @@ The training dataset stored in the S3 bucket:`swisstopo-lillemor-haibach-workspa
 
 It contains the following subfolders:  
 
-| Folder      | Description |
-|-------------|-------------|
-| `maps/`     | Contains scanned **map pages** |
-| `boreprofile/` | Holds **borehole profile pages** |
-| `title_page/` | Stores **title pages** from Infogeol reports |
-| `text/`     | Includes **continuous text pages** |
+| Folder                      | Description                                                                                                                  |
+|-----------------------------|------------------------------------------------------------------------------------------------------------------------------|
+| `single_pages/maps/`        | Contains scanned **map pages**                                                                                               |
+| `single_pages/boreprofile/` | Holds **borehole profile pages**                                                                                             |
+| `single_pages/title_page/`  | Stores **title pages** from reports (no Summary sheet)                                                                       |
+| `single_pages/text/`        | Includes **continuous text pages**                                                                                           |
+| `single_pages/unknown/`     | Includes **pages not belonging to classes above**, f.e tables, mixed pages, graphs, Summary sheet (like Infogeol title pages |
+| `reports/`                  | Short reports a lot of the single pages stem from. Ground truth available.                                                   |
+| `reports_no_gt`             | Longer reports, were no ground turth is avaibale, but interesting for exploration  longer reports)                           |
 
 Additionally, boreprofile data from `zurich` and `geoquat/validation` in the repository **`swisstopo/swissgeol-boreholes-dataextraction`** can be used for classification.  
 
@@ -38,8 +41,10 @@ Additionally, boreprofile data from `zurich` and `geoquat/validation` in the rep
 
 A **ground truth dataset** was created for each category, including the boreprofile data from `zurich` and `geoquat/validation` in **`swisstopo/swissgeol-boreholes-dataextraction`**.  
 
-- **Classification results** are stored in **`data/classification_results.csv`**.  
-- **Ground truth files** are stored as **`data/groundtruth_{subfolder}.csv`**.
+- **Classification results** are stored in **`data/prediction.json`**.  
+- **Ground truth files** are stored as **`data/gt_single_pages.json`** for all pdf files within subfoldes of `single_pages`. 
+- For reports folder groundtruths are stored as **`data/get_reports.json`**. Not completely accurate!
+- For reports_no_gt no groundtruths is available.
 
 ---
 
@@ -47,12 +52,10 @@ A **ground truth dataset** was created for each category, including the boreprof
 
 The classification currently follows a structured categorization:
 
-
 1. **Text Pages (Fliesstext)** → Pages containing continuous flowing text.  
 2. **Borehole Profiles** → Pages containing borehole profiles.  
 3. **Maps** → Pages containing maps.  
-4. **Title Pages** → Infogeol title pages (pre-defined classification in the `language-detection` repository).  
-
+4. **Title Pages** → Title Pages within report (not implemented). Summary sheets are not included
 ---
 
 ## Repository Structure
@@ -60,40 +63,45 @@ The classification currently follows a structured categorization:
 The structure of the repository is:
 - data/
     - `input/`: folder with subfolders containing one type of pages (text, title_page, boreprofile, maps)
-    -  `classtification_results.csv`: classification results
-    - `groundtruth_{subfolder}.csv`: groundtruth for each subfolder including groundtruth for `zurich`and and `geoquat/validation` of the repository `swisstopo/swissgeol-boreholes-dataextraction`
-    - `NAB/` : folder containing NAGRA reports, digitally born
-    - `test/`: output folder images, drawings etc get saved to.
+    -  `prediction.json`: classification results
+    - `gt_{subfolder}.json`: groundtruth for each folder if it exists, including groundtruth for `zurich`and and `geoquat/validation` of the repository `swisstopo/swissgeol-boreholes-dataextraction`
+    - `test/`: output folder for jupyter notebooks where images, drawings etc get saved to.
+    - `legaldocs_redo/`: data used to update legaldocs (unrelated to classification)
 - src/
-    - includes python util scripts, needed for the execution of the classification or other jupyter notebooks
+    - includes python util scripts, needed for the page classification or other jupyter notebooks.
+- evaluation/
+    - evaluation_metrics and per_page_comparisons get saved to here
 - notebooks/
-    - `create_testdata.ipynb`: notebook used to create input data for `classify_scanned_page.py`. Takes 
-    - `classify_digital_page.ipynb`:
-    - `extract_images.ipynb`: Extracts images/ drawings from digitally boren pdfs. Draws boudning boxes for text, and drawings for pdfs.
-    - `asset-notebook.ipynb`: Extracts Table of Content out odf pdfs.
+    - `create_testdata.ipynb`: notebook used to create single page input data for the classification. 
+    - `classify_digital_page.ipynb`: Try out Notebook to classify digital pdf pages. Code might be reusable
+    - `extract_images.ipynb`: Extracts images/ drawings from digitally born pdfs. Draws bounding boxes for text and drawings in pdfs. Reusable Code
+    - `asset-notebook.ipynb`: Extracts Table of Content out odf pdfs. Might come in handy for detecting report structure..
     - `asset-notebook_S3.ipynb`: Retrieve and save all text for all files on the S3 bucket as .txt files
-    - `layout_parser.ipynb`: Uses layout parser to identiy layout of pages in pdf files
+    - `layout_parser.ipynb`: Uses layout parser to identify layout of pages in pdf files.
     - `corner_detection.ipynb`: Followed tutorial for corner detection within image.
-    - `pdf_type.ipynb`: naiv approach to classifying pages into digitally or scanned pdfs.
-    - `find_documents.ipynb`: finds all files with certain keyword in all subfolders of base directory. It also extends legaldocs futher described in [Legal Docs](https://ltwiki.adr.admin.ch:8443/pages/viewpage.action?pageId=637241440&spaceKey=LG&title=Legal%2BDocs).
-- `main.py`: executes classification process
-- `matching_params.yml`: contains list of keywords for TOC
+    - `pdf_type.ipynb`: naive approach to classifying pages into digitally or scanned pdfs.
+    - `find_documents.ipynb`: (unrelated to classification) finds all files with certain keyword in all subfolders of base directory. It extends legaldocs further described in [Legal Docs](https://ltwiki.adr.admin.ch:8443/pages/viewpage.action?pageId=637241440&spaceKey=LG&title=Legal%2BDocs).
+- `main.py`: executes classification process 
+- `matching_params.yml`: contains list of keywords for TOC, material description, boreprofiles.
 - `.gitigore`
 - `README.md`
+- `requirements.txt`
+
 
 ## How to run classify_scanned_page.py
 1. Install dependencies:
 ```
 pip install -r requirements.txt
 ```
-2. Ensure the input directory exists: `data/input/{maps, boreprofile, title_page, text}`
-3. Specify the input directory/ file(--input_path, -i), output path (--output_path, -o), and optionally, the ground truth (--ground_truth_path, -g) file to run the classification:
+2. For tracking metrics for classification set environment variable `MLFLOW_TRACKING=True`, f.e in `.env` file. Run cli command ```mlflow ui```. 
+3. Ensure the input directory exists: `data/input/single_pages/{maps, boreprofile, title_page, text}`
+4. Specify the input directory/ file(--input_path, -i)  and optionally, the ground truth (--ground_truth_path, -g) file to run the classification of one pdf or whole directory including subdirectories:
 ```
-python src/main.py --input_path replace/with/path --output_path replace/with/path --ground_truth_path replace/with/path.csv
+python src/main.py --input_path replace/with/path --ground_truth_path replace/with/path.csv
 ```
-or 
+Example
 ```
-python src/main.py -i replace/with/path -o replace/with/path -g replace/with/path.csv
+python src/main.py -i data/single_pages/  -g data/gt_single_pages.json
 ``` 
 
 
