@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 from .text import extract_words, create_text_lines, create_text_blocks, TextLine
 from .utils import TextWord, closest_word_distances, cluster_text_elements, classify_text_density, classify_wordpos
-from .title_page import title_page_type,  sparse_title_page
+from .title_page import sparse_title_page
 from .detect_language import detect_language_of_page
 from .material_description import detect_material_description
 
@@ -112,9 +112,6 @@ def classify_page(page, page_number, matching_params, language) -> dict: ##inclu
 
     # Rule-based classification
     if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
-        if title_page_type(text):
-            classification["Title_Page"] = 1
-        else:
             classification["Text"] = 1
 
     elif identify_boreprofile(lines, words, matching_params, language):

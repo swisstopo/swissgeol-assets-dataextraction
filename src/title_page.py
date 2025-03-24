@@ -2,7 +2,7 @@ from .text import TextLine
 import logging
 logger = logging.getLogger(__name__)
 
-title_page_substrings = {
+InfoGeol_page_substrings = {
     "page_de_garde_1": [
         ["PAGE DE GARDE", "P A G E DE G A R D E"],
         ["No AGS"],
@@ -110,17 +110,17 @@ title_page_substrings = {
 }
 
 
-def title_page_type(text: str) -> str | None:
+def InfoGeol_page_type(text: str) -> str | None:
     return next(
         (
             type_id
-            for type_id, substrings in title_page_substrings.items()
-            if is_title_page(text, substrings)
+            for type_id, substrings in InfoGeol_page_substrings.items()
+            if is_InfoGeol_page(text, substrings)
         ),
         None
     )
 
-def is_title_page(text: str, substrings: list[list[str]]) -> bool:
+def is_InfoGeol_page(text: str, substrings: list[list[str]]) -> bool:
     evaluations = [
         any(substring in text for substring in substring_list)
         for substring_list in substrings
