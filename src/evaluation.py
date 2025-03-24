@@ -9,9 +9,12 @@ logger = logging.getLogger(__name__)
 LABELS = ["Text", "Boreprofile", "Title_Page", "Maps", "Unknown"]
 
 def load_ground_truth(ground_truth_path):
-    with open(ground_truth_path, 'r') as f:
-        return {entry["filename"]: entry["classification"] for entry in json.load(f)}
-
+    try:
+        with open(ground_truth_path, 'r') as f:
+            return {entry["filename"]: entry["classification"] for entry in json.load(f)}
+    except:
+        logging.error("Invalid ground truth path: Skipping evaluation.")
+        return None
 
 def compute_confusion_stats(predictions, ground_truth):
     stats = {
@@ -146,6 +149,9 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
 
 def evaluate_results(predictions, ground_truth_path, output_dir="evaluation"):
     gt_dict = load_ground_truth(ground_truth_path)
+    if gt_dict is None:
+        return
+
     class_dict = {entry["filename"]: entry["classification"] for entry in predictions}
 
     stats, total_files, total_pages = compute_confusion_stats(class_dict, gt_dict)

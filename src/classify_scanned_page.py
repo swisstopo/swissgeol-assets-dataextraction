@@ -71,7 +71,7 @@ def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: f
     if (
         (median_distance is not None and median_distance >= 20 and longest_cluster <= 4)
         and (text_is_sparse and irregular_text_structure)
-        or text_area_is_small
+        and text_area_is_small
     ):
         logger.info("Map detected based on clustering and text structure.")
         return True
