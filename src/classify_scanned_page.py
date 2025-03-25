@@ -44,7 +44,7 @@ def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_
 
 
 def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: float, page_size) -> bool: ## refine this!!
-    """Identifies whether a page conatins a map based on scale pattern."""
+    """Identifies whether a page contains a map based on scale pattern."""
     
     if find_maps_pattern(words):  # too unspecific
         logger.info("Map detected based on pattern")
@@ -64,7 +64,7 @@ def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: f
         structure_metrics["width_std"] > page_size[0] * 0.1 
     )
 
-    clusters = cluster_text_elements(lines, key = "y0") 
+    clusters = cluster_text_elements(lines, key = "y0")
     filtered_clusters = [cluster for cluster in clusters if len(cluster) > 1]
     longest_cluster = max(map(len, filtered_clusters), default=0)
 
@@ -80,7 +80,6 @@ def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: f
 
 def classify_page(page, page_number, matching_params, language) -> dict: ##inclusion based instead! 1. identify as borehole, 2. map 3. title page 4. rest text
     page_size = (page.rect.width, page.rect.height)
-    text = page.get_text()
     words = extract_words(page, page_number)
     classification = {
         "Page": page_number,
