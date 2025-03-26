@@ -1,4 +1,3 @@
-import os
 import pymupdf
 import numpy as np
 import regex
@@ -6,8 +5,8 @@ import logging
 from pathlib import Path
 logger = logging.getLogger(__name__)
 
-from .text import extract_words, create_text_lines, create_text_blocks, TextLine
-from .utils import TextWord, closest_word_distances, cluster_text_elements, classify_text_density, classify_wordpos
+from .text import extract_words, create_text_lines, create_text_blocks, TextLine, TextWord
+from .utils import cluster_text_elements, is_description
 from .title_page import sparse_title_page
 from .detect_language import detect_language_of_page
 from .material_description import detect_material_description
@@ -17,21 +16,17 @@ pattern_maps = [
     regex.compile(r"1\s*:\s*[125]((0{1,2})?([',]000)+)")
 ]
 
-def find_maps_pattern(words: list[TextWord]) -> regex.Match | None:
+def find_map_scales(line: TextLine) -> regex.Match | None:
     return next((match 
                  for pattern in pattern_maps 
-                 for word in words 
+                 for word in line.words
                  if (match := pattern.search(word.text))), None)
 
 
 def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_params: dict, language:str) -> bool:
-    """Identifies whether a page conatins a boreprofile based on presence of  a valid material description in given language"""
+    """Identifies whether a page contains a boreprofile based on presence of  a valid material description in given language"""
 
-    if language not in matching_params["material_description"]:
-        logging.warning(f"Language '{language}' not supported. Using default german language.")
-        language = "de"
-
-    material_descriptions = detect_material_description(lines, words, matching_params["material_description"].get(language, {}))
+    material_descriptions = detect_material_description(lines, words, matching_params.get(language, {}))
 
     if material_descriptions:
         for description in material_descriptions:
@@ -42,45 +37,55 @@ def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_
     
     return False
 
-
-def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: float, page_size) -> bool: ## refine this!!
+def identify_map(lines: list[TextLine], matching_params, language) -> bool: ## refine this!!
     """Identifies whether a page contains a map based on scale pattern."""
-    
-    if find_maps_pattern(words):  # too unspecific
-        logger.info("Map detected based on pattern")
-        return True  
-    
-    # Classify text density and distribution
-    text_metrics = classify_text_density(words, page_size)
-    structure_metrics = classify_wordpos(words)
+    info_lines = [
+        line for line in lines
+        if is_description(line, matching_params.get(language, {})) or find_map_scales(line)
+    ]
 
-    # Text density: Low-density pages are more likely to contain maps.
-    text_is_sparse = text_metrics["text_density"] < 0.00005  
-    text_area_is_small = text_metrics["text_area"] < 0.1 
+    filtered_lines = [line for line in lines if len(line.words) < 4]
 
-    # Word positioning: Check if text is scattered rather than structured
-    irregular_text_structure = (
-        structure_metrics["mean_y_spacing"] > page_size[1] * 0.03 and 
-        structure_metrics["width_std"] > page_size[0] * 0.1 
-    )
+    if filtered_lines and (len(filtered_lines)/len(lines) ) > 0.5: # twice as many short lines than long lines
 
-    clusters = cluster_text_elements(lines, key = "y0")
-    filtered_clusters = [cluster for cluster in clusters if len(cluster) > 1]
-    longest_cluster = max(map(len, filtered_clusters), default=0)
+        clusters = cluster_text_elements(filtered_lines,
+                                         key="x0")  ## cluster remaining lines on x0, maybe we should use words instead
+        potential_legends = [cluster for cluster in clusters if len(cluster) > 3]
+        ## maybe we should use text blocks instead?
+        ## or validate legends else very far apart lines can end up in one cluster, having a lot of noise between them
+        map_entries_cluster = list(filter(lambda cluster: cluster not in potential_legends, clusters))
+        # logger.info("map_entries_cluster %s", [line.line_text() for lines in map_entries_cluster for line in lines])
 
-    if (
-        (median_distance is not None and median_distance >= 20 and longest_cluster <= 4)
-        and (text_is_sparse and irregular_text_structure)
-        and text_area_is_small
-    ):
-        logger.info("Map detected based on clustering and text structure.")
-        return True
-    return False  
+        if map_entries_cluster:
+            if info_lines:
+                return True
 
+            filtered_words = [word
+                              for lines in map_entries_cluster
+                              for line in lines
+                              for word in line.words]
+
+            def _is_a_number(string: str)-> bool:
+                try:
+                    float(string)
+                    return True
+                except ValueError:
+                    return False
+
+            capitalized_words = [word
+                                 for word in filtered_words
+                                 if (word.text.isalpha() and word.text.istitle() or word.text.isupper()) ]
+            numbers = [word for word in filtered_words if _is_a_number(word.text)]
+
+            if capitalized_words or numbers:
+                ratio = (len(capitalized_words) + len(numbers)) / len(filtered_words)
+                if ratio > 0.75:
+                    return True
+
+    return False
 
 def classify_page(page, page_number, matching_params, language) -> dict: ##inclusion based instead! 1. identify as borehole, 2. map 3. title page 4. rest text
-    page_size = (page.rect.width, page.rect.height)
-    words = extract_words(page, page_number)
+
     classification = {
         "Page": page_number,
         "Boreprofile": 0,
@@ -90,13 +95,12 @@ def classify_page(page, page_number, matching_params, language) -> dict: ##inclu
         "Unknown": 0
     }
 
+    words = extract_words(page, page_number)
     if not words:
         classification["Unknown"] = 1
         return classification
 
     # Compute word distances and line attributes
-    distances = closest_word_distances(words)
-    median_distance = np.median(distances) if distances else None
     lines = create_text_lines(page, page_number)
     words_per_line = [len(line.words) for line in lines]
     mean_words_per_line = np.mean(words_per_line) if words_per_line else 0
@@ -113,15 +117,15 @@ def classify_page(page, page_number, matching_params, language) -> dict: ##inclu
     if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
             classification["Text"] = 1
 
-    elif identify_boreprofile(lines, words, matching_params, language):
-        classification["Boreprofile"] = 1
+    elif identify_boreprofile(lines, words, matching_params["material_description"], language): ## Ensure the boreprofile check is independent of what happens above (if and not elif?)
+        classification["Boreprofile"] = 1                                                        # should requires text sparsity as a necessary condition.
 
-    elif identify_map(lines, words, median_distance, page_size):
+    elif identify_map(lines, matching_params["map_terms"], language):
         classification["Maps"] = 1
 
     elif sparse_title_page(lines):
         classification["Title_Page"] = 1
-        logger.info(f"possible title page {page_number}")
+        logger.info(f" title page on page: {page_number}")
 
     else:
         classification["Unknown"] = 1
@@ -129,11 +133,11 @@ def classify_page(page, page_number, matching_params, language) -> dict: ##inclu
     return classification
 
 def classify_pdf(file_path: Path, matching_params)-> dict:
-    """Processes a pdf File, classfies each page"""
+    """Processes a pdf File, classifies each page"""
 
     if not file_path.is_file() or file_path.suffix.lower() != '.pdf':
         logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")
-        return []
+        return {}
 
     classification = []
 
@@ -141,6 +145,10 @@ def classify_pdf(file_path: Path, matching_params)-> dict:
         for page_number, page in enumerate(doc, start = 1):
             
             language = detect_language_of_page(page)
+
+            if language not in matching_params["material_description"]:
+                logging.warning(f"Language '{language}' not supported. Using default german language.")
+                language = "de"
 
             page_classification = classify_page(page,
                                                 page_number,

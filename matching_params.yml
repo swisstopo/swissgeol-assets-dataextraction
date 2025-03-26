@@ -1,46 +1,46 @@
 table_of_contents:
   en:
-    - "table of contents"
-    - "contents"
-    - "index"
-    - "overview"
-    - "summary"
-    - "list of topics"
+    - table of contents
+    - contents
+    - index
+    - overview
+    - summary
+    - list of topics
   de:
-    - "inhalt"
-    - "inhaltsverzeichnis"
-    - "übersicht"
-    - "index"
-    - "zusammenfassung"
-    - "kapitelübersicht"
+    - inhalt
+    - inhaltsverzeichnis
+    - übersicht
+    - index
+    - zusammenfassung
+    - kapitelübersicht
   fr:
-    - "table des matières"
-    - "sommaire"
-    - "index"
-    - "aperçu"
-    - "résumé"
-    - "liste des chapitres"
+    - table des matières
+    - sommaire
+    - index
+    - aperçu
+    - résumé
+    - liste des chapitres
 
 boreprofile:
   en:
-    - "borehole profile"
-    - "borehole log"
-    - "borehole"
-    - "borehole diagram"
-    - "borehole cross section"
+    - borehole profile
+    - borehole log
+    - borehole
+    - borehole diagram
+    - borehole cross section
   de:
-    - "bohrprofil"
-    - "bohrlochprofil"
-    - "bohrung"
+    - bohrprofil
+    - bohrlochprofil
+    - bohrung
   fr:
-    - "profil de forage"
-    - "diagramme de forage"
-    - "forage"
-    - "sondage"
+    - profil de forage
+    - diagramme de forage
+    - forage
+    - sondage
   it:
-    - "profilo di perforazione"
-    - "diagramma di perforazione"
-    - "sondaggio"
+    - profilo di perforazione
+    - diagramma di perforazione
+    - sondaggio
 
 material_description:
   de:
@@ -181,3 +181,71 @@ material_description:
       - pump test
       - core drilling
       - drilling radius
+
+map_terms:
+  en:
+    including_expressions:
+      - legend
+      - map
+      - map key
+      - map symbols
+      - features
+      - scale
+      - sheet
+      - contour interval
+      - topographic
+      - elevation
+    excluding_expressions:
+      - diagram
+      - graph
+      - table
+      - chart
+  de:
+    including_expressions:
+      - legende
+      - karte
+      - kartenzeichen
+      - massstab
+      - blatt
+      - höhenlinien
+      - topographisch
+      - höhe
+      - situation
+    excluding_expressions:
+      - diagramm
+      - grafik
+      - tabelle
+      - schaubild
+      - bohrprofil
+  fr:
+    including_expressions:
+      - carte
+      - légende
+      - symboles
+      - échelle
+      - planche
+      - courbes de niveau
+      - altitude
+      - topographique
+      - situation
+    excluding_expressions:
+      - diagramme
+      - graphique
+      - tableau
+      - schéma
+  it:
+    including_expressions:
+      - mappa
+      - legenda
+      - simboli
+      - scala
+      - foglio
+      - equidistanza
+      - curve di livello
+      - altimetrico
+      - situazione
+    excluding_expressions:
+      - diagramma
+      - grafico
+      - tabella
+      - schema

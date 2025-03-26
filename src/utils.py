@@ -1,13 +1,9 @@
 import pymupdf
 import numpy as np
-import matplotlib.pyplot as plt
-from scipy.spatial.distance import pdist, squareform
-from scipy.sparse.csgraph import laplacian
-import os
 import math
 from collections import defaultdict
 
-from .text import TextWord
+from .text import TextWord, TextLine
 
 
 def is_digitally_born(page: pymupdf.Page) -> bool:
@@ -18,6 +14,12 @@ def is_digitally_born(page: pymupdf.Page) -> bool:
             return True
     return False
 
+def is_description(line: TextLine, matching_params: dict):
+    """Check if the words in line matches with matching parameters."""
+    line_text = line.line_text().lower()
+    return any(
+        line_text.find(word) > -1 for word in matching_params["including_expressions"]
+    ) and not any(line_text.find(word) > -1 for word in matching_params["excluding_expressions"])
 
 def classify_text_density(words, page_size):
     if not words:
@@ -47,7 +49,7 @@ def classify_text_density(words, page_size):
 
 def classify_wordpos(words: list[TextWord]):
     """Classifies text structure on page based on distribution."""
-    
+
     if not words:
         print( "Unknown")
         return
@@ -60,19 +62,19 @@ def classify_wordpos(words: list[TextWord]):
 
     # # Compute pairwise Euclidean distances
     # dist_matrix = squareform(pdist(y_positions.reshape(-1, 1))) #instead use boundingbox?
-    # threshold = np.percentile(dist_matrix, 20) 
+    # threshold = np.percentile(dist_matrix, 20)
     # graph_matrix = (dist_matrix < threshold).astype(int)
     # lap_matrix = laplacian(graph_matrix, normed=True)
-   
+
     # Compute spacing bewtween word to next word
-    y_spacing = np.diff(np.sort(y_positions)) 
+    y_spacing = np.diff(np.sort(y_positions))
     x_spacing = np.diff(np.sort(x_positions))
-    
+
     mean_y_spacing = float(np.mean(y_spacing)) if len(y_spacing) > 0 else 0
     median_x_spacing = float(np.median(x_spacing)) if len(x_spacing) > 0 else 0
     width_std = np.std(widths)
     height_std = np.std(heights)
-    
+
     return {
         "mean_y_spacing": mean_y_spacing,
         "median_x_spacing": median_x_spacing,
@@ -80,7 +82,7 @@ def classify_wordpos(words: list[TextWord]):
         "width_std": float(width_std),
         "height_std":float(height_std)
     }
- 
+
 def calculate_distance(word1, word2):
     """Calculate Euclidean distance between two TextWord objects based on x0 and y0"""
     x_dist = word1.rect.x0 - word2.rect.x0
@@ -102,15 +104,15 @@ def closest_word_distances(words):
 
 def cluster_text_elements(elements, key="y0", tolerance: int = 10):
     """ cluster text elements based on coordinates of bounding box
-    
-    Args: 
+
+    Args:
         elements: List of object containing a `rect` attribute with x0 or y0 etc
         key: attribute clustering is based on (y0 or x0)
         tolerance: max allowed difference between entries and a cluster key"""
-   
+
     if not elements:
         return []
-    
+
     ## make sure that key is acutally input we allow
     if not isinstance(key, str):
         raise TypeError(f"Expected 'key' to be a string, got {type(key)} instead.")
