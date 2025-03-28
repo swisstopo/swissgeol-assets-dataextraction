@@ -24,7 +24,7 @@ def cluster_drawings(drawings):
         added = False
         
         for cluster in clusters:
-            if any(bbox.intersects(pymupdf.Rect(existing_bbox)) for existing_bbox in cluster):
+            if any(bbox.intersects(existing_bbox) for existing_bbox in cluster):
                 cluster.append(bbox)
                 added = True
                 break
