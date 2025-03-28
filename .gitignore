@@ -1,7 +1,2 @@
 /data
 .ipynb_checkpoints/
-*/__pycache__/*
-/mlruns
-/mlflow_temp_results
-/notebooks/data
-/evaluation
