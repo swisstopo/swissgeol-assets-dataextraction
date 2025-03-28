@@ -33,7 +33,7 @@ It contains the following subfolders:
 | `single_pages/text/`        | Includes **continuous text pages**                                                                                           |
 | `single_pages/unknown/`     | Includes **pages not belonging to classes above**, f.e tables, mixed pages, graphs, Summary sheet (like Infogeol title pages |
 | `reports/`                  | Short reports a lot of the single pages stem from. Ground truth available.                                                   |
-| `reports_no_gt`             | Longer reports, were no ground turth is avaibale, but interesting for exploration  longer reports)                           |
+| `reports_no_gt/`            | Longer reports, were no ground turth is avaibale, but interesting for exploration  longer reports)                           |
 
 Additionally, boreprofile data from `zurich` and `geoquat/validation` in the repository **`swisstopo/swissgeol-boreholes-dataextraction`** can be used for classification.  
 
@@ -66,7 +66,6 @@ The structure of the repository is:
     -  `prediction.json`: classification results
     - `gt_{subfolder}.json`: groundtruth for each folder if it exists, including groundtruth for `zurich`and and `geoquat/validation` of the repository `swisstopo/swissgeol-boreholes-dataextraction`
     - `test/`: output folder for jupyter notebooks where images, drawings etc get saved to.
-    - `legaldocs_redo/`: data used to update legaldocs (unrelated to classification)
 - src/
     - includes python util scripts, needed for the page classification or other jupyter notebooks.
 - evaluation/
@@ -80,7 +79,6 @@ The structure of the repository is:
     - `layout_parser.ipynb`: Uses layout parser to identify layout of pages in pdf files.
     - `corner_detection.ipynb`: Followed tutorial for corner detection within image.
     - `pdf_type.ipynb`: naive approach to classifying pages into digitally or scanned pdfs.
-    - `find_documents.ipynb`: (unrelated to classification) finds all files with certain keyword in all subfolders of base directory. It extends legaldocs further described in [Legal Docs](https://ltwiki.adr.admin.ch:8443/pages/viewpage.action?pageId=637241440&spaceKey=LG&title=Legal%2BDocs).
 - `main.py`: executes classification process 
 - `matching_params.yml`: contains list of keywords for TOC, material description, boreprofiles.
 - `.gitigore`
@@ -155,7 +153,7 @@ Extracts images and drawings from digitally born documents (and from scanned pdf
 
 1. Specify the input file name and path inside the notebook.
 2. The notebook processes the document and extracts images and drawings
-3. It clusters drawings and text and draws bounding boxes around detected elements to visualize  behavior.
+3. It clusters drawings and text and draws bounding boxes around detected elements to visualize behavior.
 4. Saves results in `data/test/filename/`
 
 
@@ -165,5 +163,4 @@ TODO:
 - layout_parser.ipynb
 - corner_detection.ipynb
 - pdf_type.ipynb
-- find_documents.ipynb
 

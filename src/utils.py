@@ -2,6 +2,7 @@ import pymupdf
 import numpy as np
 import math
 from collections import defaultdict
+from typing import Callable
 
 from .text import TextWord, TextLine
 
@@ -85,9 +86,7 @@ def classify_wordpos(words: list[TextWord]):
 
 def calculate_distance(word1, word2):
     """Calculate Euclidean distance between two TextWord objects based on x0 and y0"""
-    x_dist = word1.rect.x0 - word2.rect.x0
-    y_dist = word1.rect.y0 - word2.rect.y0
-    return math.sqrt(x_dist**2 + y_dist**2)
+    return word1.rect.top_left.distance_to(word2.rect.top_left)
 
 def closest_word_distances(words):
     """Calculate distances between each word and its closest neighbor"""
@@ -102,9 +101,8 @@ def closest_word_distances(words):
 
     return distances
 
-def cluster_text_elements(elements, key="y0", tolerance: int = 10):
+def cluster_text_elements(elements, key_fn = Callable[[pymupdf.Rect], float], tolerance: int = 10):
     """ cluster text elements based on coordinates of bounding box
-
     Args:
         elements: List of object containing a `rect` attribute with x0 or y0 etc
         key: attribute clustering is based on (y0 or x0)
@@ -113,19 +111,11 @@ def cluster_text_elements(elements, key="y0", tolerance: int = 10):
     if not elements:
         return []
 
-    ## make sure that key is acutally input we allow
-    if not isinstance(key, str):
-        raise TypeError(f"Expected 'key' to be a string, got {type(key)} instead.")
-    valid_keys = {"y0", "x0"}
-
-    if key not in valid_keys:
-        raise ValueError(f"Invalid key '{key}'. Must be one of {valid_keys}.")
-
     # Dictionary to hold clusters, keys are representative attribute values
     grouped = defaultdict(list)
 
     for element in elements:
-        attribute = getattr(element.rect, key)
+        attribute = key_fn(element)
         matched_key = None
 
         # Check if attribute is within tolerance of an existing cluster

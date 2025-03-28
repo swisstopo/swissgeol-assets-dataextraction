@@ -1,3 +1,8 @@
+"""
+Most of the code is copied from:
+- the swissgeol-ocr repo (https://github.com/swisstopo/swissgeol-ocr)
+- the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
+"""
 import pymupdf
 import os
 from collections import defaultdict
