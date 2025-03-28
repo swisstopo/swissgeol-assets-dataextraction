@@ -49,7 +49,7 @@ def identify_map(lines: list[TextLine], matching_params, language) -> bool: ## r
     if filtered_lines and (len(filtered_lines)/len(lines) ) > 0.5: # twice as many short lines than long lines
 
         clusters = cluster_text_elements(filtered_lines,
-                                         key="x0")  ## cluster remaining lines on x0, maybe we should use words instead
+                                         key_fn= lambda line:line.rect.x0)  ## cluster remaining lines on x0, maybe we should use words instead
         potential_legends = [cluster for cluster in clusters if len(cluster) > 3]
         ## maybe we should use text blocks instead?
         ## or validate legends else very far apart lines can end up in one cluster, having a lot of noise between them
