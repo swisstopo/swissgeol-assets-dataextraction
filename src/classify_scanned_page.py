@@ -1,4 +1,3 @@
-import os
 import pymupdf
 import numpy as np
 import regex
@@ -25,7 +24,7 @@ def find_maps_pattern(words: list[TextWord]) -> regex.Match | None:
 
 
 def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_params: dict, language:str) -> bool:
-    """Identifies whether a page conatins a boreprofile based on presence of  a valid material description in given language"""
+    """Identifies whether a page contains a boreprofile based on presence of  a valid material description in given language"""
 
     if language not in matching_params["material_description"]:
         logging.warning(f"Language '{language}' not supported. Using default german language.")
@@ -64,7 +63,7 @@ def identify_map(lines: list[TextLine],words: list[TextWord], median_distance: f
         structure_metrics["width_std"] > page_size[0] * 0.1 
     )
 
-    clusters = cluster_text_elements(lines, key = "y0")
+    clusters = cluster_text_elements(lines, key_fn = lambda line : line.rect.y0)
     filtered_clusters = [cluster for cluster in clusters if len(cluster) > 1]
     longest_cluster = max(map(len, filtered_clusters), default=0)
 

@@ -1,3 +1,5 @@
+"""Very similar to code in swissgeol-boreholes-dataextraction repo https://github.com/swisstopo/swissgeol-boreholes-dataextraction
+The same including and excluding matching parameters used."""
 import pymupdf
 import logging
 
@@ -6,7 +8,7 @@ from .utils import cluster_text_elements
 logger = logging.getLogger(__name__)
 
 class MaterialDescription:
-    "Stores information about material description block:"
+    "Stores information about material description block."
 
     def __init__(self, text_lines: list[TextLine], all_words: list[TextWord]): ## maybe possible only use words or lines here...
         self.text_lines =text_lines
@@ -25,7 +27,7 @@ class MaterialDescription:
     
 
     def compute_noise(self,all_words:list[TextWord]):
-        """for bounding box compute noise of words not containing to bbox entries"""
+        """For bounding box compute noise of words not containing to bbox entries"""
         description_words = [word for line in self.text_lines for word in line.words]
         noise_words= [word for word in all_words 
                      if self.rect.contains(word.rect) and word not in description_words]
@@ -43,14 +45,14 @@ def is_description(line: TextLine, material_description: dict):
 
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
-    """Detects  material descriptions in Textlines and returns List of MateriaDescriptions."""
+    """Detects material descriptions in Textlines and returns List of MaterialDescriptions."""
     material_lines = [
             line
             for line in lines
             if is_description(line, material_description)
         ]
 
-    line_clusters = cluster_text_elements(material_lines, key = "x0") ##cluster based on x0
+    line_clusters = cluster_text_elements(material_lines, key_fn = lambda line: line.rect.x0) ##cluster based on x0
     
     filtered_cluster = [cluster for cluster in line_clusters if len(cluster) > 2] # valid description box should have at least 3 lines
     

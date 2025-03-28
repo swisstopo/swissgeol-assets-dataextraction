@@ -1,11 +1,5 @@
 import pymupdf
 
-def bbox_overlap(rect1, rect2):
-    """
-    Check if two bboxes overlap
-    """
-    return rect1.intersects(rect2) or rect1.contains(rect2) or rect2.contains(rect1)
-
 def merge_bounding_boxes(rects):
     """Computes the smallest bbox that contains all input rectangles."""
     x0 = min(rect.x0 for rect in rects)
@@ -30,7 +24,7 @@ def cluster_drawings(drawings):
         added = False
         
         for cluster in clusters:
-            if any(bbox_overlap(bbox, pymupdf.Rect(existing_bbox)) for existing_bbox in cluster):
+            if any(bbox.intersects(pymupdf.Rect(existing_bbox)) for existing_bbox in cluster):
                 cluster.append(bbox)
                 added = True
                 break
