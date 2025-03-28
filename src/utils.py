@@ -1,6 +1,5 @@
 import pymupdf
 import numpy as np
-import math
 from collections import defaultdict
 from typing import Callable
 
@@ -22,32 +21,6 @@ def is_description(line: TextLine, matching_params: dict):
         line_text.find(word) > -1 for word in matching_params["including_expressions"]
     ) and not any(line_text.find(word) > -1 for word in matching_params["excluding_expressions"])
 
-def classify_text_density(words, page_size):
-    if not words:
-        return {
-            "classification": "No text",
-            "text_density": 0,
-            "text_area": 0,
-            "avg_word_height": 0,
-            "std_word_height": 0
-        }
-
-    page_area = page_size[0] * page_size[1]
-    text_density = len(words) / page_area
-
-    text_area = sum(word.rect.width * word.rect.height for word in words) / page_area
-
-    word_heights = [word.rect.height for word in words]
-    avg_word_height = float(np.mean(word_heights))
-    std_word_height = float(np.std(word_heights))
-
-    return {
-        "text_density": text_density,
-        "text_area": text_area,
-        "avg_word_height": avg_word_height,
-        "std_word_height": std_word_height
-    }
-
 def classify_wordpos(words: list[TextWord]):
     """Classifies text structure on page based on distribution."""
 
@@ -60,12 +33,6 @@ def classify_wordpos(words: list[TextWord]):
     x_positions = np.array([word.rect.x0 for word in words])
     widths = np.array([word.rect.x1 - word.rect.x0 for word in words])
     heights = np.array([word.rect.y1 - word.rect.y0 for word in words])
-
-    # # Compute pairwise Euclidean distances
-    # dist_matrix = squareform(pdist(y_positions.reshape(-1, 1))) #instead use boundingbox?
-    # threshold = np.percentile(dist_matrix, 20)
-    # graph_matrix = (dist_matrix < threshold).astype(int)
-    # lap_matrix = laplacian(graph_matrix, normed=True)
 
     # Compute spacing bewtween word to next word
     y_spacing = np.diff(np.sort(y_positions))
@@ -104,8 +71,8 @@ def closest_word_distances(words):
 def cluster_text_elements(elements, key_fn = Callable[[pymupdf.Rect], float], tolerance: int = 10):
     """ cluster text elements based on coordinates of bounding box
     Args:
-        elements: List of object containing a `rect` attribute with x0 or y0 etc
-        key: attribute clustering is based on (y0 or x0)
+        elements: List of object containing a `rect` attribute
+        key_fn: Function that extracts a float from each element (e.g. lambda obj: obj.rect.y0)
         tolerance: max allowed difference between entries and a cluster key"""
 
     if not elements:
