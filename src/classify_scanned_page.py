@@ -11,7 +11,6 @@ from .utils import cluster_text_elements, is_description
 from .title_page import sparse_title_page
 from .detect_language import detect_language_of_page
 from .material_description import detect_material_description
-from .bounding_box import merge_bounding_boxes
 
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
@@ -38,44 +37,7 @@ def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_
     
     return False
 
-def is_valid(cluster: list[TextLine], all_lines: list[TextLine], max_noise_ratio = 0.5,max_gap_factor = 2) -> bool:
-    """ cluster in clusters is valid if:
-    - more than 1 entry in cluster
-    - noise within rectangle is small (less words that intersect with rectangle than entries cluster has)
-    - distance between entries in cluster not allowed to be too large ( in comparison to medium distance between lines on page"""
-    if len(cluster) <2:
-        return False
-
-    cluster_bbox = merge_bounding_boxes([line.rect for line in cluster])
-
-    noise_lines = [
-        line for line in all_lines
-        if line not in cluster and cluster_bbox.intersects(line.rect)
-    ]
-
-    if len(noise_lines) > len(cluster) * max_noise_ratio:
-
-        return False
-
-    # ys = sorted([line.rect.y0 for line in cluster])
-    # gaps = [ys[i + 1] - ys[i] for i in range(len(ys) - 1)]
-    # if not gaps:
-    #
-    #     return False
-    #
-    # avg_cluster_gap = sum(gaps) / len(gaps)
-    #
-    # # Estimate global line spacing
-    # all_ys = sorted([line.rect.y0 for line in all_lines])
-    # global_gaps = [all_ys[i + 1] - all_ys[i] for i in range(len(all_ys) - 1) if all_ys[i + 1] > all_ys[i]]
-    # global_avg_gap = sum(global_gaps) / len(global_gaps) if global_gaps else avg_cluster_gap
-    #
-    # if avg_cluster_gap > global_avg_gap * max_gap_factor:
-    #     return False
-
-    return True
-
-def identify_map(lines: list[TextLine], text_blocks: list[TextBlock],matching_params, language) -> bool: ## refine this!!
+def identify_map(lines: list[TextLine], text_blocks: list[TextBlock],matching_params, language) -> bool:
     """Identifies whether a page contains a map based on structure and keyword patterns."""
     info_lines = [
         line for line in lines
@@ -158,8 +120,8 @@ def classify_page(page, page_number, matching_params, language) -> dict:
     if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
             classification["Text"] = 1
 
-    elif identify_boreprofile(lines, words, matching_params["material_description"], language): ## Ensure the boreprofile check is independent of what happens above (if and not elif?)
-        classification["Boreprofile"] = 1                                                        # should requires text sparsity as a necessary condition.
+    elif identify_boreprofile(lines, words, matching_params["material_description"], language): ## TODO: Ensure the boreprofile check is independent of what happens above (if and not elif?)
+        classification["Boreprofile"] = 1                                                        # should require text sparsity as a necessary condition.
 
     elif identify_map(lines, text_blocks, matching_params["map_terms"], language):
         classification["Maps"] = 1
