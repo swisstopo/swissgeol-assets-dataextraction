@@ -120,26 +120,31 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
 
         for filename, pred_pages in pred_dict.items():
             if filename not in gt_dict:
+                print(f"WARNING: {filename} not in ground truth, skipping.")
                 continue
 
             gt_pages = gt_dict[filename]
             if len(pred_pages) != len(gt_pages):
+                print(f"WARNING: Page length mismatch in {filename}, skipping.")
                 continue
 
             for i, (pred_page, gt_page) in enumerate(zip(pred_pages, gt_pages), start=1):
                 row = [filename, i]
+                preds = []
+                gts = []
                 matches = []
 
                 for label in labels:
-                    pred = pred_page.get(label, 0)
-                    gt = gt_page.get(label, 0)
+                    pred = int(pred_page.get(label, 0) or 0)
+                    gt = int(gt_page.get(label, 0) or 0)
                     match = int(pred == gt)
-                    row.extend([pred, gt, match])
+
+                    preds.append(pred)
+                    gts.append(gt)
                     matches.append(match)
 
                 all_match = int(all(matches))
-                row.append(all_match)
-
+                row.extend(preds + gts + matches + [all_match])
                 writer.writerow(row)
 
     mlflow.log_artifact(str(report_path))
