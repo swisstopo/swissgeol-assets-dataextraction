@@ -887,10 +887,10 @@
             {
                 "Page": 1,
                 "Boreprofile": 0,
-                "Maps": 1,
+                "Maps": 0,
                 "Text": 0,
                 "Title_Page": 0,
-                "Unknown": 0
+                "Unknown": 1
             }
         ]
     },
@@ -1056,10 +1056,10 @@
             {
                 "Page": 1,
                 "Boreprofile": 0,
-                "Maps": 1,
+                "Maps": 0,
                 "Text": 0,
                 "Title_Page": 0,
-                "Unknown": 0
+                "Unknown": 1
             }
         ]
     },
@@ -1173,10 +1173,10 @@
             {
                 "Page": 1,
                 "Boreprofile": 0,
-                "Maps": 1,
+                "Maps": 0,
                 "Text": 0,
                 "Title_Page": 0,
-                "Unknown": 0
+                "Unknown": 1
             }
         ]
     },
@@ -1277,10 +1277,10 @@
             {
                 "Page": 1,
                 "Boreprofile": 0,
-                "Maps": 1,
+                "Maps": 0,
                 "Text": 0,
                 "Title_Page": 0,
-                "Unknown": 0
+                "Unknown": 1
             }
         ]
     },

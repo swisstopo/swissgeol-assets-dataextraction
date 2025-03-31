@@ -19,7 +19,14 @@ table_of_contents:
     - index
     - aperçu
     - résumé
+  it:
     - liste des chapitres
+    - contenuto
+    - indice dei contenuti
+    - panoramica
+    - indice
+    - sommario
+    - panoramica dei capitoli
 
 boreprofile:
   en:
@@ -137,6 +144,43 @@ material_description:
       - piezometre
       - profondeur
       - désignation
+
+  it:
+    including_expressions:
+      - sabbia
+      - limo
+      - ghiaia
+      - asfalto
+      - humus
+      - marrone
+      - grigio
+      - morbido
+      - duro
+      - radice
+      - rivestimento
+      - pietra
+      - beige
+      - cemento
+      - gesso
+      - marna
+      - materiale di carota
+      - idem
+
+    excluding_expressions:
+      - signore
+      - fine
+      - profilo
+      - descrizione
+      - legende
+      - campione misto
+      - progetto
+      - luogo
+      - indirizzo
+      - meteo
+      - prova di pompaggio
+      - carotaggio
+      - raggio di perforazione
+
 
   en:
     including_expressions:

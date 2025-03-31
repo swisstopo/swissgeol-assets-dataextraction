@@ -3,13 +3,15 @@ import numpy as np
 import regex
 import logging
 from pathlib import Path
+
 logger = logging.getLogger(__name__)
 
-from .text import extract_words, create_text_lines, create_text_blocks, TextLine, TextWord
+from .text import extract_words, create_text_lines, create_text_blocks, TextLine, TextWord, TextBlock
 from .utils import cluster_text_elements, is_description
 from .title_page import sparse_title_page
 from .detect_language import detect_language_of_page
 from .material_description import detect_material_description
+from .bounding_box import merge_bounding_boxes
 
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
@@ -21,7 +23,6 @@ def find_map_scales(line: TextLine) -> regex.Match | None:
                  for pattern in pattern_maps 
                  for word in line.words
                  if (match := pattern.search(word.text))), None)
-
 
 def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_params: dict, language:str) -> bool:
     """Identifies whether a page contains a boreprofile based on presence of  a valid material description in given language"""
@@ -37,33 +38,71 @@ def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_
     
     return False
 
-def identify_map(lines: list[TextLine], matching_params, language) -> bool: ## refine this!!
-    """Identifies whether a page contains a map based on scale pattern."""
+def is_valid(cluster: list[TextLine], all_lines: list[TextLine], max_noise_ratio = 0.5,max_gap_factor = 2) -> bool:
+    """ cluster in clusters is valid if:
+    - more than 1 entry in cluster
+    - noise within rectangle is small (less words that intersect with rectangle than entries cluster has)
+    - distance between entries in cluster not allowed to be too large ( in comparison to medium distance between lines on page"""
+    if len(cluster) <2:
+        return False
+
+    cluster_bbox = merge_bounding_boxes([line.rect for line in cluster])
+
+    noise_lines = [
+        line for line in all_lines
+        if line not in cluster and cluster_bbox.intersects(line.rect)
+    ]
+
+    if len(noise_lines) > len(cluster) * max_noise_ratio:
+
+        return False
+
+    # ys = sorted([line.rect.y0 for line in cluster])
+    # gaps = [ys[i + 1] - ys[i] for i in range(len(ys) - 1)]
+    # if not gaps:
+    #
+    #     return False
+    #
+    # avg_cluster_gap = sum(gaps) / len(gaps)
+    #
+    # # Estimate global line spacing
+    # all_ys = sorted([line.rect.y0 for line in all_lines])
+    # global_gaps = [all_ys[i + 1] - all_ys[i] for i in range(len(all_ys) - 1) if all_ys[i + 1] > all_ys[i]]
+    # global_avg_gap = sum(global_gaps) / len(global_gaps) if global_gaps else avg_cluster_gap
+    #
+    # if avg_cluster_gap > global_avg_gap * max_gap_factor:
+    #     return False
+
+    return True
+
+def identify_map(lines: list[TextLine], text_blocks: list[TextBlock],matching_params, language) -> bool: ## refine this!!
+    """Identifies whether a page contains a map based on structure and keyword patterns."""
     info_lines = [
         line for line in lines
         if is_description(line, matching_params.get(language, {})) or find_map_scales(line)
     ]
 
-    filtered_lines = [line for line in lines if len(line.words) < 4]
+    small_blocks = [text_block for text_block in text_blocks if len(text_block.lines) <= 3]
+    filtered_lines = [
+        line for block in small_blocks
+        for line in block.lines
+        if len(line.words) < 4 and line not in info_lines
+    ]
 
-    if filtered_lines and (len(filtered_lines)/len(lines) ) > 0.5: # twice as many short lines than long lines
+    if filtered_lines and (len(filtered_lines)/len(lines) ) > 0.5:
 
-        clusters = cluster_text_elements(filtered_lines,
-                                         key_fn= lambda line:line.rect.x0)  ## cluster remaining lines on x0, maybe we should use words instead
-        potential_legends = [cluster for cluster in clusters if len(cluster) > 3]
-        ## maybe we should use text blocks instead?
-        ## or validate legends else very far apart lines can end up in one cluster, having a lot of noise between them
-        map_entries_cluster = list(filter(lambda cluster: cluster not in potential_legends, clusters))
-        # logger.info("map_entries_cluster %s", [line.line_text() for lines in map_entries_cluster for line in lines])
+        clusters = cluster_text_elements(filtered_lines, key_fn= lambda line:line.rect.x0)
+        potential_scales = [cluster for cluster in clusters if len(cluster) > 3] #scales or legends
+        map_clusters = list(filter(lambda cluster: cluster not in potential_scales, clusters))
 
-        if map_entries_cluster:
-            if info_lines:
-                return True
-
+        if map_clusters:
             filtered_words = [word
-                              for lines in map_entries_cluster
+                              for lines in map_clusters
                               for line in lines
                               for word in line.words]
+
+            if len(filtered_words) < 7 and not info_lines:
+                return False
 
             def _is_a_number(string: str)-> bool:
                 try:
@@ -72,19 +111,21 @@ def identify_map(lines: list[TextLine], matching_params, language) -> bool: ## r
                 except ValueError:
                     return False
 
-            capitalized_words = [word
-                                 for word in filtered_words
-                                 if (word.text.isalpha() and word.text.istitle() or word.text.isupper()) ]
-            numbers = [word for word in filtered_words if _is_a_number(word.text)]
+            map_like_words = [word for word in filtered_words
+                if (word.text.isalpha() and word.text.istitle()
+                    or word.text.isupper()
+                    or _is_a_number(word.text))]
 
-            if capitalized_words or numbers:
-                ratio = (len(capitalized_words) + len(numbers)) / len(filtered_words)
-                if ratio > 0.75:
+            if map_like_words:
+                ratio = (len(map_like_words)) / len(filtered_words)
+                threshold = 0.6 if info_lines else 0.75
+
+                if ratio > threshold:
                     return True
 
     return False
 
-def classify_page(page, page_number, matching_params, language) -> dict: ##inclusion based instead! 1. identify as borehole, 2. map 3. title page 4. rest text
+def classify_page(page, page_number, matching_params, language) -> dict:
 
     classification = {
         "Page": page_number,
@@ -120,7 +161,7 @@ def classify_page(page, page_number, matching_params, language) -> dict: ##inclu
     elif identify_boreprofile(lines, words, matching_params["material_description"], language): ## Ensure the boreprofile check is independent of what happens above (if and not elif?)
         classification["Boreprofile"] = 1                                                        # should requires text sparsity as a necessary condition.
 
-    elif identify_map(lines, matching_params["map_terms"], language):
+    elif identify_map(lines, text_blocks, matching_params["map_terms"], language):
         classification["Maps"] = 1
 
     elif sparse_title_page(lines):
