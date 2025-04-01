@@ -134,8 +134,8 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
                 pred_page = pred_pages[page_num]
                 gt_page = gt_pages[page_num]
 
-                preds = [int(pred_page.get(label, 0) or 0) for label in labels]
-                gts = [int(gt_page.get(label, 0) or 0) for label in labels]
+                preds = [int(pred_page.get(label, 0)) for label in labels]
+                gts = [int(gt_page.get(label, 0)) for label in labels]
                 matches = [int(preds[i] == gts[i]) for i in range(len(labels))]
 
                 all_match = int(all(matches))
