@@ -118,33 +118,29 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
 
         writer.writerow(header)
 
-        for filename, pred_pages in pred_dict.items():
+        for filename in pred_dict:
             if filename not in gt_dict:
                 print(f"WARNING: {filename} not in ground truth, skipping.")
                 continue
 
+            pred_pages = pred_dict[filename]
             gt_pages = gt_dict[filename]
+
             if len(pred_pages) != len(gt_pages):
                 print(f"WARNING: Page length mismatch in {filename}, skipping.")
                 continue
 
-            for i, (pred_page, gt_page) in enumerate(zip(pred_pages, gt_pages), start=1):
-                row = [filename, i]
-                preds = []
-                gts = []
-                matches = []
+            for page_num in range(len(pred_pages)):
+                pred_page = pred_pages[page_num]
+                gt_page = gt_pages[page_num]
 
-                for label in labels:
-                    pred = int(pred_page.get(label, 0) or 0)
-                    gt = int(gt_page.get(label, 0) or 0)
-                    match = int(pred == gt)
-
-                    preds.append(pred)
-                    gts.append(gt)
-                    matches.append(match)
+                preds = [int(pred_page.get(label, 0) or 0) for label in labels]
+                gts = [int(gt_page.get(label, 0) or 0) for label in labels]
+                matches = [int(preds[i] == gts[i]) for i in range(len(labels))]
 
                 all_match = int(all(matches))
-                row.extend(preds + gts + matches + [all_match])
+                row = [filename, page_num + 1] + preds + gts + matches + [all_match]
+
                 writer.writerow(row)
 
     mlflow.log_artifact(str(report_path))
