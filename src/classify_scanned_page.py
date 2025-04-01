@@ -23,16 +23,14 @@ def find_map_scales(line: TextLine) -> regex.Match | None:
                  for word in line.words
                  if (match := pattern.search(word.text))), None)
 
-def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_params: dict, language:str) -> bool:
+def identify_boreprofile(lines: list[TextLine], words: list[TextWord], matching_params: dict, language:str, page_rect: pymupdf.Rect) -> bool:
     """Identifies whether a page contains a boreprofile based on presence of  a valid material description in given language"""
-
     material_descriptions = detect_material_description(lines, words, matching_params.get(language, {}))
 
     if material_descriptions:
         for description in material_descriptions:
-            if description.noise < 1.75:
-                logger.info(
-                    "Detected boreprofile")
+
+            if description.is_valid(page_rect):
                 return True 
     
     return False
@@ -120,7 +118,7 @@ def classify_page(page, page_number, matching_params, language) -> dict:
     if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
             classification["Text"] = 1
 
-    elif identify_boreprofile(lines, words, matching_params["material_description"], language): ## TODO: Ensure the boreprofile check is independent of what happens above (if and not elif?)
+    elif identify_boreprofile(lines, words, matching_params["material_description"], language, page.rect): ## TODO: Ensure the boreprofile check is independent of what happens above (if and not elif?)
         classification["Boreprofile"] = 1                                                        # should require text sparsity as a necessary condition.
 
     elif identify_map(lines, text_blocks, matching_params["map_terms"], language):
