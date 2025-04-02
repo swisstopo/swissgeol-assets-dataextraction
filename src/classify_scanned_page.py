@@ -11,6 +11,7 @@ from .utils import cluster_text_elements, is_description
 from .title_page import sparse_title_page
 from .detect_language import detect_language_of_page
 from .material_description import detect_material_description
+from .bounding_box import merge_bounding_boxes
 
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
@@ -114,11 +115,12 @@ def classify_page(page, page_number, matching_params, language) -> dict:
                     for line in block.lines
                     for word in line.words if len(line.words) > 1)
 
+    page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
     # Rule-based classification
     if block_area > 0 and word_area / block_area > 1 and mean_words_per_line > 3:
             classification["Text"] = 1
 
-    elif identify_boreprofile(lines, words, matching_params["material_description"], language, page.rect): ## TODO: Ensure the boreprofile check is independent of what happens above (if and not elif?)
+    elif identify_boreprofile(lines, words, matching_params["material_description"], language, page_text_rect): ## TODO: Ensure the boreprofile check is independent of what happens above (if and not elif?)
         classification["Boreprofile"] = 1                                                        # should require text sparsity as a necessary condition.
 
     elif identify_map(lines, text_blocks, matching_params["map_terms"], language):
@@ -130,7 +132,7 @@ def classify_page(page, page_number, matching_params, language) -> dict:
 
     else:
         classification["Unknown"] = 1
-
+    logger.info(classification)
     return classification
 
 def classify_pdf(file_path: Path, matching_params)-> dict:
