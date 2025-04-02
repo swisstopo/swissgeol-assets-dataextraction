@@ -1,9 +1,8 @@
 import pymupdf
-import numpy as np
 from collections import defaultdict
 from typing import Callable
 
-from .text import TextWord, TextLine
+from .text import TextLine
 from .bounding_box import merge_bounding_boxes
 
 def is_digitally_born(page: pymupdf.Page) -> bool:
