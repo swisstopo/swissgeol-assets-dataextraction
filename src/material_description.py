@@ -40,14 +40,12 @@ class MaterialDescription:
 
         material_description_height = abs(self.rect.y0 - self.rect.y1)
 
-        if material_description_height < page_rect.height/ 5 and len(self.text_lines)  <= 5: # reduced accuracy, maybe instead use sparsity between lines?
+        if material_description_height < (page_rect.height/5) and len(self.text_lines)  <= 5: # reduced accuracy, maybe instead use sparsity between lines?
             logger.info("too small description area to be a boreprofile")
             return False
 
-        if self.noise < 1.75:
-            return True
-
-        return False
+        logger.info(self.noise)
+        return self.noise < 1.75
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
     """Detects material descriptions in Textlines and returns List of MaterialDescriptions."""
@@ -57,7 +55,7 @@ def detect_material_description(lines: list[TextLine], words:list[TextWord], mat
             if is_description(line, material_description)
         ]
 
-    line_clusters = cluster_text_elements(material_lines, key_fn = lambda line: line.rect.x0) ##cluster based on x0
+    line_clusters = cluster_text_elements(material_lines, key_fn = lambda line: line.rect.x0)
     
     if not line_clusters:
         return []
