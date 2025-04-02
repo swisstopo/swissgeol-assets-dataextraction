@@ -30,18 +30,11 @@ class PageAnalysis:
             else:
                 self.classification[key] = 0
 
-    def final_label(self):
-        for label, value in self.classification.items():
-            if value:
-                return label
-        return "Unknown"
-
     def to_dict(self):
         return {
             "Page": self.page_number,
             "Classification": self.classification,
-            "Features": self.features,
-            "Label": self.final_label()
+            "Features": self.features
         }
 
 

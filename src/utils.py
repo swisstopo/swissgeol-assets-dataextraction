@@ -3,7 +3,6 @@ from collections import defaultdict
 from typing import Callable
 
 from .text import TextLine
-from .bounding_box import merge_bounding_boxes
 
 def is_digitally_born(page: pymupdf.Page) -> bool:
     bboxes = page.get_bboxlog()
@@ -69,40 +68,3 @@ def cluster_text_elements(elements, key_fn = Callable[[pymupdf.Rect], float], to
     clusters = list(grouped.values())
 
     return clusters
-
-def is_valid(cluster: list[TextLine], all_lines: list[TextLine], max_noise_ratio = 0.5, max_gap_factor = 2) -> bool: #not in use, might come in handy
-    """ cluster in clusters is valid if:
-    - more than 1 entry in cluster
-    - noise within rectangle is small (less words that intersect with rectangle than entries cluster has)
-    - distance between entries in cluster not too large ( in comparison to medium distance between lines on page"""
-    if len(cluster) <2:
-        return False
-
-    cluster_bbox = merge_bounding_boxes([line.rect for line in cluster])
-
-    noise_lines = [
-        line for line in all_lines
-        if line not in cluster and cluster_bbox.intersects(line.rect)
-    ]
-
-    if len(noise_lines) > len(cluster) * max_noise_ratio:
-
-        return False
-
-    # ys = sorted([line.rect.y0 for line in cluster])
-    # gaps = [ys[i + 1] - ys[i] for i in range(len(ys) - 1)]
-    # if not gaps:
-    #
-    #     return False
-    #
-    # avg_cluster_gap = sum(gaps) / len(gaps)
-    #
-    # # Estimate global line spacing
-    # all_ys = sorted([line.rect.y0 for line in all_lines])
-    # global_gaps = [all_ys[i + 1] - all_ys[i] for i in range(len(all_ys) - 1) if all_ys[i + 1] > all_ys[i]]
-    # global_avg_gap = sum(global_gaps) / len(global_gaps) if global_gaps else avg_cluster_gap
-    #
-    # if avg_cluster_gap > global_avg_gap * max_gap_factor:
-    #     return False
-
-    return True
