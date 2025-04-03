@@ -68,6 +68,8 @@ The structure of the repository is:
     - `test/`: output folder for jupyter notebooks where images, drawings etc get saved to.
 - src/
     - includes python util scripts, needed for the page classification or other jupyter notebooks.
+- tests/
+    - unittests
 - evaluation/
     - evaluation_metrics and per_page_comparisons get saved to here
 - notebooks/
