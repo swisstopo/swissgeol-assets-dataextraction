@@ -1,7 +1,7 @@
 import regex
 from ..text import TextLine
 from ..utils import is_description, cluster_text_elements
-from ..page_structure import PageFeatures
+from ..page_structure import PageContext
 
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
@@ -14,7 +14,7 @@ def find_map_scales(line: TextLine) -> regex.Match | None:
                  for word in line.words
                  if (match := pattern.search(word.text))), None)
 
-def identify_map(ctx: PageFeatures, matching_params) -> bool:
+def identify_map(ctx: PageContext, matching_params) -> bool:
     """Identifies whether a page contains a map based on structure and keyword patterns."""
     info_lines = [
         line for line in ctx.lines

@@ -4,8 +4,8 @@ from dataclasses import dataclass
 from .text import TextLine, TextWord, TextBlock
 
 @dataclass()
-class PageFeatures:
-    """Contains preprocessed content and text features from a page."""
+class PageContext:
+    """Contains processed text content and information from a page."""
 
     lines: list[TextLine]
     words: list[TextWord]
