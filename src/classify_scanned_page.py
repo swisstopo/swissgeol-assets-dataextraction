@@ -10,7 +10,7 @@ from .detect_language import detect_language_of_page
 from .bounding_box import merge_bounding_boxes
 from .identifiers.map import identify_map
 from .identifiers.boreprofile import identify_boreprofile
-from .page_structure import PageAnalysis, PageFeatures, compute_text_features
+from .page_structure import PageAnalysis, PageContext, compute_text_features
 
 
 def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, language: str) -> PageAnalysis:
@@ -34,7 +34,7 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     text_blocks = create_text_blocks(lines)
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
-    context = PageFeatures(
+    context = PageContext(
         lines=lines,
         words=words,
         text_blocks=text_blocks,
