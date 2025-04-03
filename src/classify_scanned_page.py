@@ -13,14 +13,22 @@ from .identifiers.boreprofile import identify_boreprofile
 from .page_structure import PageAnalysis, PageFeatures, compute_text_features
 
 
-def classify_page(page, page_number, matching_params, language) -> dict:
-
+def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, language: str) -> PageAnalysis:
+    """classifies single pages into Text-, Boreprofile-, Map- or Unknown Page.
+        Args:
+            page: page that get classified
+            page_number: page number in report
+            matching_params: dictionary holding including and excluding expressions for classes in supported languages
+            language: language of page content
+        Returns:
+            PageAnalysis object with classification and features,
+    """
     analysis = PageAnalysis(page_number)
 
     words = extract_words(page, page_number)
     if not words:
         analysis.set_class("Unknown")
-        return analysis.to_dict()
+        return analysis
 
     lines = create_text_lines(page, page_number)
     text_blocks = create_text_blocks(lines)
@@ -49,7 +57,7 @@ def classify_page(page, page_number, matching_params, language) -> dict:
     if not any(analysis.classification[label] for label in analysis.classification):
         analysis.set_class("Unknown")
 
-    return analysis.to_dict()
+    return analysis
 
 def classify_pdf(file_path: Path, matching_params: dict)-> dict:
     """Processes a pdf File, classifies each page"""
@@ -74,7 +82,7 @@ def classify_pdf(file_path: Path, matching_params: dict)-> dict:
                                                 matching_params,
                                                 language)
 
-            classification.append(page_classification["Classification"])
+            classification.append(page_classification.classification)
   
     return {"filename": file_path.name,
             "classification": classification}

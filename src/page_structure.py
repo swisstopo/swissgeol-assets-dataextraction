@@ -5,6 +5,8 @@ from .text import TextLine, TextWord, TextBlock
 
 @dataclass()
 class PageFeatures:
+    """Contains preprocessed content and text features from a page."""
+
     lines: list[TextLine]
     words: list[TextWord]
     text_blocks: list[TextBlock]
@@ -12,6 +14,8 @@ class PageFeatures:
     page_rect: pymupdf.Rect
 
 class PageAnalysis:
+    """Stores the classification result and associated features for a single page."""
+
     def __init__(self, page_number: int):
         self.page_number = page_number
         self.classification = {
