@@ -38,12 +38,6 @@ class MaterialDescription:
         if len(self.text_lines)  < 3: #material description of boreprofile should have at least 3 entries
             return False
 
-        material_description_height = abs(self.rect.y0 - self.rect.y1)
-
-        if material_description_height < (page_rect.height/5) and len(self.text_lines)  <= 5: # reduced accuracy, maybe instead use sparsity between lines?
-            logger.info("too small description area to be a boreprofile")
-            return False
-
         return self.noise < 1.75
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
