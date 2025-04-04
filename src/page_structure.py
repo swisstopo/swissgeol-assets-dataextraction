@@ -1,6 +1,7 @@
 import numpy as np
 import pymupdf
 from dataclasses import dataclass
+from .page_classes import PageClasses
 from .text import TextLine, TextWord, TextBlock
 
 @dataclass()
@@ -18,29 +19,24 @@ class PageAnalysis:
 
     def __init__(self, page_number: int):
         self.page_number = page_number
-        self.classification = {
-            "Boreprofile": 0,
-            "Maps": 0,
-            "Text": 0,
-            "Title_Page": 0,
-            "Unknown": 0
-        }
+        self.classification: dict[PageClasses, int] = {cls: 0 for cls in PageClasses}
         self.features = {}
 
-    def set_class(self, label: str):
-        for key in self.classification:
-            if key == label:
-                self.classification[key] = 1
-            else:
-                self.classification[key] = 0
+    def set_class(self, label: PageClasses):
+        self.classification[label] = 1
 
     def to_dict(self):
         return {
             "Page": self.page_number,
-            "Classification": self.classification,
+            "Classification": {cls.value: val for cls, val in self.classification.items()},
             "Features": self.features
         }
 
+    def to_classification_dict(self):
+        """Only exports classification to dict"""
+        return {
+            cls.value: val for cls, val in self.classification.items()
+        }
 
 def compute_text_features(lines, text_blocks) -> dict:
     words_per_line = [len(line.words) for line in lines]

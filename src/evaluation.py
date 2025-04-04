@@ -3,10 +3,12 @@ import json
 import csv
 from pathlib import Path
 import logging
+from .page_classes import PageClasses
 
 logger = logging.getLogger(__name__)
 
-LABELS = ["Text", "Boreprofile", "Title_Page", "Maps", "Unknown"]
+
+LABELS = [cls.value for cls in PageClasses]
 
 def load_ground_truth(ground_truth_path):
     try:
@@ -104,7 +106,7 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
     report_path = Path(output_dir) / "per_page_comparison.csv"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    labels = ["Text", "Boreprofile", "Title_Page", "Maps", "Unknown"]
+    labels = [cls.value for cls in PageClasses]
 
     with open(report_path, "w", newline="") as f:
         writer = csv.writer(f)
