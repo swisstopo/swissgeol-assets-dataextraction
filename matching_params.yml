@@ -1,0 +1,183 @@
+table_of_contents:
+  en:
+    - "table of contents"
+    - "contents"
+    - "index"
+    - "overview"
+    - "summary"
+    - "list of topics"
+  de:
+    - "inhalt"
+    - "inhaltsverzeichnis"
+    - "übersicht"
+    - "index"
+    - "zusammenfassung"
+    - "kapitelübersicht"
+  fr:
+    - "table des matières"
+    - "sommaire"
+    - "index"
+    - "aperçu"
+    - "résumé"
+    - "liste des chapitres"
+
+boreprofile:
+  en:
+    - "borehole profile"
+    - "borehole log"
+    - "borehole"
+    - "borehole diagram"
+    - "borehole cross section"
+  de:
+    - "bohrprofil"
+    - "bohrlochprofil"
+    - "bohrung"
+  fr:
+    - "profil de forage"
+    - "diagramme de forage"
+    - "forage"
+    - "sondage"
+  it:
+    - "profilo di perforazione"
+    - "diagramma di perforazione"
+    - "sondaggio"
+
+material_description:
+  de:
+    including_expressions:
+      - sand
+      - silt
+      - kies
+      - asphalt
+      - humus
+      - braun
+      - grau
+      - weich
+      - hart
+      - wurzel
+      - belag
+      - stein
+      - beige
+      - beton
+      - kreide
+      - mergel
+      - kernmaterial
+      - dito
+    excluding_expressions:
+      - herr
+      - ende
+      - profil
+      - beschreibung
+      - signaturen
+      - mischprobe
+      - projekt
+      - ort
+      - adresse
+      - wetter
+      - pumpversuch
+      - kernbohrung
+      - bohrradius
+
+  fr:
+    including_expressions:
+      - sol
+      - végétal  # remove accents generally; ocr might be wrong
+      - dallage
+      - terre
+      - bitume
+      - bitumineux
+      - grave d'infrastructure  # what happens if we remove this?
+      - sable
+      - limon
+      - gravier
+      - asphalte
+      - humus  # hummus maybe?
+      - brun
+      - gris
+      - grise
+      - mou
+      - dur
+      - dure
+      - ferme
+      - racine
+      - revetement
+      - pierre
+      - beige
+      - beton
+      - craie
+      - marne
+      - materiau
+      - matrice sableuse
+      - enrobé  # accent --> check what happens if it's removed
+      - terrain
+      - remblais
+      - remblai
+      - molasse
+      - phase
+      - formations
+      - limoneuse
+      - argileuse
+      - argileux
+      - mousse
+    excluding_expressions:
+      - monsieur
+      - fin
+      - profil
+      - description
+      - signatures
+      - echantillon mixte
+      - projet
+      - lieu
+      - adresse
+      - temps
+      - essai de pompage
+      - carottage
+      - rayon de forage
+      - remarque
+      - piezometre
+      - profondeur
+      - désignation
+
+  en:
+    including_expressions:
+      - sand
+      - sandy
+      - sandstone
+      - silt
+      - silty
+      - siltstone
+      - clay
+      - claystone
+      - gravel
+      - asphalt
+      - humus
+      - brown
+      - gray
+      - soft
+      - hard
+      - root
+      - surface layer
+      - stone
+      - beige
+      - concrete
+      - chalk
+      - marl
+      - core material
+      - limestone
+      - ditto
+      - alternation
+      - leucosome
+    excluding_expressions:
+      - Mr.
+      - end
+      - profile
+      - description
+      - signatures
+      - mixed sample
+      - project
+      - location
+      - address
+      - weather
+      - pump test
+      - core drilling
+      - drilling radius
