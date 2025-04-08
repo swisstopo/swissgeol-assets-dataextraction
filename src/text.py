@@ -7,6 +7,8 @@ import pymupdf
 import os
 from collections import defaultdict
 
+from .bounding_box import merge_bounding_boxes
+
 def text_from_document(doc) -> dict:
     """ Retrieve text per page from a single pdf file
     Returns dictionary with pagenumber as key and all text on that page as item"""
@@ -134,17 +136,11 @@ def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool: ## do
     return abs(previous_word.rect.y0 - current_word.rect.y0) <= 2.0
 
 
-
 class TextBlock:
     def __init__(self, lines: list[TextLine]):
 
         self.lines = lines
-        self.top = min([line.rect.y0 for line in lines])
-        self.left = min([line.rect.x0 for line in lines])
-        self.bottom = max([line.rect.y1 for line in lines])
-        self.right = max([line.rect.x1 for line in lines])
-        self.rect = pymupdf.Rect(self.left, self.top, self.right, self.bottom)
-
+        self.rect = merge_bounding_boxes([line.rect for line in self.lines])
 
 def overlaps(line, line2) -> bool:
     vertical_margin = 15

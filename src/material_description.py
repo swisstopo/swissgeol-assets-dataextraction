@@ -4,7 +4,7 @@ import pymupdf
 import logging
 
 from .text import TextLine, TextWord
-from .utils import cluster_text_elements
+from .utils import cluster_text_elements, is_description
 logger = logging.getLogger(__name__)
 
 class MaterialDescription:
@@ -33,15 +33,6 @@ class MaterialDescription:
                      if self.rect.contains(word.rect) and word not in description_words]
 
         return len(noise_words)/len(description_words)
-
-
-def is_description(line: TextLine, material_description: dict):
-    """Check if the line is a material description."""
-    line_text = line.line_text().lower()
-    return any(
-        line_text.find(word) > -1 for word in material_description["including_expressions"]
-    ) and not any(line_text.find(word) > -1 for word in material_description["excluding_expressions"])
-
 
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
