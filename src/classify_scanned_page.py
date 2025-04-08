@@ -11,6 +11,7 @@ from .bounding_box import merge_bounding_boxes
 from .identifiers.map import identify_map
 from .identifiers.boreprofile import identify_boreprofile
 from .page_structure import PageAnalysis, PageContext, compute_text_features
+from .line_detection import extract_geometric_lines
 
 
 def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, language: str) -> PageAnalysis:
@@ -42,6 +43,7 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
         page_rect=page_text_rect
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
+    _, geometric_lines = extract_geometric_lines(page)
 
     if analysis.features["word_density"] > 1 and analysis.features["mean_words_per_line"] > 3:
         analysis.set_class("Text")
