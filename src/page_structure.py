@@ -28,7 +28,7 @@ class PageAnalysis:
     def to_dict(self):
         return {
             "Page": self.page_number,
-            "Classification": {cls.value: val for cls, val in self.classification.items()},
+            "Classification": self.to_classification_dict(),
             "Features": self.features
         }
 
