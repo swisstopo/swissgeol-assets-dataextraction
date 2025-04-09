@@ -10,6 +10,7 @@ from .detect_language import detect_language_of_page
 from .bounding_box import merge_bounding_boxes
 from .identifiers.map import identify_map
 from .identifiers.boreprofile import identify_boreprofile
+from .page_classes import PageClasses
 from .page_structure import PageAnalysis, PageContext, compute_text_features
 from .line_detection import extract_geometric_lines
 
@@ -28,7 +29,7 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
 
     words = extract_words(page, page_number)
     if not words:
-        analysis.set_class("Unknown")
+        analysis.set_class(PageClasses.UNKNOWN)
         return analysis
 
     lines = create_text_lines(page, page_number)
@@ -48,18 +49,15 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     analysis.features = compute_text_features(context.lines, context.text_blocks)
 
     if analysis.features["word_density"] > 1 and analysis.features["mean_words_per_line"] > 3:
-        analysis.set_class("Text")
+        analysis.set_class(PageClasses.TEXT)
     elif identify_boreprofile(context, matching_params):
-        analysis.set_class("Boreprofile")
+        analysis.set_class(PageClasses.BOREPROFILE)
     elif identify_map(context, matching_params):
-        analysis.set_class("Maps")
+        analysis.set_class(PageClasses.MAP)
     elif sparse_title_page(context.lines):
-        analysis.set_class("Title_Page")
+        analysis.set_class(PageClasses.TITLE_PAGE)
     else:
-        analysis.set_class("Unknown")
-
-    if not any(analysis.classification[label] for label in analysis.classification):
-        analysis.set_class("Unknown")
+        analysis.set_class(PageClasses.UNKNOWN)
 
     return analysis
 
@@ -86,7 +84,6 @@ def classify_pdf(file_path: Path, matching_params: dict)-> dict:
                                                 matching_params,
                                                 language)
 
-            classification.append(page_classification.classification)
-  
+            classification.append(page_classification.to_classification_dict())
     return {"filename": file_path.name,
             "classification": classification}

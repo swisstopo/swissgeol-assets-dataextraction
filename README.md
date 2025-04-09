@@ -65,7 +65,7 @@ The structure of the repository is:
     - `input/`: folder with subfolders containing one type of pages (text, title_page, boreprofile, maps)
     -  `prediction.json`: classification results
     - `gt_{subfolder}.json`: groundtruth for each folder if it exists, including groundtruth for `zurich`and and `geoquat/validation` of the repository `swisstopo/swissgeol-boreholes-dataextraction`
-    - `test/`: output folder for jupyter notebooks where images, drawings etc get saved to.
+    - `test/`: output folder for jupyter notebooks where images, drawings etc. get saved to.
 - src/
     - includes python util scripts, needed for the page classification or other jupyter notebooks.
 - tests/
@@ -93,15 +93,15 @@ The structure of the repository is:
 ```
 pip install -r requirements.txt
 ```
-2. For tracking metrics for classification set environment variable `MLFLOW_TRACKING=True`, f.e in `.env` file. Run cli command ```mlflow ui```. 
+2. For tracking metrics for classification set environment variable `MLFLOW_TRACKING=True` and `MLFLOW_TRACKING_URI="http://localhost:5000"`, f.e in `.env` file. Run cli command ```mlflow ui```. 
 3. Ensure the input directory exists: `data/input/single_pages/{maps, boreprofile, title_page, text}`
 4. Specify the input directory/ file(--input_path, -i)  and optionally, the ground truth (--ground_truth_path, -g) file to run the classification of one pdf or whole directory including subdirectories:
 ```
-python src/main.py --input_path replace/with/path --ground_truth_path replace/with/path.csv
+python main.py --input_path replace/with/path --ground_truth_path replace/with/path.csv
 ```
 Example
 ```
-python src/main.py -i data/single_pages/  -g data/gt_single_pages.json
+python main.py -i data/single_pages/  -g data/gt_single_pages.json
 ``` 
 
 
