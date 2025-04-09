@@ -35,15 +35,17 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     text_blocks = create_text_blocks(lines)
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
+    _, geometric_lines = extract_geometric_lines(page)
+
     context = PageContext(
         lines=lines,
         words=words,
         text_blocks=text_blocks,
         language=language,
-        page_rect=page_text_rect
+        page_rect=page_text_rect,
+        geometric_lines = geometric_lines
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
-    _, geometric_lines = extract_geometric_lines(page)
 
     if analysis.features["word_density"] > 1 and analysis.features["mean_words_per_line"] > 3:
         analysis.set_class("Text")

@@ -2,6 +2,7 @@ import numpy as np
 import pymupdf
 from dataclasses import dataclass
 from .text import TextLine, TextWord, TextBlock
+from .geometric_objects import Line
 
 @dataclass()
 class PageContext:
@@ -12,6 +13,7 @@ class PageContext:
     text_blocks: list[TextBlock]
     language: str
     page_rect: pymupdf.Rect
+    geometric_lines: list[Line]
 
 class PageAnalysis:
     """Stores the classification result and associated features for a single page."""
