@@ -8,7 +8,7 @@ from .utils import cluster_text_elements, is_description
 logger = logging.getLogger(__name__)
 
 class MaterialDescription:
-    "Stores information about material description block."
+    """Stores information about material description block."""
 
     def __init__(self, text_lines: list[TextLine], all_words: list[TextWord]): ## maybe possible only use words or lines here...
         self.text_lines =text_lines
@@ -16,7 +16,7 @@ class MaterialDescription:
         self.noise = self.compute_noise(all_words)
 
     def __repr__(self):
-        return f"MaterialDescription( lines = {[ line.line_text() for line in self.text_lines]}, rect = {self.rect}, , noise={self.noise} )"
+        return f"MaterialDescription( lines = {[ line.line_text() for line in self.text_lines]}, rect = {self.rect}, noise={self.noise} )"
 
     def compute_bbox(self):
         """Calculate the bounding box of the material description."""
@@ -32,8 +32,13 @@ class MaterialDescription:
         noise_words= [word for word in all_words 
                      if self.rect.contains(word.rect) and word not in description_words]
 
-        return len(noise_words)/len(description_words)
+        return len(noise_words) / len(description_words) if description_words else float('inf')
 
+    def is_valid(self, page_rect):
+        if len(self.text_lines)  < 3: #material description of boreprofile should have at least 3 entries
+            return False
+
+        return self.noise < 1.75
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
     """Detects material descriptions in Textlines and returns List of MaterialDescriptions."""
@@ -43,13 +48,10 @@ def detect_material_description(lines: list[TextLine], words:list[TextWord], mat
             if is_description(line, material_description)
         ]
 
-    line_clusters = cluster_text_elements(material_lines, key_fn = lambda line: line.rect.x0) ##cluster based on x0
+    line_clusters = cluster_text_elements(material_lines, key_fn = lambda line: line.rect.x0)
     
-    filtered_cluster = [cluster for cluster in line_clusters if len(cluster) > 2] # valid description box should have at least 3 lines
-    
-    if not filtered_cluster:
-        return None
+    if not line_clusters:
+        return []
 
-    descriptions = [MaterialDescription(cluster, words) for cluster in filtered_cluster]
-    
+    descriptions = [MaterialDescription(cluster, words) for cluster in line_clusters]
     return descriptions

@@ -3,10 +3,12 @@ import json
 import csv
 from pathlib import Path
 import logging
+from .page_classes import PageClasses
 
 logger = logging.getLogger(__name__)
 
-LABELS = ["Text", "Boreprofile", "Title_Page", "Maps", "Unknown"]
+
+LABELS = [cls.value for cls in PageClasses]
 
 def load_ground_truth(ground_truth_path):
     try:
@@ -84,7 +86,6 @@ def log_metrics_to_mlflow(stats, total_files, total_pages):
         fp = s["false_positives"]
         tn = s["true_negatives"]
 
-        # accuracy = (tp + tn) / total if total else 0.0
         precision = tp / (tp + fp) if (tp + fp) else 0.0
         recall = tp / (tp + fn) if (tp + fn) else 0.0
         f1 = 2 * ( precision * recall) / (precision + recall) if (precision + recall) else 0.0
@@ -104,15 +105,13 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
     report_path = Path(output_dir) / "per_page_comparison.csv"
     Path(output_dir).mkdir(parents=True, exist_ok=True)
 
-    labels = ["Text", "Boreprofile", "Title_Page", "Maps", "Unknown"]
-
     with open(report_path, "w", newline="") as f:
         writer = csv.writer(f)
         header = (
                 ["Filename", "Page"] +
-                [f"{label}_pred" for label in labels] +
-                [f"{label}_gt" for label in labels] +
-                [f"{label}_match" for label in labels] +
+                [f"{label}_pred" for label in LABELS] +
+                [f"{label}_gt" for label in LABELS] +
+                [f"{label}_match" for label in LABELS] +
                 ["All_labels_match"]
         )
 
@@ -120,23 +119,23 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
 
         for filename in pred_dict:
             if filename not in gt_dict:
-                print(f"WARNING: {filename} not in ground truth, skipping.")
+                logger.info(f"WARNING: {filename} not in ground truth, skipping.")
                 continue
 
             pred_pages = pred_dict[filename]
             gt_pages = gt_dict[filename]
 
             if len(pred_pages) != len(gt_pages):
-                print(f"WARNING: Page length mismatch in {filename}, skipping.")
+                logger.info(f"WARNING: Page length mismatch in {filename}, skipping.")
                 continue
 
             for page_num in range(len(pred_pages)):
                 pred_page = pred_pages[page_num]
                 gt_page = gt_pages[page_num]
 
-                preds = [int(pred_page.get(label, 0)) for label in labels]
-                gts = [int(gt_page.get(label, 0)) for label in labels]
-                matches = [int(preds[i] == gts[i]) for i in range(len(labels))]
+                preds = [int(pred_page.get(label, 0)) for label in LABELS]
+                gts = [int(gt_page.get(label, 0)) for label in LABELS]
+                matches = [int(preds[i] == gts[i]) for i in range(len(LABELS))]
 
                 all_match = int(all(matches))
                 row = [filename, page_num + 1] + preds + gts + matches + [all_match]
@@ -144,7 +143,7 @@ def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
                 writer.writerow(row)
 
     mlflow.log_artifact(str(report_path))
-    print(f"Logged page-by-page comparison to {report_path}")
+    logger.info(f"Logged page-by-page comparison to {report_path}")
     return report_path
 
 
