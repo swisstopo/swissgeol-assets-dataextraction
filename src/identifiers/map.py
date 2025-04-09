@@ -1,8 +1,13 @@
 import regex
+import logging
+import numpy as np
+from scipy.stats import entropy
+from ..geometric_objects import Line
 from ..text import TextLine, TextWord
 from ..utils import is_description, cluster_text_elements
 from ..page_structure import PageContext
 
+logger = logging.getLogger(__name__)
 pattern_maps = [
     regex.compile(r"1\s*:\s*[125](25|5)?000+"),
     regex.compile(r"1\s*:\s*[125]((0{1,2})?([',]000)+)")
@@ -71,6 +76,14 @@ def are_words_map_like(words: list[TextWord], keyword_lines: list[TextLine]) -> 
     return ratio > threshold
 
 def identify_map(ctx: PageContext, matching_params) -> bool:
+    if map_lines_score(ctx) > 0.3:
+        return True
+    # if identify_map_text(ctx, matching_params):
+        # return True
+
+    return False
+
+def identify_map_text(ctx: PageContext, matching_params) -> bool:
     """"
     Determines whether a page contains a map based on layout patterns and keyword detection.
     Detection logic:
@@ -112,3 +125,59 @@ def identify_map(ctx: PageContext, matching_params) -> bool:
                       for word in line.words]
 
     return are_words_map_like(words_in_map_clusters, keyword_lines)
+
+def is_grid_angle(angle: float, tolerance: float = 2.0) -> bool:
+    """Check if angle is approximately horizontal or vertical."""
+    return any(abs(angle - degree) < tolerance for degree in (0,90,180))
+
+def split_lines_by_orientation(geometric_lines: list[Line]):
+    """return length of geometric lines in grid and non grid lists."""
+    grid, non_grid = [], []
+
+    for line in geometric_lines:
+        if is_grid_angle(line.line_angle, tolerance=2.0):
+            grid.append(line.length)
+        else:
+            non_grid.append(line.length)
+
+    return grid, non_grid
+
+def compute_angle_entropy(angles, angle_bin_count: int = 36):
+    """Compute normalized entropy over angle histogram. Bin settings are settings from default"""
+
+    angle_hist = np.histogram(angles, bins=angle_bin_count, range=(0, 180))[0]
+    return entropy(angle_hist + 1e-6) / np.log2(angle_bin_count)
+
+def map_lines_score(ctx: PageContext) -> float:
+    """Returns a confidence score (0.0 to 1.0) indicating whether the page contains map-like line structure.
+
+     A high score suggests the presence of:
+    - Diverse angles (curved or non-orthogonal features, like contour lines)
+    - Sum of non-grid line lengths higher than sum of  to grid line lengths
+    """
+
+    if not ctx.geometric_lines:
+        logger.info("No geometric lines found.")
+        return 0.0
+
+    angles = [line.line_angle for line in ctx.geometric_lines]
+
+    # Grid/non-grid splitting of lines
+    grid_lengths, non_grid_lengths = split_lines_by_orientation(ctx.geometric_lines)
+    grid_length_sum = sum(grid_lengths)
+    non_grid_length_sum = sum(non_grid_lengths)
+
+    non_grid_length_ratio = non_grid_length_sum / (grid_length_sum + 1)  # avoid division by zero
+
+    ## Line angle entropy
+    angle_entropy = compute_angle_entropy(angles)
+
+    # Weighted scoring
+    score = (
+            0.5 * angle_entropy +  # more spread = more map-like
+            0.4 * min(non_grid_length_ratio / 10, 1.0)
+    )
+    logger.info(
+        f"[Map Lines] Entropy={angle_entropy:.3f}, Ratio={non_grid_length_ratio:.3f},  Score={score:.3f}")
+
+    return score

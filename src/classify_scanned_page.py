@@ -1,6 +1,9 @@
+import math
+
 import pymupdf
 import logging
 from pathlib import Path
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +36,14 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
         return analysis
 
     lines = create_text_lines(page, page_number)
+    mean_font_size = np.mean([line.font_size for line in lines])
     text_blocks = create_text_blocks(lines)
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
     _, geometric_lines = extract_geometric_lines(page)
+
+    # filter out short lines that are as short as text letters
+    longer_geometric_lines = [line for line in geometric_lines if line.length > mean_font_size*math.sqrt(2) ]
 
     context = PageContext(
         lines=lines,
@@ -44,7 +51,7 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
         text_blocks=text_blocks,
         language=language,
         page_rect=page_text_rect,
-        geometric_lines = geometric_lines
+        geometric_lines = longer_geometric_lines
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
 
