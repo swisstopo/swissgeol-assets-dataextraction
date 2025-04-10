@@ -43,7 +43,7 @@ def has_enough_map_entry_lines(map_entry_lines,lines) -> bool:
 
     return map_entry_lines and (len(map_entry_lines) / len(lines)) > 0.5
 
-def are_words_map_like(words: list[TextWord], keyword_lines: list[TextLine]) -> float:
+def map_like_words_ratio(words: list[TextWord], keyword_lines: list[TextLine]) -> float:
     """Calculates the ratio of words following a typical map entry format:
         - All uppercase (e.g., "BASEL")
         - Title case (e.g., "Bern")
@@ -128,7 +128,7 @@ def map_text_score(ctx: PageContext, keyword_lines) -> float:
                       for line in lines
                       for word in line.words]
 
-    return are_words_map_like(words_in_map_clusters, keyword_lines)
+    return map_like_words_ratio(words_in_map_clusters, keyword_lines)
 
 def is_grid_angle(angle: float, tolerance: float = 2.0) -> bool:
     """Check if angle is approximately horizontal or vertical."""
