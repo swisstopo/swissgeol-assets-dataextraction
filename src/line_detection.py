@@ -1,19 +1,16 @@
 from __future__ import annotations
-
 import numpy as np
 import cv2
 import pymupdf
 import logging
 from numpy.typing import NDArray
-from scipy.spatial import cKDTree
-from typing import List
 
-from .geometric_objects import Point, Line, LineGroup
+from .geometric_objects import Point, Line
 
 logger = logging.getLogger(__name__)
 
 def turn_page_to_image(page: pymupdf.Page, zoom: float = 2.0) -> np.ndarray:
-
+    """turns pdf page into an BGR image"""
     mat = pymupdf.Matrix(zoom, zoom)  # apply zoom
     pix = page.get_pixmap(matrix=mat, colorspace=pymupdf.csRGB)
 
@@ -28,13 +25,13 @@ def turn_page_to_image(page: pymupdf.Page, zoom: float = 2.0) -> np.ndarray:
 
     return img
 
-def line_from_array(line) :
+def line_from_array(line:np.ndarray) -> Line:
     start = Point(int(line[0][0]), int(line[0][1]))
     end = Point(int(line[0][2]), int(line[0][3]))
     return Line(start, end)
 
 def extract_geometric_lines(page: pymupdf.Page) -> list:
-
+    """Extracts all edges and lines on a page."""
     image = turn_page_to_image(page)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), sigmaX=1.2)
@@ -47,55 +44,17 @@ def extract_geometric_lines(page: pymupdf.Page) -> list:
     return [edges,lines]
 
 
-def canny_edge_detection(preprocessed_image: NDArray[np.uint8]) -> NDArray[np.uint8]:
-    """ detect edges using canny detection from preprocessed_image image (blurred and/or gray)"""
+def canny_edge_detection(preprocessed_image: NDArray[np.uint8]) -> cv2.typing.MatLike:
+    """detects edges using canny detection from preprocessed image"""
     v = np.median(preprocessed_image)
     lower = int(max(0, 0.66 * v))
     upper = int(min(255, 1.33 * v))
     return cv2.Canny(preprocessed_image, lower, upper)
 
 
-def line_segment_detection(preprocessed_image:NDArray[np.uint8]) -> NDArray[np.float32] | None:
-
+def line_segment_detection(preprocessed_image:NDArray[np.uint8]) -> NDArray[np.float32]:
+    """detects straight lines using LineSegmentDetector from preprocessed image"""
     lsd = cv2.createLineSegmentDetector()
     lines = lsd.detect(preprocessed_image)[0]
 
     return lines
-
-
-# spatial KD-tree endpoints
-def group_lines_kdtree(lines: List[Line], angle_thresh=10, dist_thresh=10) -> List[LineGroup]:
-    points = []
-    index_to_lines = {}
-    for idx, line in enumerate(lines):
-        for p in (line.start, line.end):
-            points.append(p.tuple)
-            index_to_lines.setdefault(p.tuple, []).append((idx, line))
-
-    tree = cKDTree(points)
-    visited = set()
-    groups = []
-
-    for idx, line in enumerate(lines):
-        if idx in visited:
-            continue
-        group = LineGroup(lines=[line])
-        visited.add(idx)
-
-        frontier = [line]
-        while frontier:
-            current = frontier.pop()
-            for pt in [current.start, current.end]:
-                nearby_idx = tree.query_ball_point(pt.tuple, dist_thresh)
-                for ni in nearby_idx:
-                    for candidate_idx, candidate in index_to_lines[points[ni]]:
-                        if candidate_idx in visited:
-                            continue
-                        angle_diff = abs(candidate.line_angle - current.line_angle)
-                        angle_diff = min(angle_diff, 180 - angle_diff)
-                        if angle_diff < angle_thresh:
-                            group.add_line(candidate)
-                            visited.add(candidate_idx)
-                            frontier.append(candidate)
-        groups.append(group)
-    return groups

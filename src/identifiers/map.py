@@ -43,15 +43,15 @@ def has_enough_map_entry_lines(map_entry_lines,lines) -> bool:
 
     return map_entry_lines and (len(map_entry_lines) / len(lines)) > 0.5
 
-def are_words_map_like(words: list[TextWord], keyword_lines: list[TextLine]) -> bool:
-    """Evaluates whether the majority of words follow a typical map entry format:
+def are_words_map_like(words: list[TextWord], keyword_lines: list[TextLine]) -> float:
+    """Calculates the ratio of words following a typical map entry format:
         - All uppercase (e.g., "BASEL")
         - Title case (e.g., "Bern")
         - Contains numbers (e.g., "3", "A1")
     """
     ## Needs to have at least some words if no keyword lines are provided
     if len(words) < 7 and not keyword_lines:
-        return False
+        return 0.0
 
     def _is_a_number(string: str) -> bool:
         try:
@@ -66,58 +66,62 @@ def are_words_map_like(words: list[TextWord], keyword_lines: list[TextLine]) -> 
                           or _is_a_number(word.text))]
 
     if not map_like_words:
-        return False
+        return 0.0
 
-    ratio = (len(map_like_words)) / len(words)
-    # reduce threshold if keyword lines were found on page
-    threshold = 0.6 if keyword_lines else 0.75
-
-
-    return ratio > threshold
+    return (len(map_like_words)) / len(words)
 
 def identify_map(ctx: PageContext, matching_params) -> bool:
-    if map_lines_score(ctx) > 0.3:
-        return True
-    # if identify_map_text(ctx, matching_params):
-        # return True
+    """Determines whether a page contains a map based on geometric lines and based on text features.
+         Detection Logic:
+        - Uses `map_lines_score` (primary driver) to quantify the presence of non-grid line structures
+        - Uses `map_text_score` to quantify the presence of typical map-like text entries
+        - Detects keyword lines to reinforce the presence of map-specific content
 
-    return False
+        Returns:
+            bool: True if combined score exceeds 0.4 threshold.
+    """
+    line_score = map_lines_score(ctx)
 
-def identify_map_text(ctx: PageContext, matching_params) -> bool:
+    map_keyword_lines = [
+        line for line in ctx.lines
+        if is_description(line, matching_params["map_terms"].get(ctx.language, {})) or find_map_scales(line)
+    ]
+    text_score = map_text_score(ctx, map_keyword_lines)
+
+    text_boost = 0.1 if text_score > 0.75 else 0.0
+    keyword_boost = 0.05 if map_keyword_lines else 0.0
+
+    map_score = line_score + keyword_boost + text_boost
+
+    return map_score > 0.4
+
+def map_text_score(ctx: PageContext, keyword_lines) -> float:
     """"
-    Determines whether a page contains a map based on layout patterns and keyword detection.
+    Returns score of how much page text follows map layout patterns.
     Detection logic:
-    - Searches for known map terms or scale patterns (legend lines)
     - Identifies short text blocks typical of map entries
     - Clusters entry lines by x-position and filters large clusters
     - Confirms detection if word formatting follows typical map label format
 
     Args:
         ctx: Lines, blocks, language and layout information of the page.
-        matching_params: Dictionary with keyword patterns for identifying map content.
+        keyword_lines: Dictionary with keyword patterns for identifying map content.
 
     Returns:
-        bool: True if the page likely contains a map.
+        float: Ratio of words following map layout patterns / total words.
     """
-
-    # Find lines containing map-related keywords or scale patterns
-    keyword_lines = [
-        line for line in ctx.lines
-        if is_description(line, matching_params["map_terms"].get(ctx.language, {})) or find_map_scales(line)
-    ]
-
     map_entry_lines = get_map_entry_lines(ctx, keyword_lines)
 
-    # Only proceed if a substantial portion of the page is made up of map entry lines
+    # Substantial portion of the page has to be made up of map entry lines
     if not has_enough_map_entry_lines(map_entry_lines, ctx.lines):
-        return False
+        return 0.0
 
     # Cluster lines based on horizontal alignment
     clusters = cluster_text_elements(map_entry_lines, key_fn= lambda line:line.rect.x0)
     map_clusters = [cluster for cluster in clusters if len(cluster) <= 3]
 
     if not map_clusters:
-        return False
+        return 0.0
 
     words_in_map_clusters = [word
                       for lines in map_clusters
@@ -149,11 +153,11 @@ def compute_angle_entropy(angles, angle_bin_count: int = 36):
     return entropy(angle_hist + 1e-6) / np.log2(angle_bin_count)
 
 def map_lines_score(ctx: PageContext) -> float:
-    """Returns a confidence score (0.0 to 1.0) indicating whether the page contains map-like line structure.
+    """Returns a score (0.0 to 1.0) indicating whether the page contains map-like line structure.
 
      A high score suggests the presence of:
     - Diverse angles (curved or non-orthogonal features, like contour lines)
-    - Sum of non-grid line lengths higher than sum of  to grid line lengths
+    - Sum of non-grid line lengths higher than sum of to grid line lengths
     """
 
     if not ctx.geometric_lines:
@@ -169,15 +173,9 @@ def map_lines_score(ctx: PageContext) -> float:
 
     non_grid_length_ratio = non_grid_length_sum / (grid_length_sum + 1)  # avoid division by zero
 
-    ## Line angle entropy
     angle_entropy = compute_angle_entropy(angles)
 
-    # Weighted scoring
-    score = (
-            0.5 * angle_entropy +  # more spread = more map-like
-            0.4 * min(non_grid_length_ratio / 10, 1.0)
-    )
-    logger.info(
-        f"[Map Lines] Entropy={angle_entropy:.3f}, Ratio={non_grid_length_ratio:.3f},  Score={score:.3f}")
+    score = (0.5 * angle_entropy +
+             0.4 * min(non_grid_length_ratio / 10, 1.0))
 
     return score
