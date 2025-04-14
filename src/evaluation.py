@@ -1,31 +1,24 @@
 import mlflow
 import json
 import csv
-import pandas as pd
-import logging
-from typing import Optional, Dict, Any
 from pathlib import Path
-
+import logging
 from .page_classes import PageClasses
 
 logger = logging.getLogger(__name__)
+
+
 LABELS = [cls.value for cls in PageClasses]
 
-def load_ground_truth(ground_truth_path: Path) -> Optional[Dict[str, Any]]:
+def load_ground_truth(ground_truth_path):
     try:
         with open(ground_truth_path, 'r') as f:
             return {entry["filename"]: entry["classification"] for entry in json.load(f)}
-    except Exception as e:
-        logger.error(f"Invalid ground truth path: {e}")
+    except:
+        logging.error("Invalid ground truth path: Skipping evaluation.")
         return None
 
-
-def get_label(row: pd.Series, suffix: str) -> str:
-    return next((label for label in LABELS if row.get(f"{label}_{suffix}")), "None")
-
-
-def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str, Any]) -> tuple[dict, int, int]:
-    """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
+def compute_confusion_stats(predictions, ground_truth):
     stats = {
         label: {
             "true_positives": 0,
@@ -35,14 +28,15 @@ def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str,
         } for label in LABELS
     }
 
-    total_files, total_pages = 0, 0
+    total_files = 0
+    total_pages = 0
 
     for filename, pred_pages in predictions.items():
-        gt_pages = ground_truth.get(filename)
-        if gt_pages is None:
+        if filename not in ground_truth:
             logger.info(f"No ground truth for {filename}. Skipping.")
             continue
 
+        gt_pages = ground_truth[filename]
         if len(pred_pages) != len(gt_pages):
             logger.info(f"Page count mismatch in {filename}. Skipping.")
             continue
@@ -61,15 +55,15 @@ def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str,
                     stats[label]["false_negatives"] += 1
                 elif gt == 0 and pred == 1:
                     stats[label]["false_positives"] += 1
-                else:
+                elif gt == 0 and pred == 0:
                     stats[label]["true_negatives"] += 1
 
     return stats, total_files, total_pages
 
 
-def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
-    """Saves confusion matrix to output directory."""
-    csv_path = output_dir / "evaluation_metrics.csv"
+def save_confusion_stats(stats, output_dir):
+    csv_path = Path(output_dir) / "evaluation_metrics.csv"
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
@@ -85,46 +79,51 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
     return csv_path
 
 
-def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> None:
-    """Calculates and logs F1, precision and recall to MLflow."""
+def log_metrics_to_mlflow(stats, total_files, total_pages):
     for label, s in stats.items():
-        tp, fn, fp = s["true_positives"], s["false_negatives"], s["false_positives"]
+        tp = s["true_positives"]
+        fn = s["false_negatives"]
+        fp = s["false_positives"]
+        tn = s["true_negatives"]
+
         precision = tp / (tp + fp) if (tp + fp) else 0.0
         recall = tp / (tp + fn) if (tp + fn) else 0.0
-        f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0
+        f1 = 2 * ( precision * recall) / (precision + recall) if (precision + recall) else 0.0
 
         mlflow.log_metric(f"F1 {label}", f1)
         mlflow.log_metric(f"{label}_precision", precision)
         mlflow.log_metric(f"{label}_recall", recall)
 
-        logger.info(f"{label}: F1={f1:.2%}, Precision={precision:.2%}, Recall={recall:.2%}")
+        logger.info(f"Class: {label}")
+        logger.info(f" F1: {f1:.2%}, Precision: {precision:.2%}, Recall: {recall:.2%}")
 
     mlflow.log_metric("total_pages", total_pages)
     mlflow.log_metric("total_files", total_files)
 
 
-def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> pd.DataFrame:
-    """Creates and saves a per-page comparison DataFrame of prediction and ground truth labels."""
-    report_path = output_dir / "per_page_comparison.csv"
-
-    columns = (
-        ["Filename", "Page"] +
-        [f"{label}_pred" for label in LABELS] +
-        [f"{label}_gt" for label in LABELS] +
-        [f"{label}_match" for label in LABELS] +
-        ["All_labels_match"]
-    )
-    rows = []
+def create_page_comparison(pred_dict, gt_dict, output_dir="evaluation"):
+    report_path = Path(output_dir) / "per_page_comparison.csv"
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
 
     with open(report_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(columns)
+        header = (
+                ["Filename", "Page"] +
+                [f"{label}_pred" for label in LABELS] +
+                [f"{label}_gt" for label in LABELS] +
+                [f"{label}_match" for label in LABELS] +
+                ["All_labels_match"]
+        )
 
-        for filename, pred_pages in pred_dict.items():
-            gt_pages = gt_dict.get(filename)
-            if gt_pages is None:
+        writer.writerow(header)
+
+        for filename in pred_dict:
+            if filename not in gt_dict:
                 logger.info(f"WARNING: {filename} not in ground truth, skipping.")
                 continue
+
+            pred_pages = pred_dict[filename]
+            gt_pages = gt_dict[filename]
 
             if len(pred_pages) != len(gt_pages):
                 logger.info(f"WARNING: Page length mismatch in {filename}, skipping.")
@@ -137,44 +136,21 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
                 preds = [int(pred_page.get(label, 0)) for label in LABELS]
                 gts = [int(gt_page.get(label, 0)) for label in LABELS]
                 matches = [int(preds[i] == gts[i]) for i in range(len(LABELS))]
-                all_match = int(all(matches))
 
+                all_match = int(all(matches))
                 row = [filename, page_num + 1] + preds + gts + matches + [all_match]
+
                 writer.writerow(row)
-                rows.append(row)
 
     mlflow.log_artifact(str(report_path))
     logger.info(f"Logged page-by-page comparison to {report_path}")
-    return pd.DataFrame(rows, columns=columns)
+    return report_path
 
 
-def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
-    """Save misclassified pages and per-class CSVs."""
-    df["Predicted_label"] = df.apply(get_label, axis=1, suffix="pred")
-    df["Ground_truth_label"] = df.apply(get_label, axis=1, suffix="gt")
-
-    misclassified = df[df["All_labels_match"] == 0][
-        ["Filename", "Page", "Ground_truth_label", "Predicted_label"]
-    ]
-
-    mis_path = output_dir / "misclassifications.csv"
-    misclassified.to_csv(mis_path, index=False)
-    mlflow.log_artifact(str(mis_path))
-
-    for true_class in LABELS:
-        class_mis = misclassified[misclassified["Ground_truth_label"] == true_class]
-        if not class_mis.empty:
-            path = output_dir / f"misclassified_{true_class}.csv"
-            class_mis.to_csv(path, index=False)
-            mlflow.log_artifact(str(path))
-
-def evaluate_results(predictions: dict, ground_truth_path: Path, output_dir: Path = Path("evaluation")) -> Optional[dict]:
-    """Main entry point for evaluating predictions against ground truth."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-
+def evaluate_results(predictions, ground_truth_path, output_dir="evaluation"):
     gt_dict = load_ground_truth(ground_truth_path)
     if gt_dict is None:
-        return None
+        return
 
     class_dict = {entry["filename"]: entry["classification"] for entry in predictions}
 
@@ -183,7 +159,8 @@ def evaluate_results(predictions: dict, ground_truth_path: Path, output_dir: Pat
 
     log_metrics_to_mlflow(stats, total_files, total_pages)
     mlflow.log_artifact(str(stats_path))
-    comparison_data = create_page_comparison(class_dict, gt_dict, output_dir)
-    save_misclassifications(comparison_data, output_dir)
+    create_page_comparison(class_dict, gt_dict, output_dir)
 
     return stats
+
+
