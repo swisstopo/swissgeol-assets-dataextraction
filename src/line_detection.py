@@ -39,7 +39,12 @@ def extract_geometric_lines(page: pymupdf.Page) -> list:
     edges = canny_edge_detection(blurred)
 
     lsd_lines = line_segment_detection(blurred)
-    lines = [line_from_array(lsd_line) for lsd_line in lsd_lines]
+
+    if lsd_lines is None:
+        logger.warning(f"No geometric lines detected on page {page.number}")
+        lines = []
+    else:
+        lines = [line_from_array(lsd_line) for lsd_line in lsd_lines]
 
     return [edges,lines]
 
