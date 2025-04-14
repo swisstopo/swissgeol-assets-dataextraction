@@ -150,11 +150,15 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
 
 def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
     """Save misclassified pages and per-class CSVs."""
-    df["Predicted_label"] = df.apply(get_label, axis=1, suffix="pred")
-    df["Ground_truth_label"] = df.apply(get_label, axis=1, suffix="gt")
+
+    def get_active_labels(row, suffix):
+        return [label for label in LABELS if row[f"{label}_{suffix}"] == 1]
+
+    df["Predicted_labels"] = df.apply(lambda row: get_active_labels(row, suffix="pred"), axis=1)
+    df["Ground_truth_labels"] = df.apply(lambda row: get_active_labels(row, suffix="gt"), axis=1)
 
     misclassified = df[df["All_labels_match"] == 0][
-        ["Filename", "Page", "Ground_truth_label", "Predicted_label"]
+        ["Filename", "Page", "Ground_truth_labels", "Predicted_labels"]
     ]
 
     mis_path = output_dir / "misclassifications.csv"
@@ -162,7 +166,9 @@ def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
     mlflow.log_artifact(str(mis_path))
 
     for true_class in LABELS:
-        class_mis = misclassified[misclassified["Ground_truth_label"] == true_class]
+        class_mis = misclassified[
+            misclassified["Ground_truth_labels"].apply(lambda labels: true_class in labels)
+        ]
         if not class_mis.empty:
             path = output_dir / f"misclassified_{true_class}.csv"
             class_mis.to_csv(path, index=False)
