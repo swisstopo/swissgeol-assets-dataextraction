@@ -27,18 +27,11 @@ class PageAnalysis:
     def set_class(self, label: PageClasses):
         self.classification[label] = 1
 
-    def to_dict(self):
-        return {
-            "Page": self.page_number,
-            "Classification": self.to_classification_dict(),
-            "Features": self.features
-        }
-
     def to_classification_dict(self):
-        """Only exports classification to dict"""
-        return {
-            cls.value: val for cls, val in self.classification.items()
-        }
+        """Only exports classification and page number to dict"""
+        return { "Page": self.page_number,
+        **{cls.value: val for cls, val in self.classification.items()}
+                 }
 
 def compute_text_features(lines, text_blocks) -> dict:
     words_per_line = [len(line.words) for line in lines]
