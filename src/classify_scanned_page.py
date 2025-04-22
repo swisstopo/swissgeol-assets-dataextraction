@@ -5,6 +5,8 @@ import logging
 from pathlib import Path
 import numpy as np
 
+from .utils import is_digitally_born
+
 logger = logging.getLogger(__name__)
 
 from .text import extract_words, create_text_lines, create_text_blocks
@@ -16,6 +18,12 @@ from .identifiers.boreprofile import identify_boreprofile
 from .page_classes import PageClasses
 from .page_structure import PageAnalysis, PageContext, compute_text_features
 from .line_detection import extract_geometric_lines
+
+def is_text_page(analysis: PageAnalysis) -> bool:
+    return (
+            analysis.features["word_density"] > 1 and
+            analysis.features["mean_words_per_line"] > 3
+    )
 
 
 def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, language: str) -> PageAnalysis:
@@ -30,8 +38,12 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     """
     analysis = PageAnalysis(page_number)
 
+    is_digital = is_digitally_born(page)
+
     words = extract_words(page, page_number)
-    _, geometric_lines = extract_geometric_lines(page)
+    drawings = page.get_drawings() if is_digital else []
+    images = page.get_images() if is_digital else []
+    geometric_lines = extract_geometric_lines(page)[1]
 
     if not words and not geometric_lines:
         analysis.set_class(PageClasses.UNKNOWN)
@@ -51,11 +63,14 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
         text_blocks=text_blocks,
         language=language,
         page_rect=page_text_rect,
-        geometric_lines = geometric_lines
+        geometric_lines = geometric_lines,
+        is_digital = is_digital,
+        drawings = drawings,
+        images = images
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
 
-    if analysis.features["word_density"] > 1 and analysis.features["mean_words_per_line"] > 3:
+    if is_text_page(analysis):
         analysis.set_class(PageClasses.TEXT)
     elif identify_boreprofile(context, matching_params):
         analysis.set_class(PageClasses.BOREPROFILE)
