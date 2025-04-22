@@ -53,10 +53,14 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     - +0.2 if a valid sidebar is found
     - +0.1 if boreprofile-related keywords are present
     """
+    if ctx.is_digital and not (ctx.drawings or ctx.images):
+        return False
+
     descriptions = detect_material_description(
         ctx.lines, ctx.words,
         matching_params["material_description"].get(ctx.language, {})
     )
+
 
     # Find sidebars
     sidebars = create_sidebars(ctx.words)

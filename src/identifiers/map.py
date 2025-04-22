@@ -80,6 +80,9 @@ def identify_map(ctx: PageContext, matching_params) -> bool:
         Returns:
             bool: True if combined score exceeds 0.4 threshold.
     """
+    if ctx.is_digital and not (ctx.drawings or ctx.images):
+        return False
+
     line_score = map_lines_score(ctx)
 
     map_keyword_lines = [
@@ -169,7 +172,6 @@ def map_lines_score(ctx: PageContext) -> float:
     """
 
     if not ctx.geometric_lines:
-        logger.info("No geometric lines found.")
         return 0.0
 
     angles = [line.line_angle for line in ctx.geometric_lines]

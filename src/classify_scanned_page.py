@@ -4,6 +4,7 @@ import logging
 from pathlib import Path
 import numpy as np
 
+from .utils import is_digitally_born
 from .identifiers.text import identify_text
 from .identifiers.map import identify_map
 from .identifiers.boreprofile import identify_boreprofile
@@ -29,9 +30,13 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     """
     analysis = PageAnalysis(page_number)
 
+    is_digital = is_digitally_born(page)
+
     words = extract_words(page, page_number)
     lines = create_text_lines(page, page_number)
     text_blocks = create_text_blocks(lines)
+    drawings = page.get_drawings() if is_digital else []
+    images = page.get_images() if is_digital else []
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
     context = PageContext(
@@ -40,7 +45,10 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
         text_blocks=text_blocks,
         language=language,
         page_rect=page_text_rect,
-        geometric_lines = []
+        geometric_lines = [],
+        is_digital = is_digital,
+        drawings = drawings,
+        images = images
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
 
