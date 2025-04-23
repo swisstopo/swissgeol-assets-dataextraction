@@ -39,8 +39,8 @@ class MaterialDescription:
             return False
 
         material_description_height = abs(self.rect.y0 - self.rect.y1)
-        if not long_geometric_lines:
-            if material_description_height < (page_rect.height / 5) and len(self.text_lines) <= 5:
+        if len(long_geometric_lines) <= 2:
+            if material_description_height < (page_rect.height / 4) and len(self.text_lines) <= 5:
                 logger.info("too small description area to be a boreprofile")
                 return False
 
