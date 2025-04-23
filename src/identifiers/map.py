@@ -147,10 +147,18 @@ def split_lines_by_orientation(geometric_lines: list[Line]):
     return grid, non_grid
 
 def compute_angle_entropy(angles, angle_bin_count: int = 36):
-    """Compute normalized entropy over angle histogram. Bin settings are settings from default"""
+    """
+       Compute normalized entropy over the angle histogram.
+
+       - We compute the Shannon entropy H(p), which measures the uncertainty in the angle distribution.
+       - Angles are binned into `angle_bin_count` bins (default = 36), i.e., 5° intervals over [0, 180).
+       - The entropy is normalized by dividing by log2(angle_bin_count), the maximum possible entropy for a uniform distribution.
+         This scales entropy to the range [0, 1].
+         See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html
+       """
 
     angle_hist = np.histogram(angles, bins=angle_bin_count, range=(0, 180))[0]
-    return entropy(angle_hist + 1e-6) / np.log2(angle_bin_count)
+    return entropy(angle_hist) / np.log2(angle_bin_count)
 
 def map_lines_score(ctx: PageContext) -> float:
     """Returns a score (0.0 to 1.0) indicating whether the page contains map-like line structure.
