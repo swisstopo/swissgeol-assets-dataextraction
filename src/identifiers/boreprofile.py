@@ -7,6 +7,14 @@ from ..utils import cluster_text_elements
 from dataclasses import dataclass
 import pymupdf
 
+@dataclass
+class Entry:
+    rect: pymupdf.Rect
+    value: float
+
+    def __repr__(self):
+        return f"{self.value}"
+
 logger = logging.getLogger(__name__)
 
 def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
@@ -18,13 +26,13 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     else:
         long_geometric_lines = []
 
-    sidebar_entries = detect_entries(ctx.words)
-    logger.info([entry[1] for entry in sidebar_entries])
-    #sidebar_columns = create_sidebar_columns(sidebar_entries)
+    sidebar_columns = create_sidebar_columns(ctx.words)
+    sidebar_columns_sorted = sorted(sidebar_columns, key=len, reverse=True)
+    logger.info(sidebar_columns_sorted)
 
     return any(description.is_valid(ctx.page_rect, long_geometric_lines) for description in material_descriptions)
 
-def detect_entries(words: list[TextWord]) -> list[tuple]:
+def detect_entries(words: list[TextWord]) -> list[Entry]:
     """identifies potential entries"""
     entries = []
     regex = re.compile(r"^-?\.?([0-9]+(\.[0-9]*)?)[müMN\\.]*$")
@@ -33,11 +41,22 @@ def detect_entries(words: list[TextWord]) -> list[tuple]:
             input_string = word.text.strip().replace(",", ".")
             match = regex.match(input_string)
             if match:
-                entries.append((word.rect, match.group(1)))
+                entries.append(Entry(word.rect, float(match.group(1))))
         except ValueError:
             pass
     return entries
 
-# def create_sidebar_columns(entries):
-#     clusters =  cluster_text_elements(entries, key_fn = lambda entries:entries[0])
+def is_strictly_increasing(column) -> bool:
+    return all(column[i].value < column[i + 1].value for i in range(len(column) - 1))
 
+
+def create_sidebar_columns(words: list[TextWord]) -> list[Entry]:
+
+    sidebar_entries = detect_entries(words)
+    clusters =  cluster_text_elements(sidebar_entries, key_fn = lambda entries:entries.rect.x0, tolerance = 10)
+    valid_sidebars =[]
+    for cluster in clusters:
+        if len(cluster) >= 3 and is_strictly_increasing(cluster):
+            valid_sidebars.append(cluster)
+
+    return valid_sidebars
