@@ -1,11 +1,16 @@
+import logging
+import re
+import pymupdf
+from dataclasses import dataclass
+
 from ..text import TextWord
 from ..page_structure import PageContext
 from ..material_description import detect_material_description
-import logging
-import re
 from ..utils import cluster_text_elements
-from dataclasses import dataclass
-import pymupdf
+from .map import split_lines_by_orientation
+
+logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Entry:
@@ -15,22 +20,47 @@ class Entry:
     def __repr__(self):
         return f"{self.value}"
 
-logger = logging.getLogger(__name__)
-
 def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     """Identifies whether a page contains a boreprofile based on presence of a valid material description in given language"""
+
+    ## a) find material description, must exist for boreprofiles!
     material_descriptions = detect_material_description(ctx.lines, ctx.words, matching_params["material_description"].get(ctx.language, {}))
 
-    if ctx.geometric_lines:
-        long_geometric_lines = [line for line in ctx.geometric_lines if line.length > ctx.page_rect.height / 3]
-    else:
-        long_geometric_lines = []
+    ## b) find long lines, increases chance to be a boreprofile TODO: filter for only gridlike lines
+    grid, non_grid = split_lines_by_orientation(ctx.geometric_lines)
+    long_geometric_lines = [length for length in (grid or []) if length > ctx.page_rect.height /3]
 
+    ## c) find longest sidebar -> increases chance to be boreprofile
     sidebar_columns = create_sidebar_columns(ctx.words)
-    sidebar_columns_sorted = sorted(sidebar_columns, key=len, reverse=True)
-    logger.info(sidebar_columns_sorted)
+    length_sidebar = len(sorted(sidebar_columns, key=len, reverse=True)[0]) if sidebar_columns else 0
 
-    return any(description.is_valid(ctx.page_rect, long_geometric_lines) for description in material_descriptions)
+    best_score = 0
+
+    for description in material_descriptions:
+        if not description.is_valid(ctx.page_rect, long_geometric_lines):
+            continue
+
+        num_lines = len(description.text_lines)
+        noise = description.noise
+
+        # Score components
+        score = 1.0  # base for valid material description
+        score += min(num_lines / 30, 1.0) * 0.5  # max 0.5 bonus
+        score += min(length_sidebar / 30, 1.0) * 0.5  # max 0.5 bonus
+        score += min(len(long_geometric_lines) / 10, 1.0) * 0.5  # max 0.5 bonus
+        score += max(0, (1.75 - noise) / 1.75) * 0.5  # inverse noise, max 0.5 bonus
+
+        logger.info({
+            "score": round(score, 2),
+            "lines": num_lines,
+            "sidebar_len": length_sidebar,
+            "long_lines": len(long_geometric_lines),
+            "noise": round(noise, 2),
+            "rect": description.rect
+        })
+        best_score = max(best_score, score)
+
+    return best_score >= 1.5
 
 def detect_entries(words: list[TextWord]) -> list[Entry]:
     """identifies potential entries"""
