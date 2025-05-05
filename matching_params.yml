@@ -31,10 +31,8 @@ table_of_contents:
 boreprofile:
   en:
     - borehole profile
-    - borehole log
+    - boreprofile
     - borehole
-    - borehole diagram
-    - borehole cross section
   de:
     - bohrprofil
     - bohrlochprofil

@@ -11,7 +11,6 @@ from .map import split_lines_by_orientation
 
 logger = logging.getLogger(__name__)
 
-
 @dataclass
 class Entry:
     rect: pymupdf.Rect
@@ -21,18 +20,26 @@ class Entry:
         return f"{self.value}"
 
 def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
-    """Identifies whether a page contains a boreprofile based on presence of a valid material description in given language"""
-
-    ## a) find material description, must exist for boreprofiles!
+    """Identifies whether a page contains a boreprofile.
+    Based on:
+     - presence of a valid material description in given language
+     - gridlike lines
+     - potential Sidebar length
+     - keywords
+     """
     material_descriptions = detect_material_description(ctx.lines, ctx.words, matching_params["material_description"].get(ctx.language, {}))
 
-    ## b) find long lines, increases chance to be a boreprofile TODO: filter for only gridlike lines
-    grid, non_grid = split_lines_by_orientation(ctx.geometric_lines)
+    ##gridlike lines
+    grid, _ = split_lines_by_orientation(ctx.geometric_lines)
     long_geometric_lines = [length for length in (grid or []) if length > ctx.page_rect.height /3]
 
-    ## c) find longest sidebar -> increases chance to be boreprofile
+    ##sidebar length
     sidebar_columns = create_sidebar_columns(ctx.words)
     length_sidebar = len(sorted(sidebar_columns, key=len, reverse=True)[0]) if sidebar_columns else 0
+
+    boreprofile_keyword_lines = [
+        line.line_text().lower() for line in ctx.lines
+        if any(line.line_text().lower().find(word) > -1 for word in matching_params["boreprofile"].get(ctx.language, {}))]
 
     best_score = 0
 
@@ -49,21 +56,14 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
         score += min(length_sidebar / 30, 1.0) * 0.5  # max 0.5 bonus
         score += min(len(long_geometric_lines) / 10, 1.0) * 0.5  # max 0.5 bonus
         score += max(0, (1.75 - noise) / 1.75) * 0.5  # inverse noise, max 0.5 bonus
+        score += 0.1 if boreprofile_keyword_lines else 0 # little bonus for presence of keyword lines
 
-        logger.info({
-            "score": round(score, 2),
-            "lines": num_lines,
-            "sidebar_len": length_sidebar,
-            "long_lines": len(long_geometric_lines),
-            "noise": round(noise, 2),
-            "rect": description.rect
-        })
         best_score = max(best_score, score)
 
     return best_score >= 1.5
 
 def detect_entries(words: list[TextWord]) -> list[Entry]:
-    """identifies potential entries"""
+    """identifies potential sidebar entries"""
     entries = []
     regex = re.compile(r"^-?\.?([0-9]+(\.[0-9]*)?)[müMN\\.]*$")
     for word in sorted(words, key=lambda word: word.rect.y0):
@@ -76,14 +76,17 @@ def detect_entries(words: list[TextWord]) -> list[Entry]:
             pass
     return entries
 
-def is_strictly_increasing(column) -> bool:
-    return all(column[i].value < column[i + 1].value for i in range(len(column) - 1))
+def is_strictly_increasing(sidebar: list[Entry]) -> bool:
+    """ check if sidebar entries are strictly increasing"""
+    return all(sidebar[i].value < sidebar[i + 1].value for i in range(len(sidebar) - 1))
 
 
 def create_sidebar_columns(words: list[TextWord]) -> list[Entry]:
+    """ create sidebars from words on page by clustering potential entries on x0"""
 
     sidebar_entries = detect_entries(words)
     clusters =  cluster_text_elements(sidebar_entries, key_fn = lambda entries:entries.rect.x0, tolerance = 10)
+
     valid_sidebars =[]
     for cluster in clusters:
         if len(cluster) >= 3 and is_strictly_increasing(cluster):
