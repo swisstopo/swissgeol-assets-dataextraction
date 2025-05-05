@@ -42,7 +42,7 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
 
     words = extract_words(page, page_number)
     drawings = page.get_drawings() if is_digital else []
-    images = page.get_images() if is_digital else []
+    images = page.get_image_info() if is_digital else []
     geometric_lines = extract_geometric_lines(page)[1]
 
     if not words and not geometric_lines:
