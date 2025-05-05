@@ -52,7 +52,7 @@ def keywords_in_figure_description(ctx,matching_params):
 
     boreprofile_lines = [
         line for line in figure_description_lines
-        if any(keyword in line for keyword in boreprofile_keywords)
+        if any(keyword in line.lower() for keyword in boreprofile_keywords)
     ]
 
     logger.info(boreprofile_lines)
