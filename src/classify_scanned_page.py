@@ -36,7 +36,7 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     lines = create_text_lines(page, page_number)
     text_blocks = create_text_blocks(lines)
     drawings = page.get_drawings() if is_digital else []
-    images = page.get_images() if is_digital else []
+    images = page.get_image_info() if is_digital else []
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
     context = PageContext(
