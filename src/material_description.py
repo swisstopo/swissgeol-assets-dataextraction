@@ -34,14 +34,13 @@ class MaterialDescription:
 
         return len(noise_words) / len(description_words) if description_words else float('inf')
 
-    def is_valid(self, page_rect, long_geometric_lines):
-        if len(self.text_lines)  < 3: #material description of boreprofile should have at least 3 entries
+    def is_valid(self, page_rect, sidebar):
+        if len(self.text_lines)  < 3:
             return False
 
-        material_description_height = abs(self.rect.y0 - self.rect.y1)
-        if len(long_geometric_lines) <= 2:
-            if material_description_height < (page_rect.height / 4) and len(self.text_lines) <= 5:
-                logger.info("too small description area to be a boreprofile")
+        if not sidebar:
+            if (self.rect.height/ page_rect.height) < 0.5:
+                logger.info("too small description height to be a boreprofile")
                 return False
 
         return self.noise < 1.75

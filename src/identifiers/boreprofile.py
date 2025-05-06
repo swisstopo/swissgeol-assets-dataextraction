@@ -29,11 +29,11 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
      """
     material_descriptions = detect_material_description(ctx.lines, ctx.words, matching_params["material_description"].get(ctx.language, {}))
 
-    ##gridlike lines
+    # gridlike lines
     grid, _ = split_lines_by_orientation(ctx.geometric_lines)
     long_geometric_lines = [length for length in (grid or []) if length > ctx.page_rect.height /3]
 
-    ##sidebar length
+    # sidebar length
     sidebar_columns = create_sidebar_columns(ctx.words)
     length_sidebar = len(sorted(sidebar_columns, key=len, reverse=True)[0]) if sidebar_columns else 0
 
@@ -44,7 +44,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     best_score = 0
 
     for description in material_descriptions:
-        if not description.is_valid(ctx.page_rect, long_geometric_lines):
+        if not description.is_valid(ctx.page_rect, sidebar_columns):
             continue
 
         num_lines = len(description.text_lines)
