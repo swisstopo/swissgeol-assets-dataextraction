@@ -38,10 +38,9 @@ class MaterialDescription:
         if len(self.text_lines)  < 3:
             return False
 
-        if not sidebar:
-            if (self.rect.height/ page_rect.height) < 0.5:
-                logger.info("too small description height to be a boreprofile")
-                return False
+        if not sidebar and (self.rect.height/ page_rect.height) < 0.3:
+            logger.info("too small description height to be a boreprofile")
+            return False
 
         return self.noise < 1.75
 
