@@ -37,9 +37,9 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     sidebar_columns = create_sidebar_columns(ctx.words)
     length_sidebar = len(sorted(sidebar_columns, key=len, reverse=True)[0]) if sidebar_columns else 0
 
-    boreprofile_keyword_lines = [
-        line.line_text().lower() for line in ctx.lines
-        if any(line.line_text().lower().find(word) > -1 for word in matching_params["boreprofile"].get(ctx.language, {}))]
+    boreprofile_keywords = [
+        word for word in ctx.words
+        if word.text.lower() in matching_params["boreprofile"].get(ctx.language, {})]
 
     best_score = 0
 
@@ -56,7 +56,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
         score += min(length_sidebar / 30, 1.0) * 0.5  # max 0.5 bonus
         score += min(len(long_geometric_lines) / 10, 1.0) * 0.5  # max 0.5 bonus
         score += max(0, (1.75 - noise) / 1.75) * 0.5  # inverse noise, max 0.5 bonus
-        score += 0.1 if boreprofile_keyword_lines else 0 # little bonus for presence of keyword lines
+        score += 0.1 if boreprofile_keywords else 0 # little bonus for presence of keyword lines
 
         best_score = max(best_score, score)
 
