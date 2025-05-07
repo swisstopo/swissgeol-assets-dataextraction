@@ -1,22 +1,21 @@
 import math
-
 import pymupdf
 import logging
 from pathlib import Path
 import numpy as np
 
-logger = logging.getLogger(__name__)
-
-from .text import extract_words, create_text_lines, create_text_blocks
-from .title_page import sparse_title_page
-from .detect_language import detect_language_of_page
-from .bounding_box import merge_bounding_boxes
+from .identifiers.text import identify_text
 from .identifiers.map import identify_map
 from .identifiers.boreprofile import identify_boreprofile
+from .identifiers.title_page import sparse_title_page
+from .text_objects import extract_words, create_text_lines, create_text_blocks
+from .detect_language import detect_language_of_page
+from .bounding_box import merge_bounding_boxes
 from .page_classes import PageClasses
 from .page_structure import PageAnalysis, PageContext, compute_text_features
 from .line_detection import extract_geometric_lines
 
+logger = logging.getLogger(__name__)
 
 def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, language: str) -> PageAnalysis:
     """classifies single pages into Text-, Boreprofile-, Map- or Unknown Page.
@@ -31,19 +30,9 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     analysis = PageAnalysis(page_number)
 
     words = extract_words(page, page_number)
-    _, geometric_lines = extract_geometric_lines(page)
-
-    if not words and not geometric_lines:
-        analysis.set_class(PageClasses.UNKNOWN)
-        return analysis
-
     lines = create_text_lines(page, page_number)
     text_blocks = create_text_blocks(lines)
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
-
-    if len(words) > 7:
-        mean_font_size = np.mean([line.font_size for line in lines])
-        geometric_lines = [line for line in geometric_lines if line.length > mean_font_size*math.sqrt(2) ]
 
     context = PageContext(
         lines=lines,
@@ -51,22 +40,39 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
         text_blocks=text_blocks,
         language=language,
         page_rect=page_text_rect,
-        geometric_lines = geometric_lines
+        geometric_lines = []
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
 
-    if analysis.features["word_density"] > 1 and analysis.features["mean_words_per_line"] > 3:
-        analysis.set_class(PageClasses.TEXT)
-    elif identify_boreprofile(context, matching_params):
-        analysis.set_class(PageClasses.BOREPROFILE)
-    elif identify_map(context, matching_params):
-        analysis.set_class(PageClasses.MAP)
-    elif sparse_title_page(context.lines):
-        analysis.set_class(PageClasses.TITLE_PAGE)
-    else:
-        analysis.set_class(PageClasses.UNKNOWN)
+    page_class = determine_page_class(page, context, matching_params, analysis.features)
+    analysis.set_class(page_class)
 
     return analysis
+
+def determine_page_class(page: pymupdf.Page, context: PageContext, matching_params: dict, features:dict) -> PageClasses:
+    if identify_text(features):
+        return PageClasses.TEXT
+
+    if identify_boreprofile(context, matching_params):
+        return PageClasses.BOREPROFILE
+
+    # Geometric lines extraction only when needed
+    if not context.geometric_lines:
+        _, geometric_lines = extract_geometric_lines(page)
+
+        if len(context.words) > 7:
+            # filter out short lines if words exist on page. The short lines often are lines from words
+            mean_font_size = np.mean([line.font_size for line in context.lines])
+            geometric_lines = [line for line in geometric_lines if line.length > mean_font_size * math.sqrt(2)]
+        context.geometric_lines = geometric_lines
+
+    if identify_map(context, matching_params):
+        return PageClasses.MAP
+
+    if sparse_title_page(context.lines):
+        return PageClasses.TITLE_PAGE
+
+    return PageClasses.UNKNOWN
 
 def classify_pdf(file_path: Path, matching_params: dict)-> dict:
     """Processes a pdf File, classifies each page"""

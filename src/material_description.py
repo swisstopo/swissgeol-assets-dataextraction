@@ -3,7 +3,7 @@ The same including and excluding matching parameters used."""
 import pymupdf
 import logging
 
-from .text import TextLine, TextWord
+from .text_objects import TextLine, TextWord
 from .utils import cluster_text_elements, is_description
 logger = logging.getLogger(__name__)
 

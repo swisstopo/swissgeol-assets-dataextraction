@@ -1,6 +1,6 @@
 import regex
 
-from .text import TextWord, TextLine
+from .text_objects import TextWord, TextLine
 
 
 def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:

@@ -3,7 +3,7 @@ import logging
 import numpy as np
 from scipy.stats import entropy
 from ..geometric_objects import Line
-from ..text import TextLine, TextWord
+from ..text_objects import TextLine, TextWord
 from ..utils import is_description, cluster_text_elements
 from ..page_structure import PageContext
 

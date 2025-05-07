@@ -1,5 +1,5 @@
 import fitz
-from src.text import TextWord, TextLine
+from src.text_objects import TextWord, TextLine
 
 
 def test_textline_with_valid_words():

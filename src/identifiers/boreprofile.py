@@ -3,11 +3,10 @@ import re
 import pymupdf
 from dataclasses import dataclass
 
-from ..text import TextWord
+from ..text_objects import TextWord
 from ..page_structure import PageContext
 from ..material_description import detect_material_description
 from ..utils import cluster_text_elements
-from .map import split_lines_by_orientation
 
 logger = logging.getLogger(__name__)
 
