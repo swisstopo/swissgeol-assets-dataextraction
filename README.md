@@ -107,6 +107,11 @@ python main.py -i data/single_pages/  -g data/gt_single_pages.json
 
 ## Further infos on some of the Notebooks
 
+If you want to run notebooks, you need to install:
+```
+pip install -e .
+```
+
 ### create_testdata.ipynb
 
 This notebook is used to **create input pages** for `classify_scanned.py` from original reports.
