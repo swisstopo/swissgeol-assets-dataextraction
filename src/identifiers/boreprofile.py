@@ -43,44 +43,47 @@ def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
     clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
 
-
 def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     """
-    Identifies whether a page contains a boreprofile.
-    Requires a valid material description and boosts confidence with:
-      - Sidebar length
-      - Gridlike lines
-      - Boreprofile-related keywords
+    Determines whether a page contains a boreprofile.
+
+    A boreprofile is detected if:
+    - At least one valid material description is present
+    - The description text accounts for a significant portion of the page (>= 30% with boosts)
+    Boosts:
+    - +0.2 if a valid sidebar is found
+    - +0.1 if boreprofile-related keywords are present
     """
     descriptions = detect_material_description(
         ctx.lines, ctx.words,
         matching_params["material_description"].get(ctx.language, {})
     )
 
-    grid_lines, _ = split_lines_by_orientation(ctx.geometric_lines)
-    long_line_length = [length for length in (grid_lines or []) if length > ctx.page_rect.height / 3]
-
+    # Find sidebars
     sidebars = create_sidebars(ctx.words)
-    longest_sidebar_len = len(max(sidebars, key=len)) if sidebars else 0
+    has_sidebar = bool(sidebars)
 
-    keywords_found = any(
-        w.text.lower() in matching_params["boreprofile"].get(ctx.language, {})
-        for w in ctx.words
+    valid_descriptions = [
+        desc for desc in descriptions if desc.is_valid(ctx.page_rect, sidebars)
+    ]
+    if not valid_descriptions:
+        return False
+
+    # Calculate ratio between material description and total page words
+    total_words = sum(1 for word in ctx.words if word.text.isalpha())
+    material_words = sum(
+        len(line.words)
+        for desc in valid_descriptions
+        for line in desc.text_lines
     )
+    ratio = material_words / total_words if total_words else 0.0
 
-    best_score = 0
+    # Keyword match
+    keyword_set = matching_params["boreprofile"].get(ctx.language, {})
+    has_keyword = any(word.text.lower() in keyword_set for word in ctx.words)
 
-    for desc in descriptions:
-        if not desc.is_valid(ctx.page_rect, sidebar=sidebars):
-            continue
+    # Apply boosts
+    ratio += 0.2 if has_sidebar else 0.0
+    ratio += 0.1 if has_keyword else 0.0
 
-        score = 1.0
-        score += min(len(desc.text_lines) / 30, 1.0) * 0.5
-        score += min(longest_sidebar_len / 30, 1.0) * 0.5
-        score += min(len(long_line_length) / 10, 1.0) * 0.5
-        score += max(0, (1.75 - desc.noise) / 1.75) * 0.5
-        score += 0.1 if keywords_found else 0
-
-        best_score = max(best_score, score)
-
-    return best_score >= 1.5
+    return ratio > 0.3
