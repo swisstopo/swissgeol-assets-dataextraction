@@ -127,20 +127,17 @@ def is_InfoGeol_page(text: str, substrings: list[list[str]]) -> bool:
     ]
     return len([evaluation for evaluation in evaluations if evaluation]) / len(evaluations) >= 0.7
 
-def sparse_title_page(lines: list[TextLine]):
-    # if len(lines) > 30: # too many lines -> prob no sparse title page
-    #     return False
-    
-    # not_right_aligned_lines = [line for line in lines if line.rect.x0 > 50] 
-    # if len(not_right_aligned_lines) < 2:
-    #     return False
-    
+def sparse_title_page(lines: list[TextLine]) -> bool:
+
+    if not lines or len(lines) > 30:
+        return False
+
     font_sizes = [line.font_size for line in lines]
 
     multiple_sizes = len(set(font_sizes)) > 5
-    large_font = max(font_sizes)>20
+    large_font = max(font_sizes) > 20
 
-    if multiple_sizes > 5 and large_font > 20:
-        logger.info((multiple_sizes,large_font, len(lines)))
+    if multiple_sizes and large_font:
         return True
+
     return False
