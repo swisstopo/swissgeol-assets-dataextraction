@@ -96,7 +96,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     ratio += 0.2 if has_sidebar else 0.0
     ratio += 0.1 if has_keyword else 0.0
 
-    return ratio > 0.3
+    return any(description.is_valid(ctx.page_rect, long_geometric_lines) for description in material_descriptions)
 
 def keywords_in_figure_description(ctx,matching_params):
 
