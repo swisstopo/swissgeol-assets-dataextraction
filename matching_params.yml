@@ -28,6 +28,15 @@ table_of_contents:
     - sommario
     - panoramica dei capitoli
 
+figure:
+  - fig
+  - figure
+  - abb
+  - abbildung
+  - tab
+  - table
+  - tabelle
+  -
 boreprofile:
   en:
     - borehole profile
@@ -291,3 +300,4 @@ map_terms:
       - grafico
       - tabella
       - schema
+

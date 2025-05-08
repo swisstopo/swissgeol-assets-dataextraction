@@ -7,6 +7,7 @@ from ..text_objects import TextWord
 from ..page_structure import PageContext
 from ..material_description import detect_material_description
 from ..utils import cluster_text_elements
+from ..keyword_finding import find_figure_description
 
 logger = logging.getLogger(__name__)
 
@@ -41,9 +42,6 @@ def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
     entries = detect_entries(words)
     clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
-import logging
-import re
-logger = logging.getLogger(__name__)
 
 def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     """
@@ -66,8 +64,6 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
 
     if ctx.is_digital and ctx.images:
         return True if keywords_in_figure_description(ctx, matching_params) else False
-
-    material_descriptions = detect_material_description(ctx.lines, ctx.words, matching_params["material_description"].get(ctx.language, {}))
 
     # Find sidebars
     sidebars = create_sidebars(ctx.words)
@@ -96,40 +92,16 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     ratio += 0.2 if has_sidebar else 0.0
     ratio += 0.1 if has_keyword else 0.0
 
-    return any(description.is_valid(ctx.page_rect, long_geometric_lines) for description in material_descriptions)
+    return ratio > 0.3
 
-def keywords_in_figure_description(ctx,matching_params):
+def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[str]:
+    keywords = matching_params["boreprofile"].get(ctx.language, {})
+    figure_lines = find_figure_description(ctx)
 
-    figure_patterns = [r"\b\d{1,2}(?:\.\d{1,2}){0,3}\b"]
-
-    boreprofile_keywords = matching_params["boreprofile"].get(ctx.language, {})
-    relevant_lines = []
-
-    def is_close_to_image(line_rect, image_rect):
-        image_y0, image_y1 = image_rect[1], image_rect[3]
-        return (
-                abs(line_rect.y1 - image_y0) < 20 or  # directly above
-                abs(line_rect.y0 - image_y1) < 20  # directly below
-        )
-    for line in ctx.lines:
-        for image in ctx.images:
-            if is_close_to_image(line.rect, image["bbox"]):
-                relevant_lines.append(line)
-
-    figure_description_lines = []
-
-    for line in ctx.lines:
-        line_text = line.line_text()
-        for pattern in figure_patterns:
-            if re.search(pattern, line_text):
-                logger.info(f"Matched figure pattern in line: {line_text}")
-                figure_description_lines.append(line_text.lower())
-                break
-
-    boreprofile_lines = [
-        line for line in figure_description_lines
-        if any(keyword in line.lower() for keyword in boreprofile_keywords)
+    matches = [
+        line for line in figure_lines
+        if any(keyword in line.lower() for keyword in keywords)
     ]
 
-    logger.info(boreprofile_lines)
-    return boreprofile_lines
+    logger.info(matches)
+    return matches
