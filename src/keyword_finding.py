@@ -14,7 +14,7 @@ def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
             return match.group(1)
     return None
 
-def find_keywords_in_lines(text_lines: list[TextLine],keywords : list[str]):
+def find_keywords_in_lines(text_lines: list[TextLine], keywords : list[str]):
     found_keywords =[]
 
     for line in text_lines:
@@ -28,35 +28,52 @@ def find_keywords_in_lines(text_lines: list[TextLine],keywords : list[str]):
     return found_keywords
 
 
-def is_close_to_image(line_rect, image_rect):
+def is_aligned_below(line_rect, image_rect):
+
+    image_x0, image_x1 = image_rect[0], image_rect[2]
     image_y0, image_y1 = image_rect[1], image_rect[3]
-    return (
-            abs(line_rect.y1 - image_y0) < 20 or  # directly above
-            abs(line_rect.y0 - image_y1) < 20  # directly below
-    )
+    image_width  = image_x1 - image_x0
+    image_height = image_y1 - image_x0
+
+    # Line must be below image TODO: check why for some images y1 is off...
+    if line_rect.y0 < image_y1 or abs(line_rect.y0 - image_y1) > image_height * 0.25:
+        return False
+
+    max_offset = image_width * 0.1
+    left_within = line_rect.x0 >= image_x0 - max_offset
+    right_within = line_rect.x1 <= image_x1 + max_offset
+
+    return left_within and right_within
 
 def find_figure_description(ctx):
 
-    figure_patterns = [r"\b\d{1,2}(?:\.\d{1,2}){0,3}\b"]
+    figure_pattern = re.compile(
+        r"^(?:"                                               # Start of line + non-capturing group
+        r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
+        r")?"                                                        # Optional label
+        r"\d{1,2}(?:[.:]\d{1,2}){0,3}"                               # Number + optional decimal/subsection
+        r"\b",                                                       # Word boundary after pattern
+        flags=re.IGNORECASE
+    )
 
-    potential_lines = ctx.lines.copy()
     relevant_lines = []
+    added_lines = set()
 
-    for line in potential_lines:
+    for line in ctx.lines:
+        if id(line) in added_lines:
+            continue
+
         for image in ctx.images:
-            if is_close_to_image(line.rect, image["bbox"]):
-                potential_lines.remove(line)
+            if is_aligned_below(line.rect, image["bbox"]):
                 relevant_lines.append(line)
+                added_lines.add(id(line))
                 break
 
     figure_description_lines = []
-
     for line in relevant_lines:
         line_text = line.line_text()
-        for pattern in figure_patterns:
-            if re.search(pattern, line_text):
-                logger.info(f"Matched figure pattern in line: {line_text}")
-                figure_description_lines.append(line_text)
-                break
+        if figure_pattern.search(line_text):
+            logger.info(f"Matched figure pattern: {line_text}")
+            figure_description_lines.append(line)
 
     return figure_description_lines

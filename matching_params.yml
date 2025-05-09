@@ -28,15 +28,25 @@ table_of_contents:
     - sommario
     - panoramica dei capitoli
 
-figure:
-  - fig
-  - figure
-  - abb
-  - abbildung
-  - tab
-  - table
-  - tabelle
-  -
+caption_description:
+  boreprofile:
+    en:
+      must_contain:
+        - [ profile, log, lithostratigraphy ]
+        - [ borehole, drilling, bore ]
+    de:
+      must_contain:
+        - [ profil, log, lithostratigraphie]
+        - [ bohrung, bohrloch, bohr ]
+    fr:
+      must_contain:
+        - [ profil, log, lithostratigraphique ]
+        - [ forage, sondage ]
+    it:
+      must_contain:
+        - [ profilo, log, stratigrafico, diagramma ]
+        - [ perforazione, sondaggio ]
+
 boreprofile:
   en:
     - borehole profile
@@ -47,13 +57,11 @@ boreprofile:
     - bohrlochprofil
     - bohrung
   fr:
-    - profil de forage
-    - diagramme de forage
     - forage
     - sondage
   it:
     - profilo di perforazione
-    - diagramma di perforazione
+    - perforazione
     - sondaggio
 
 material_description:

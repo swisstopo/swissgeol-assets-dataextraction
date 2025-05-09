@@ -1,3 +1,4 @@
+from typing import Optional
 import numpy as np
 import pymupdf
 from dataclasses import dataclass

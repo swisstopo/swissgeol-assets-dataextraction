@@ -54,16 +54,11 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     - +0.2 if a valid sidebar is found
     - +0.1 if boreprofile-related keywords are present
     """
-    if ctx.is_digital and not (ctx.drawings or ctx.images):
-        return False
 
     descriptions = detect_material_description(
         ctx.lines, ctx.words,
         matching_params["material_description"].get(ctx.language, {})
     )
-
-    if ctx.is_digital and ctx.images:
-        return True if keywords_in_figure_description(ctx, matching_params) else False
 
     # Find sidebars
     sidebars = create_sidebars(ctx.words)
@@ -95,13 +90,21 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     return ratio > 0.3
 
 def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[str]:
-    keywords = matching_params["boreprofile"].get(ctx.language, {})
-    figure_lines = find_figure_description(ctx)
+    caption_lines = find_figure_description(ctx)
+    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, {}).get("must_contain", [])
 
-    matches = [
-        line for line in figure_lines
-        if any(keyword in line.lower() for keyword in keywords)
-    ]
+    if len(keyword_groups) < 2:
+        logger.warning(
+            f"Need 2 keyword groups (profile and borehole keywords) in figure_description.boreprofile, but got: {keyword_groups}")
+        return []
 
-    logger.info(matches)
-    return matches
+    matched_lines = []
+    for line in caption_lines:
+        text = line.line_text().lower()
+
+        if all(any(keyword in text for keyword in group)
+               for group in keyword_groups):
+            logger.info(f"Matched figure description: {text}")
+            matched_lines.append(line)
+
+    return matched_lines
