@@ -1,4 +1,3 @@
-from typing import Optional
 import numpy as np
 import pymupdf
 from dataclasses import dataclass
@@ -18,7 +17,7 @@ class PageContext:
     geometric_lines: list[Line]
     is_digital: bool
     drawings: list
-    images: list
+    image_rects: list
 
 class PageAnalysis:
     """Stores the classification result and associated features for a single page."""

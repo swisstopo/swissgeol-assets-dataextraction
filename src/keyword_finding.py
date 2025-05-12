@@ -1,7 +1,9 @@
 import regex
 import logging
 import re
+import pymupdf
 
+from .page_structure import PageContext
 from .text_objects import TextWord, TextLine
 logger = logging.getLogger(__name__)
 
@@ -28,25 +30,33 @@ def find_keywords_in_lines(text_lines: list[TextLine], keywords : list[str]):
     return found_keywords
 
 
-def is_aligned_below(line_rect, image_rect):
-
-    image_x0, image_x1 = image_rect[0], image_rect[2]
-    image_y0, image_y1 = image_rect[1], image_rect[3]
-    image_width  = image_x1 - image_x0
-    image_height = image_y1 - image_x0
-
-    # Line must be below image TODO: check why for some images y1 is off...
-    if line_rect.y0 < image_y1 or abs(line_rect.y0 - image_y1) > image_height * 0.25:
+def is_aligned_below(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
+    """
+      Determines whether a text line is directly below an image and horizontally aligned.
+      Args:
+          line_rect (pymupdf.Rect): Bounding box of the text line.
+          image_rect (pymupdf.Rect): Bounding box of the image (transformed according to page rotation).
+      Returns:
+          bool: True if the line is well aligned else False
+      """
+    if image_rect.y1 - line_rect.y0 > image_rect.height * 0.25:
         return False
 
-    max_offset = image_width * 0.1
-    left_within = line_rect.x0 >= image_x0 - max_offset
-    right_within = line_rect.x1 <= image_x1 + max_offset
+    max_offset = image_rect.width * 0.2
+    left_within = line_rect.x0 >= image_rect.x0 - max_offset
+    right_within = line_rect.x1 <= image_rect.y1 + max_offset
 
     return left_within and right_within
 
-def find_figure_description(ctx):
-
+def find_figure_description(ctx:PageContext) -> list[TextLine]:
+    """
+       Identifies lines near images that likely contain figure, table, or illustration captions,
+        based on if line appears below any image and if it matches known figure/table patterns.
+       Args:
+           ctx (PageContext): The page context containing text lines and images.
+       Returns:
+           list[TextLine]: A list of lines matching the caption criteria.
+       """
     figure_pattern = re.compile(
         r"^(?:"                                               # Start of line + non-capturing group
         r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
@@ -63,8 +73,8 @@ def find_figure_description(ctx):
         if id(line) in added_lines:
             continue
 
-        for image in ctx.images:
-            if is_aligned_below(line.rect, image["bbox"]):
+        for image_rect in ctx.image_rects:
+            if is_aligned_below(line.rect, image_rect.rect):
                 relevant_lines.append(line)
                 added_lines.add(id(line))
                 break
@@ -72,7 +82,7 @@ def find_figure_description(ctx):
     figure_description_lines = []
     for line in relevant_lines:
         line_text = line.line_text()
-        if figure_pattern.search(line_text):
+        if figure_pattern.match(line_text):
             logger.info(f"Matched figure pattern: {line_text}")
             figure_description_lines.append(line)
 

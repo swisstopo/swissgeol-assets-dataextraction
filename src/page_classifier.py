@@ -18,6 +18,12 @@ class PageClassifier(ABC):
         pass
 
     def _shared_classification(self, page, context, matching_params) -> PageClasses:
+        """
+       Shared classification logic for both digital and scanned pages:
+       - Geometric line filtering
+       - Map detection
+       - Sparse title page detection
+        """
         # Geometric lines extraction only when needed
         if not context.geometric_lines:
             _, geometric_lines = extract_geometric_lines(page)
@@ -36,17 +42,20 @@ class PageClassifier(ABC):
 
 class DigitalPageClassifier(PageClassifier):
     def determine_class(self, page, context, matching_params, features) -> PageClasses:
-        if not context.images and identify_text(context, features):
+        # Digital text page: should not have image content
+        if not context.image_rects and identify_text(context, features):
             return PageClasses.TEXT
 
-        if context.images:
+        # Digital boreprofile via image caption
+        if context.image_rects:
             if keywords_in_figure_description(context, matching_params):
                 return PageClasses.BOREPROFILE
 
+        # Digital boreprofile via material description & sidebar logic
         if context.drawings and identify_boreprofile(context, matching_params):
             return PageClasses.BOREPROFILE
 
-        if (context.drawings or context.images):
+        if context.drawings or context.image_rects:
             return self._shared_classification(page, context, matching_params)
 
         return PageClasses.UNKNOWN

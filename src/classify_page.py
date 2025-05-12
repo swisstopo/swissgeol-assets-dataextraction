@@ -7,21 +7,17 @@ from .utils import is_digitally_born
 from .text_objects import extract_words, create_text_lines, create_text_blocks
 from .detect_language import detect_language_of_page
 from .bounding_box import merge_bounding_boxes
+from .page_graphics import extract_page_graphics
 from .page_structure import PageAnalysis, PageContext, compute_text_features
 from .page_classifier import DigitalPageClassifier,ScannedPageClassifier
 
 logger = logging.getLogger(__name__)
 
-def extract_page_graphics(page:pymupdf.Page, is_digital: bool):
-    if not is_digital:
-        return [], []
-    return page.get_drawings(), page.get_image_info()
-
 def classify_page(page:pymupdf.Page,
                   page_number: int,
                   matching_params: dict,
                   language: str) -> PageAnalysis:
-    """classifies single pages into Text-, Boreprofile-, Map- or Unknown Page.
+    """classifies single pages into Text-, Boreprofile-, Map-, Title- or Unknown Page.
         Args:
             page: page that get classified
             page_number: page number in report
@@ -38,7 +34,7 @@ def classify_page(page:pymupdf.Page,
     words = extract_words(page, page_number)
     lines = create_text_lines(page, page_number)
     text_blocks = create_text_blocks(lines)
-    drawings, images = extract_page_graphics(page, is_digital)
+    drawings, image_rects = extract_page_graphics(page, is_digital)
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
     context = PageContext(
@@ -50,7 +46,7 @@ def classify_page(page:pymupdf.Page,
         geometric_lines = [],
         is_digital=is_digital,
         drawings = drawings,
-        images = images
+        image_rects = image_rects
     )
 
     analysis.features = compute_text_features(context.lines, context.text_blocks)
