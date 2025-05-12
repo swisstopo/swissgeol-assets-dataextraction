@@ -43,7 +43,7 @@ class PageClassifier(ABC):
 class DigitalPageClassifier(PageClassifier):
     def determine_class(self, page, context, matching_params, features) -> PageClasses:
         # Digital text page: should not have image content
-        if not context.image_rects and identify_text(context, features):
+        if not context.image_rects and identify_text(features):
             return PageClasses.TEXT
 
         # Digital boreprofile via image caption
