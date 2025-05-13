@@ -1,6 +1,9 @@
+import math
+
 import pymupdf
 import logging
 from pathlib import Path
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -12,6 +15,7 @@ from .identifiers.map import identify_map
 from .identifiers.boreprofile import identify_boreprofile
 from .page_classes import PageClasses
 from .page_structure import PageAnalysis, PageContext, compute_text_features
+from .line_detection import extract_geometric_lines
 
 
 def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, language: str) -> PageAnalysis:
@@ -27,7 +31,9 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     analysis = PageAnalysis(page_number)
 
     words = extract_words(page, page_number)
-    if not words:
+    _, geometric_lines = extract_geometric_lines(page)
+
+    if not words and not geometric_lines:
         analysis.set_class(PageClasses.UNKNOWN)
         return analysis
 
@@ -35,12 +41,17 @@ def classify_page(page:pymupdf.Page, page_number: int, matching_params: dict, la
     text_blocks = create_text_blocks(lines)
     page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
 
+    if len(words) > 7:
+        mean_font_size = np.mean([line.font_size for line in lines])
+        geometric_lines = [line for line in geometric_lines if line.length > mean_font_size*math.sqrt(2) ]
+
     context = PageContext(
         lines=lines,
         words=words,
         text_blocks=text_blocks,
         language=language,
-        page_rect=page_text_rect
+        page_rect=page_text_rect,
+        geometric_lines = geometric_lines
     )
     analysis.features = compute_text_features(context.lines, context.text_blocks)
 
