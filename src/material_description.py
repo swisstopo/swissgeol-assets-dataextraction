@@ -42,7 +42,7 @@ class MaterialDescription:
             logger.info("too small description height to be a boreprofile")
             return False
 
-        return self.noise < 1.75
+        return self.noise < 1.5
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
     """Detects material descriptions in Textlines and returns List of MaterialDescriptions."""

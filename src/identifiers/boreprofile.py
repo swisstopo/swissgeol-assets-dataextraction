@@ -82,7 +82,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     has_keyword = any(word.text.lower() in keyword_set for word in ctx.words)
 
     # Apply boosts
-    ratio += 0.2 if has_sidebar else 0.0
-    ratio += 0.1 if has_keyword else 0.0
+    ratio += 0.1 if has_sidebar else 0.0
+    ratio += 0.05 if has_keyword else 0.0
 
     return ratio > 0.3
