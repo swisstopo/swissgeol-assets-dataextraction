@@ -1,695 +1,19 @@
 [
     {
-        "filename": "29192_238.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_249.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_20.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_228.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_22.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_243.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "16617_19.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "250_12.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "10567_2.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_233.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_35.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_235.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_240.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "1062_3.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "18774_22.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "250_13.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_236.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "250_11.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_241.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_44.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_41.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "18686_9.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "4361_5.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "10567_7.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_40.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_46.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "250_14.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_36.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "21027_3.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "20987_2.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "10567_6.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_230.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_21.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_39.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "10567_3.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "21027_2.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_242.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_250.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_231.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "44159_276.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_232.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "16448_2.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "10567_5.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "250_15.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "10567_4.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "43283_34.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_237.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "16617_18.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_248.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_229.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_239.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "18774_21.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
-        "filename": "29192_234.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 1,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 0
-            }
-        ]
-    },
-    {
         "filename": "1799_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1677_46.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -716,6 +40,45 @@
     },
     {
         "filename": "20170_13.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "44159_145.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -845,6 +208,19 @@
         ]
     },
     {
+        "filename": "11380_20.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "2103_5.pdf",
         "classification": [
             {
@@ -884,6 +260,32 @@
         ]
     },
     {
+        "filename": "44159_184.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "32987_40.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_157.pdf",
         "classification": [
             {
@@ -898,6 +300,32 @@
     },
     {
         "filename": "1799_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_19.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24361_34.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -988,6 +416,19 @@
         ]
     },
     {
+        "filename": "44159_267.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "10299_32.pdf",
         "classification": [
             {
@@ -1014,7 +455,59 @@
         ]
     },
     {
+        "filename": "28134_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "32987_39.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "3060_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "16617_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_15.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1079,6 +572,19 @@
         ]
     },
     {
+        "filename": "44179_113.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "45004_28.pdf",
         "classification": [
             {
@@ -1118,7 +624,33 @@
         ]
     },
     {
+        "filename": "3060_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "19115_8.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28777_9.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1170,7 +702,33 @@
         ]
     },
     {
+        "filename": "1677_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_181.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28777_11.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1287,6 +845,45 @@
         ]
     },
     {
+        "filename": "11380_11.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1677_33.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2121_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "19115_23.pdf",
         "classification": [
             {
@@ -1339,6 +936,19 @@
         ]
     },
     {
+        "filename": "24361_28.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "10299_9.pdf",
         "classification": [
             {
@@ -1378,6 +988,19 @@
         ]
     },
     {
+        "filename": "18605_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 1,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "ntb88-007_22.pdf",
         "classification": [
             {
@@ -1391,7 +1014,46 @@
         ]
     },
     {
+        "filename": "1677_62.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "34239_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-021_215.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_8.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1482,6 +1144,19 @@
         ]
     },
     {
+        "filename": "32987_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "43283_11.pdf",
         "classification": [
             {
@@ -1508,7 +1183,46 @@
         ]
     },
     {
+        "filename": "28366_53.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "43283_15.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28366_112.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1677_11.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1599,6 +1313,19 @@
         ]
     },
     {
+        "filename": "17415_14.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "1630_297.pdf",
         "classification": [
             {
@@ -1626,6 +1353,32 @@
     },
     {
         "filename": "25076_200.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "3060_10.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24361_3.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1703,6 +1456,19 @@
         ]
     },
     {
+        "filename": "Berichte_NAB_08-021_27.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "1801_13.pdf",
         "classification": [
             {
@@ -1729,6 +1495,19 @@
         ]
     },
     {
+        "filename": "18605_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_13.pdf",
         "classification": [
             {
@@ -1743,6 +1522,19 @@
     },
     {
         "filename": "1630_161.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_32.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1807,6 +1599,19 @@
         ]
     },
     {
+        "filename": "4828_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_55.pdf",
         "classification": [
             {
@@ -1821,6 +1626,19 @@
     },
     {
         "filename": "10299_12.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_16.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -1976,6 +1794,19 @@
         ]
     },
     {
+        "filename": "18605_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "8627_3.pdf",
         "classification": [
             {
@@ -2003,6 +1834,19 @@
     },
     {
         "filename": "44044_7.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28659_8.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2055,6 +1899,19 @@
     },
     {
         "filename": "44159_44.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "3060_8.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2132,6 +1989,19 @@
         ]
     },
     {
+        "filename": "28777_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "1801_14.pdf",
         "classification": [
             {
@@ -2145,7 +2015,33 @@
         ]
     },
     {
+        "filename": "18605_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "1630_163.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-021_214.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2236,6 +2132,19 @@
         ]
     },
     {
+        "filename": "28366_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "1630_7.pdf",
         "classification": [
             {
@@ -2250,6 +2159,19 @@
     },
     {
         "filename": "1630_83.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-025_EWS_66.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2379,6 +2301,45 @@
         ]
     },
     {
+        "filename": "28366_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "11380_8.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "18686_7.pdf",
         "classification": [
             {
@@ -2418,7 +2379,33 @@
         ]
     },
     {
+        "filename": "28659_13.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "16770_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28134_4.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2535,6 +2522,45 @@
         ]
     },
     {
+        "filename": "a2607_2607_LDoc_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28134_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28777_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_170.pdf",
         "classification": [
             {
@@ -2561,6 +2587,19 @@
         ]
     },
     {
+        "filename": "Berichte_NAB_08-025_EWS_64.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "16617_4.pdf",
         "classification": [
             {
@@ -2574,7 +2613,46 @@
         ]
     },
     {
+        "filename": "2121_10.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24361_13.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "29192_19.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-021_8.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2601,6 +2679,45 @@
     },
     {
         "filename": "25076_199.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_9.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24361_26.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2001_30.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2679,6 +2796,19 @@
     },
     {
         "filename": "1801_17.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_7.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2782,6 +2912,19 @@
         ]
     },
     {
+        "filename": "24131_14.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 1,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_22.pdf",
         "classification": [
             {
@@ -2847,7 +2990,33 @@
         ]
     },
     {
+        "filename": "24361_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "35613_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_3.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2899,6 +3068,32 @@
         ]
     },
     {
+        "filename": "32987_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "18605_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "16770_2.pdf",
         "classification": [
             {
@@ -2913,6 +3108,19 @@
     },
     {
         "filename": "ntb88-007_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28134_3.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -2951,6 +3159,32 @@
         ]
     },
     {
+        "filename": "24361_31.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28777_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "16617_2.pdf",
         "classification": [
             {
@@ -2964,7 +3198,33 @@
         ]
     },
     {
+        "filename": "2001_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "20907_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "11380_2.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3016,6 +3276,58 @@
         ]
     },
     {
+        "filename": "24131_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2001_7.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_68.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "43283_2.pdf",
         "classification": [
             {
@@ -3030,6 +3342,45 @@
     },
     {
         "filename": "29192_227.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_59.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1677_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "6414_2.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3069,6 +3420,45 @@
     },
     {
         "filename": "18686_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "3060_7.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24361_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_17.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3159,6 +3549,19 @@
         ]
     },
     {
+        "filename": "1677_34.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "24279-24282_160.pdf",
         "classification": [
             {
@@ -3198,7 +3601,33 @@
         ]
     },
     {
+        "filename": "Berichte_NAB_08-025_EWS_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "1630_231.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28659_2.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3224,7 +3653,59 @@
         ]
     },
     {
+        "filename": "4828_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "16770_10.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28777_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28366_2.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3302,7 +3783,33 @@
         ]
     },
     {
+        "filename": "1677_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
         "filename": "44079_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 1,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_62.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3342,6 +3849,19 @@
     },
     {
         "filename": "250_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28777_1.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3445,6 +3965,19 @@
         ]
     },
     {
+        "filename": "2155_79.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "43283_25.pdf",
         "classification": [
             {
@@ -3472,6 +4005,19 @@
     },
     {
         "filename": "1432_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "24131_23.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3549,7 +4095,7 @@
         ]
     },
     {
-        "filename": "44159_145.pdf",
+        "filename": "35787_1.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3615,6 +4161,19 @@
     },
     {
         "filename": "44044_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "32987_2.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3731,6 +4290,19 @@
         ]
     },
     {
+        "filename": "28366_8.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "250_9.pdf",
         "classification": [
             {
@@ -3757,7 +4329,33 @@
         ]
     },
     {
+        "filename": "32987_51.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "44044_70.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "17415_24.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3784,6 +4382,19 @@
     },
     {
         "filename": "20170_215.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "2001_6.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3861,7 +4472,72 @@
         ]
     },
     {
-        "filename": "44159_184.pdf",
+        "filename": "28134_9.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_23.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-021_22.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "11380_21.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "6414_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_42.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -3926,6 +4602,19 @@
         ]
     },
     {
+        "filename": "24361_27.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "1801_100.pdf",
         "classification": [
             {
@@ -3940,6 +4629,32 @@
     },
     {
         "filename": "1630_309.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "2155_26.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-025_EWS_69.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4082,6 +4797,19 @@
         ]
     },
     {
+        "filename": "4828_16.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "18774_14.pdf",
         "classification": [
             {
@@ -4134,6 +4862,19 @@
         ]
     },
     {
+        "filename": "28134_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "1801_198.pdf",
         "classification": [
             {
@@ -4174,6 +4915,19 @@
     },
     {
         "filename": "29192_214.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_25.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4264,6 +5018,19 @@
         ]
     },
     {
+        "filename": "2001_54.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "44179_182.pdf",
         "classification": [
             {
@@ -4277,7 +5044,46 @@
         ]
     },
     {
+        "filename": "2121_14.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "1801_45.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "1677_25.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "18605_4.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4304,6 +5110,19 @@
     },
     {
         "filename": "1801_143.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "11380_6.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4407,6 +5226,45 @@
         ]
     },
     {
+        "filename": "24361_33.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "17415_51.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_9.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "1630_77.pdf",
         "classification": [
             {
@@ -4421,6 +5279,19 @@
     },
     {
         "filename": "34239_18.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "24361_23.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4460,19 +5331,6 @@
     },
     {
         "filename": "1630_25.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 0,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 1
-            }
-        ]
-    },
-    {
-        "filename": "44159_267.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4603,6 +5461,19 @@
     },
     {
         "filename": "1801_29.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-021_294.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4784,6 +5655,45 @@
         ]
     },
     {
+        "filename": "32987_9.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "17415_44.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28659_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "1801_52.pdf",
         "classification": [
             {
@@ -4797,7 +5707,20 @@
         ]
     },
     {
-        "filename": "44179_113.pdf",
+        "filename": "2001_53.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_95.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4824,6 +5747,19 @@
     },
     {
         "filename": "44044_244.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "2121_22.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4876,6 +5812,19 @@
     },
     {
         "filename": "44179_164.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-025_EWS_8.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -4979,7 +5928,33 @@
         ]
     },
     {
+        "filename": "28134_8.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "44179_195.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "17415_26.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5018,7 +5993,33 @@
         ]
     },
     {
+        "filename": "Berichte_NAB_08-021_289.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "1801_54.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "24361_11.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5110,6 +6111,19 @@
     },
     {
         "filename": "35613_47.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "32987_11.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5395,6 +6409,19 @@
         ]
     },
     {
+        "filename": "17415_28.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "16770_23.pdf",
         "classification": [
             {
@@ -5435,6 +6462,19 @@
     },
     {
         "filename": "44179_132.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_12.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5538,7 +6578,33 @@
         ]
     },
     {
+        "filename": "20993_1.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "43283_52.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28366_15.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5565,6 +6631,19 @@
     },
     {
         "filename": "29192_41.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "1677_21.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5616,6 +6695,19 @@
         ]
     },
     {
+        "filename": "24361_29.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "ntb88-007_191.pdf",
         "classification": [
             {
@@ -5643,6 +6735,19 @@
     },
     {
         "filename": "ntb88-007_278.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "11380_22.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5798,6 +6903,32 @@
         ]
     },
     {
+        "filename": "11380_18.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "1677_51.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "44179_94.pdf",
         "classification": [
             {
@@ -5811,7 +6942,59 @@
         ]
     },
     {
+        "filename": "17415_23.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
         "filename": "21056_96.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "28659_10.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "24131_28.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "24361_8.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -5903,19 +7086,6 @@
     },
     {
         "filename": "1801_227.pdf",
-        "classification": [
-            {
-                "Page": 1,
-                "Text": 0,
-                "Boreprofile": 0,
-                "Maps": 0,
-                "Title_Page": 0,
-                "Unknown": 1
-            }
-        ]
-    },
-    {
-        "filename": "1062_2.pdf",
         "classification": [
             {
                 "Page": 1,
@@ -6028,6 +7198,1098 @@
                 "Maps": 0,
                 "Title_Page": 0,
                 "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "18605_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "2121_19.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-025_EWS_20.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 0,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 1
+            }
+        ]
+    },
+    {
+        "filename": "24131_17.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_238.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_249.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "32987_22.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "32987_45.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_20.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "20993_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_228.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_22.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_243.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "16617_19.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "250_12.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "10567_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_233.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_35.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_235.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_112.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_240.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1062_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "18774_22.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "250_13.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_236.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_67.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "250_11.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_241.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_44.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "6414_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_60.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_41.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_20.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "18686_9.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4361_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "10567_7.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_40.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_132.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_66.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_46.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "250_14.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_36.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "21027_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "20987_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "10567_6.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_230.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1677_70.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_21.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_82.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_61.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_39.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "10567_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_16.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "28659_11.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "17415_63.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "4828_22.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "1677_68.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "21027_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_242.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "32987_36.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "6414_3.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_250.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_231.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "24131_25.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "44159_276.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_232.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "16448_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "35787_2.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "10567_5.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "Berichte_NAB_08-021_21.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "250_15.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "32987_25.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "10567_4.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "43283_34.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_237.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "16617_18.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_248.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_229.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "2155_84.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "11380_17.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_239.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "18774_21.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
+            }
+        ]
+    },
+    {
+        "filename": "29192_234.pdf",
+        "classification": [
+            {
+                "Page": 1,
+                "Text": 0,
+                "Boreprofile": 1,
+                "Maps": 0,
+                "Title_Page": 0,
+                "Unknown": 0
             }
         ]
     }
