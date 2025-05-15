@@ -49,10 +49,10 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
 
     A boreprofile is detected if:
     - At least one valid material description is present
-    - The description text accounts for a significant portion of the page (>= 30% with boosts)
+    - The description text accounts for a some portion of the page (>= 30% with boosts)
     Boosts:
-    - +0.2 if a valid sidebar is found
-    - +0.1 if boreprofile-related keywords are present
+    - +0.1 if a valid sidebar is found
+    - +0.05 if boreprofile keywords are present
     """
 
     descriptions = detect_material_description(
@@ -65,7 +65,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     has_sidebar = bool(sidebars)
 
     valid_descriptions = [
-        desc for desc in descriptions if desc.is_valid(ctx.page_rect, sidebars)
+        desc for desc in descriptions if desc.is_valid
     ]
     if not valid_descriptions:
         return False
@@ -81,11 +81,11 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
 
     # Keyword match
     keyword_set = matching_params["boreprofile"].get(ctx.language, {})
-    has_keyword = any(word.text.lower() in keyword_set for word in ctx.words)
+    has_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in keyword_set)
 
     # Apply boosts
-    ratio += 0.2 if has_sidebar else 0.0
-    ratio += 0.1 if has_keyword else 0.0
+    ratio += 0.1 if has_sidebar else 0.0
+    ratio += 0.05 if has_keyword else 0.0
 
     return ratio > 0.3
 

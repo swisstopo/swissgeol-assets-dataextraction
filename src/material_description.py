@@ -34,15 +34,8 @@ class MaterialDescription:
 
         return len(noise_words) / len(description_words) if description_words else float('inf')
 
-    def is_valid(self, page_rect, sidebar):
-        if len(self.text_lines)  < 3:
-            return False
-
-        if not sidebar and (self.rect.height/ page_rect.height) < 0.3:
-            logger.info("too small description height to be a boreprofile")
-            return False
-
-        return self.noise < 1.75
+    def is_valid(self):
+        return self.noise < 1.5 and len(self.text_lines) < 3
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
     """Detects material descriptions in Textlines and returns List of MaterialDescriptions."""
