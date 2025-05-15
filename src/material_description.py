@@ -3,7 +3,7 @@ The same including and excluding matching parameters used."""
 import pymupdf
 import logging
 
-from .text import TextLine, TextWord
+from .text_objects import TextLine, TextWord
 from .utils import cluster_text_elements, is_description
 logger = logging.getLogger(__name__)
 
@@ -34,17 +34,8 @@ class MaterialDescription:
 
         return len(noise_words) / len(description_words) if description_words else float('inf')
 
-    def is_valid(self, page_rect, long_geometric_lines):
-        if len(self.text_lines)  < 3: #material description of boreprofile should have at least 3 entries
-            return False
-
-        material_description_height = abs(self.rect.y0 - self.rect.y1)
-        if not long_geometric_lines:
-            if material_description_height < (page_rect.height / 5) and len(self.text_lines) <= 5:
-                logger.info("too small description area to be a boreprofile")
-                return False
-
-        return self.noise < 1.75
+    def is_valid(self):
+        return self.noise < 1.5 and len(self.text_lines) < 3
 
 def detect_material_description(lines: list[TextLine], words:list[TextWord], material_description: dict) -> list[MaterialDescription]:
     """Detects material descriptions in Textlines and returns List of MaterialDescriptions."""

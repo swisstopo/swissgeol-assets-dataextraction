@@ -2,7 +2,7 @@ import pymupdf
 from collections import defaultdict
 from typing import Callable
 
-from .text import TextLine
+from .text_objects import TextLine
 
 def is_digitally_born(page: pymupdf.Page) -> bool:
     bboxes = page.get_bboxlog()

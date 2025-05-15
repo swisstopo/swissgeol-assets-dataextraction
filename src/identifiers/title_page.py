@@ -1,4 +1,4 @@
-from .text import TextLine
+from ..text_objects import TextLine
 import logging
 logger = logging.getLogger(__name__)
 

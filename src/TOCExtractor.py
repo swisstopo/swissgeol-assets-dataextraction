@@ -1,7 +1,7 @@
 import fitz
 import regex
 from typing import Union
-from .text import TextLine
+from .text_objects import TextLine
 
 from .keyword_finding import find_keywords_in_lines
 
