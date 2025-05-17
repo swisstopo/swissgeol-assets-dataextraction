@@ -1,15 +1,5 @@
-import re
 import pytest
-
-# The pattern to test
-figure_pattern = re.compile(
-    r"^(?:"                        
-    r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
-    r")?"                               
-    r"\d{1,2}(?:[.:]\d{1,2}){0,3}"       
-    r"\b",
-    flags=re.IGNORECASE
-)
+from src.keyword_finding import figure_pattern
 
 @pytest.mark.parametrize("line", [
     "Fig. 1",

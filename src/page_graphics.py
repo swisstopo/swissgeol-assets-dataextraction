@@ -7,6 +7,10 @@ class ImageRect:
     rotation: int           # Page rotation in degrees (0, 90, 180, 270)
     xref: int               # Image xref ID (unique reference in PDF)
 
+    def page_coverage(self,page_rect: pymupdf.Rect) -> int:
+        """Computes how much of the text page area is covered by this image."""
+        return self.rect.get_area()/ page_rect.get_area()
+
 def extract_page_graphics(page:pymupdf.Page, is_digital: bool):
     """Extract drawings and image bounding boxes from page"""
     if not is_digital:

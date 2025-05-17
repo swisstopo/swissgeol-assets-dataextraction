@@ -7,6 +7,14 @@ from .page_structure import PageContext
 from .text_objects import TextWord, TextLine
 logger = logging.getLogger(__name__)
 
+figure_pattern = re.compile(
+    r"^(?:"                                               # Start of line + non-capturing group
+    r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
+    r")?"                                                        # Optional label
+    r"\d{1,2}(?:[.:]\d{1,2}){0,3}"                               # Number + optional decimal/subsection
+    r"\b",                                                       # Word boundary after pattern
+    flags=re.IGNORECASE
+)
 
 def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
     for keyword in keywords:
@@ -57,14 +65,6 @@ def find_figure_description(ctx:PageContext) -> list[TextLine]:
        Returns:
            list[TextLine]: A list of lines matching the caption criteria.
        """
-    figure_pattern = re.compile(
-        r"^(?:"                                               # Start of line + non-capturing group
-        r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
-        r")?"                                                        # Optional label
-        r"\d{1,2}(?:[.:]\d{1,2}){0,3}"                               # Number + optional decimal/subsection
-        r"\b",                                                       # Word boundary after pattern
-        flags=re.IGNORECASE
-    )
 
     relevant_lines = []
     added_lines = set()
@@ -83,7 +83,6 @@ def find_figure_description(ctx:PageContext) -> list[TextLine]:
     for line in relevant_lines:
         line_text = line.line_text()
         if figure_pattern.match(line_text):
-            logger.info(f"Matched figure pattern: {line_text}")
             figure_description_lines.append(line)
 
     return figure_description_lines

@@ -104,7 +104,6 @@ def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[st
 
         if all(any(keyword in text for keyword in group)
                for group in keyword_groups):
-            logger.info(f"Matched figure description: {text}")
             matched_lines.append(line)
 
     return matched_lines
