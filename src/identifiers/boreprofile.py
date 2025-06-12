@@ -7,6 +7,7 @@ from ..text_objects import TextWord
 from ..page_structure import PageContext
 from ..material_description import detect_material_description
 from ..utils import cluster_text_elements
+from ..keyword_finding import find_figure_description
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     - +0.1 if a valid sidebar is found
     - +0.05 if boreprofile keywords are present
     """
+
     descriptions = detect_material_description(
         ctx.lines, ctx.words,
         matching_params["material_description"].get(ctx.language, {})
@@ -86,3 +88,22 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     ratio += 0.05 if has_keyword else 0.0
 
     return ratio > 0.3
+
+def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[str]:
+    caption_lines = find_figure_description(ctx)
+    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, {}).get("must_contain", [])
+
+    if len(keyword_groups) < 2:
+        logger.warning(
+            f"Need 2 keyword groups (profile and borehole keywords) in figure_description.boreprofile, but got: {keyword_groups}")
+        return []
+
+    matched_lines = []
+    for line in caption_lines:
+        text = line.line_text().lower()
+
+        if all(any(keyword in text for keyword in group)
+               for group in keyword_groups):
+            matched_lines.append(line)
+
+    return matched_lines

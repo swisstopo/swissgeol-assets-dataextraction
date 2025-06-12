@@ -129,7 +129,7 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
     return merged_lines
 
 
-def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool: ## dont use threshold but maybe height -> how much they intersect
+def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool:
     """
     Determines whether two words belong to the same line based on their y-coordinates.
     """

@@ -6,7 +6,7 @@ import json
 from tqdm import tqdm
 from dotenv import load_dotenv
 from pathlib import Path
-from src.classify_scanned_page import classify_pdf
+from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
 
 # Load .env and check MLFlow

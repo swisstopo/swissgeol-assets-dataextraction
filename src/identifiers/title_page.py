@@ -1,5 +1,7 @@
-from ..text_objects import TextLine
 import logging
+
+from ..text_objects import TextLine
+
 logger = logging.getLogger(__name__)
 
 InfoGeol_page_substrings = {

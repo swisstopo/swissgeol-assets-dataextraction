@@ -15,6 +15,9 @@ class PageContext:
     language: str
     page_rect: pymupdf.Rect
     geometric_lines: list[Line]
+    is_digital: bool
+    drawings: list
+    image_rects: list
 
 class PageAnalysis:
     """Stores the classification result and associated features for a single page."""
