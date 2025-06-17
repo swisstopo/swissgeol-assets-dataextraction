@@ -5,6 +5,7 @@ Most of the code is copied from:
 """
 import pymupdf
 from collections import defaultdict
+from typing import Callable
 
 from .bounding_box import merge_bounding_boxes
 
@@ -159,3 +160,36 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
             remaining_indices.difference_update(selected_indices)
 
     return blocks
+
+def cluster_text_elements(elements, key_fn = Callable[[pymupdf.Rect], float], tolerance: int = 10):
+    """ cluster text elements based on coordinates of bounding box
+    Args:
+        elements: List of object containing a `rect` attribute
+        key_fn: Function that extracts a float from each element (e.g. lambda obj: obj.rect.y0)
+        tolerance: max allowed difference between entries and a cluster key"""
+
+    if not elements:
+        return []
+
+    # Dictionary to hold clusters, keys are representative attribute values
+    grouped = defaultdict(list)
+
+    for element in elements:
+        attribute = key_fn(element)
+        matched_key = None
+
+        # Check if attribute is within tolerance of an existing cluster
+        for existing_key in grouped:
+            if abs(existing_key - attribute) <= tolerance:
+                matched_key = existing_key
+                break
+
+        # Add to an existing cluster or create a new one
+        if matched_key is not None:
+            grouped[matched_key].append(element)
+        else:
+            grouped[attribute].append(element)
+
+    clusters = list(grouped.values())
+
+    return clusters

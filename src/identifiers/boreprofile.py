@@ -3,10 +3,9 @@ import re
 import pymupdf
 from dataclasses import dataclass
 
-from ..text_objects import TextWord
+from ..text_objects import TextWord, cluster_text_elements
 from ..page_structure import PageContext
 from ..material_description import detect_material_description
-from ..utils import cluster_text_elements
 from ..keyword_finding import find_figure_description
 
 logger = logging.getLogger(__name__)
