@@ -24,19 +24,6 @@ def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
             return match.group(1)
     return None
 
-def find_keywords_in_lines(text_lines: list[TextLine], keywords : list[str]):
-    found_keywords =[]
-
-    for line in text_lines:
-        for word in line.words:
-            matched_keyword =find_keyword(word, keywords)
-            if matched_keyword:
-                found_keywords.append({"key": matched_keyword,
-                                       "word":word, 
-                                       "line": line})
-    
-    return found_keywords
-
 
 def is_aligned_below(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
     """

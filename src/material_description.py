@@ -1,11 +1,9 @@
 """Very similar to code in swissgeol-boreholes-dataextraction repo https://github.com/swisstopo/swissgeol-boreholes-dataextraction
 The same including and excluding matching parameters used."""
 import pymupdf
-import logging
 
 from .text_objects import TextLine, TextWord
 from .utils import cluster_text_elements, is_description
-logger = logging.getLogger(__name__)
 
 class MaterialDescription:
     """Stores information about material description block."""

@@ -19,23 +19,6 @@ def is_description(line: TextLine, matching_params: dict):
         line_text.find(word) > -1 for word in matching_params["including_expressions"]
     ) and not any(line_text.find(word) > -1 for word in matching_params["excluding_expressions"])
 
-def calculate_distance(word1, word2):
-    """Calculate Euclidean distance between two TextWord objects based on x0 and y0"""
-    return word1.rect.top_left.distance_to(word2.rect.top_left)
-
-def closest_word_distances(words): #not in use, might come in handy
-    """Calculate distances between each word and its closest neighbor"""
-    if not words or len(words) < 2:
-        return []
-
-    distances = []
-    for i, word in enumerate(words):
-        other_words = words[:i] + words[i+1:]  # Exclude current word
-        closest_word = min(other_words, key=lambda w: calculate_distance(word, w))
-        distances.append(calculate_distance(word, closest_word))
-
-    return distances
-
 def cluster_text_elements(elements, key_fn = Callable[[pymupdf.Rect], float], tolerance: int = 10):
     """ cluster text elements based on coordinates of bounding box
     Args:

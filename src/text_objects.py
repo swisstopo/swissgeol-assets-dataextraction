@@ -4,46 +4,9 @@ Most of the code is copied from:
 - the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
 import pymupdf
-import os
 from collections import defaultdict
 
 from .bounding_box import merge_bounding_boxes
-
-def text_from_document(doc) -> dict:
-    """ Retrieve text per page from a single pdf file
-    Returns dictionary with pagenumber as key and all text on that page as item"""
-
-    page_text= {}
-    for page_number, page in enumerate(doc,start=1):
-        text = page.get_text()
-        
-        page_text[page_number]= text
-    
-    return(page_text)
-
-
-def process_documents(input_path):
-    """ Retrieves text from input file or folder and returns dictionary"""
-    
-    results = {}
-    
-    if os.path.isfile(input_path):
-        with pymupdf.Document(input_path) as doc:
-
-            results[os.path.basename(input_path)] = text_from_document(doc)
-
-    elif os.path.isdir(input_path):
-        for filename in os.listdir(input_path):
-
-            if filename.lower().endswith('.pdf'):
-                file_path = os.path.join(input_path, filename)
-                with pymupdf.Document(file_path) as doc:
-                    results[filename] = text_from_document(doc)
-    else:
-        print(f"Input path is invalid: {input_path}")
-    
-    return results
-
 
 class TextWord:
 
