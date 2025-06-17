@@ -1,8 +1,8 @@
 import regex
 import logging
 import re
-import pymupdf
 
+from .bounding_box import is_line_below_box
 from .page_structure import PageContext
 from .text_objects import TextWord, TextLine
 logger = logging.getLogger(__name__)
@@ -24,25 +24,6 @@ def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
             return match.group(1)
     return None
 
-
-def is_aligned_below(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
-    """
-      Determines whether a text line is directly below an image and horizontally aligned.
-      Args:
-          line_rect (pymupdf.Rect): Bounding box of the text line.
-          image_rect (pymupdf.Rect): Bounding box of the image (transformed according to page rotation).
-      Returns:
-          bool: True if the line is well aligned else False
-      """
-    if image_rect.y1 - line_rect.y0 > image_rect.height * 0.25:
-        return False
-
-    max_offset = image_rect.width * 0.2
-    left_within = line_rect.x0 >= image_rect.x0 - max_offset
-    right_within = line_rect.x1 <= image_rect.y1 + max_offset
-
-    return left_within and right_within
-
 def find_figure_description(ctx:PageContext) -> list[TextLine]:
     """
        Identifies lines near images that likely contain figure, table, or illustration captions,
@@ -61,7 +42,7 @@ def find_figure_description(ctx:PageContext) -> list[TextLine]:
             continue
 
         for image_rect in ctx.image_rects:
-            if is_aligned_below(line.rect, image_rect.rect):
+            if is_line_below_box(line.rect, image_rect.rect):
                 relevant_lines.append(line)
                 added_lines.add(id(line))
                 break
