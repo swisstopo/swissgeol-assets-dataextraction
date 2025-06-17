@@ -73,10 +73,8 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-3. Enable MLflow tracking
+3. Configure environment variables and start Mlflow logging (optional)
 ```bash
-export MLFLOW_TRACKING=True
-export MLFLOW_TRACKING_URI=http://localhost:5000
 mlflow ui
 ```
 4. Run the classification:
