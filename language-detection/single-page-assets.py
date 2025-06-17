@@ -3,7 +3,6 @@ import pandas as pd
 import boto3
 import os
 import fitz
-import csv
 
 s3_input = "asset/asset_files_new_ocr/"
 s3_aws_profile = "s3-assets"
