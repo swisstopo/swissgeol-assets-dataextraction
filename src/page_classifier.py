@@ -40,7 +40,7 @@ class PageClassifier(ABC):
         Short lines (often from text artifacts) are filtered out when text is present.
         """
         if not context.geometric_lines:
-            _, geometric_lines = extract_geometric_lines(page)
+            geometric_lines = extract_geometric_lines(page)
 
             if len(context.words) > 7:
                 mean_font_size = np.mean([line.font_size for line in context.lines])
