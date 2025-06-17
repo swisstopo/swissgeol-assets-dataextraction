@@ -19,7 +19,6 @@ Each page is categorized into one of the following:
 4. **Title Pages** - Report cover/title pages (currently not fully implemented).  
 5. **Unknown** - Other content like tables, mixed pages, graphs, and summary sheets.
 
-
 ## Data
 
 ### Dataset Source
@@ -44,7 +43,6 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
   - Zurich: `data/gt_zurich.json`
   - GeoQuat: `data/gt_geoquat.json`
 
-
 ## Repository Structure
 
 - `data/`
@@ -53,9 +51,9 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
     - `gt_*.json`: Ground truth files
     - `test/`: Output visualization from notebooks
 - `evaluation/`: Evaluation results and metrics
-- `notebooks/`: Exploratory Jupyter notebooks
 - `src/`: Utility scripts and core logic
 - `tests/`: Unit tests
+- `language-detection`: Language detection module
 
 - `main.py`: Entry point for classification
 - `matching_params.yml`: Keywords for classification/matching
@@ -90,24 +88,8 @@ python main.py -i <input_path> -g <ground_truth_path>
 python main.py -i data/single_pages/ -g data/gt_single_pages.json
 ```
 
-## Notebooks
+## Language-Detection
 
-Install the repository in editable mode:
-```bash
-pip install -e .
-```
-The notebooks are mainly for exploratory work.
-
-### extract_images.ipynb
-
-This notebook visualizes content structure by:
-- Extracting images and OCR-based drawings
-- Drawing bounding boxes on:
-  - Text lines
-  - Text blocks
-  - Drawings
-
-**Usage:**
-1. Set the input file inside the notebook.
-2. Run to visualize content and extract structure.
-3. Results saved in `data/test/<filename>/`
+This module performs language detection on input documents.
+It is intended to be integrated into the classification pipline in a later stage.
+For execution details, please refer to [language-detection/README.md](README.md).
