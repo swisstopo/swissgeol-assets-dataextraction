@@ -22,6 +22,6 @@ def is_line_below_box(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool
 
     max_offset = image_rect.width * 0.2
     left_within = line_rect.x0 >= image_rect.x0 - max_offset
-    right_within = line_rect.x1 <= image_rect.y1 + max_offset
+    right_within = line_rect.x1 <= image_rect.x1 + max_offset
 
     return left_within and right_within
