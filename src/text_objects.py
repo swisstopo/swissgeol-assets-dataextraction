@@ -5,7 +5,7 @@ Most of the code is copied from:
 """
 import pymupdf
 from collections import defaultdict
-from typing import Callable
+from typing import Callable, Any
 
 from .bounding_box import merge_bounding_boxes
 
@@ -161,7 +161,7 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
 
     return blocks
 
-def cluster_text_elements(elements, key_fn = Callable[[pymupdf.Rect], float], tolerance: int = 10):
+def cluster_text_elements(elements, key_fn: Callable[[pymupdf.Rect], float], tolerance: int = 10):
     """ cluster text elements based on coordinates of bounding box
     Args:
         elements: List of object containing a `rect` attribute
