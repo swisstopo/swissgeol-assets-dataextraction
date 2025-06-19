@@ -5,9 +5,11 @@ Most of the code is copied from:
 """
 import pymupdf
 from collections import defaultdict
-from typing import Callable, Any
+from typing import Callable, TypeVar
 
 from .bounding_box import merge_bounding_boxes
+
+T = TypeVar('T')
 
 class TextWord:
 
@@ -161,12 +163,18 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
 
     return blocks
 
-def cluster_text_elements(elements, key_fn: Callable[[pymupdf.Rect], float], tolerance: int = 10):
-    """ cluster text elements based on coordinates of bounding box
+def cluster_text_elements(
+        elements: list[T],
+        key_fn: Callable[[T], float],
+        tolerance: int = 10
+) -> list[list[T]]:
+    """Cluster text elements based on coordinates of bounding box.
+
     Args:
         elements: List of object containing a `rect` attribute
         key_fn: Function that extracts a float from each element (e.g. lambda obj: obj.rect.y0)
-        tolerance: max allowed difference between entries and a cluster key"""
+        tolerance: max allowed difference between entries and a cluster key
+    """
 
     if not elements:
         return []
