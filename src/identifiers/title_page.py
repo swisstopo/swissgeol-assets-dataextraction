@@ -26,10 +26,18 @@ def identify_title_page(ctx: PageContext) -> bool:
     if has_aligned_layout(ctx):
         return True
 
-    if contains_content_clues(ctx.lines):
+    if has_large_font_layout(ctx) and contains_content_clues(ctx.lines):
         return True
 
     return False
+
+
+def has_large_font_layout(ctx: PageContext) -> bool:
+    """
+    Returns True if the page has at least one large font size and high font variety.
+    """
+    font_sizes = [line.font_size for line in ctx.lines]
+    return len(set(font_sizes)) > 5 and max(font_sizes, default=0) > 20
 
 def contains_content_clues(lines: list[TextLine]) -> bool:
     """
