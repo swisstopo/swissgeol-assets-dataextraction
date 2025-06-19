@@ -1,14 +1,14 @@
 import logging
-import re
 from statistics import stdev
 from typing import Callable
 
+from ..keyword_finding import find_pattern, date_patterns, phone_patterns
 from ..page_structure import PageContext
 from ..text_objects import TextLine
 
 logger = logging.getLogger(__name__)
 
-def identify_title_page(ctx: PageContext) -> bool:
+def identify_title_page(ctx: PageContext, matching_params) -> bool:
     """
        Identifies whether a page is likely a title page based on a combination of:
        - Line count
@@ -26,40 +26,10 @@ def identify_title_page(ctx: PageContext) -> bool:
     if has_aligned_layout(ctx):
         return True
 
-    if has_large_font_layout(ctx) and contains_content_clues(ctx.lines):
+    if has_large_font_layout(ctx) and contains_content_clues(ctx, matching_params):
         return True
 
     return False
-
-
-def has_large_font_layout(ctx: PageContext) -> bool:
-    """
-    Returns True if the page has at least one large font size and high font variety.
-    """
-    font_sizes = [line.font_size for line in ctx.lines]
-    return len(set(font_sizes)) > 5 and max(font_sizes, default=0) > 20
-
-def contains_content_clues(lines: list[TextLine]) -> bool:
-    """
-    Returns True if the page contains at least 3 typical title-page indicators.
-    """
-    title_keywords = ["bericht", "rapport", "projekt", "projet"]
-    date_patterns = [r"\b\d{4}\b", r"\b\d{1,2}\.\d{1,2}\.\d{2,4}\b"]
-    phone_keywords = ["tel", "telefon"]
-    phone_pattern = r"\b(?:tel\.?|telefon)\s*[:\-]?\s*\d{9,}"
-
-    hits = 0
-    for line in lines:
-        text = line.line_text().lower()
-
-        if any(kw in text for kw in title_keywords):
-            hits += 1
-        if any(re.search(pat, text) for pat in date_patterns):
-            hits += 1
-        if any(kw in text for kw in phone_keywords) or re.search(phone_pattern, text):
-            hits += 1
-
-    return hits >= 3
 
 def has_centered_layout(ctx: PageContext)-> bool:
     """
@@ -99,6 +69,29 @@ def has_aligned_layout(ctx: PageContext) -> bool:
     words = sum(len(line.words) for cluster in clusters for line in cluster)
 
     return words / len(ctx.words) > 0.75
+
+def has_large_font_layout(ctx: PageContext) -> bool:
+    """
+    Returns True if the page has at least one large font size and high font variety.
+    """
+    font_sizes = [line.font_size for line in ctx.lines]
+    return len(set(font_sizes)) > 5 and max(font_sizes, default=0) > 20
+
+def contains_content_clues(ctx: PageContext, matching_params) -> bool:
+    """
+     Returns True if the page contains at least 2 out of 3 indicators:
+    - title keywords (language-dependent)
+    - a date
+    - a phone number
+    """
+    title_keywords = matching_params["title_page"].get(ctx.language, {})
+    has_title_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in title_keywords)
+
+    has_date = any(find_pattern(line, date_patterns) for line in ctx.lines)
+    has_phone = any(find_pattern(line, phone_patterns) for line in ctx.lines)
+
+    hits = sum([has_title_keyword, has_date, has_phone])
+    return hits >= 2
 
 def remove_outliers_if_needed(x0s:list,threshold: float = 0.6)->list[float]:
     """

@@ -21,7 +21,7 @@ class PageClassifier(ABC):
         if self._detect_map(page, context, matching_params):
             return PageClasses.MAP
 
-        if identify_title_page(context):
+        if identify_title_page(context,matching_params):
             return PageClasses.TITLE_PAGE
 
         return PageClasses.UNKNOWN

@@ -309,3 +309,16 @@ map_terms:
       - tabella
       - schema
 
+title_page:
+  en:
+    - project
+    - report
+  de:
+    - projekt
+    - bericht
+  fr:
+    - projet
+    - rapport
+  it:
+    - rapporto
+    - progetto
