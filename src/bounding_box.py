@@ -8,31 +8,20 @@ def merge_bounding_boxes(rects):
     y1 = max(rect.y1 for rect in rects)
     return pymupdf.Rect(x0, y0, x1, y1)
 
-def expand_bbox(rect, margin):
+def is_line_below_box(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
     """
-    Expands a bounding box by a some margin.
-    """
-    return pymupdf.Rect(rect.x0 - margin, rect.y0 - margin, rect.x1 + margin, rect.y1 + margin)
+      Determines whether a text line rect is directly below an image rect and horizontally aligned.
+      Args:
+          line_rect (pymupdf.Rect): Bounding box of the text line.
+          image_rect (pymupdf.Rect): Bounding box of the image (transformed according to page rotation).
+      Returns:
+          bool: True if the line is well aligned else False
+      """
+    if image_rect.y1 - line_rect.y0 > image_rect.height * 0.25:
+        return False
 
-def cluster_drawings(drawings):
-    """
-    Cluster overlapping drawings into groups
-    """
-    clusters = []
-    expanded_bboxes = [expand_bbox(pymupdf.Rect(d["rect"]), 5) for d in drawings]    
-    for bbox in expanded_bboxes:
-        added = False
-        
-        for cluster in clusters:
-            if any(bbox.intersects(existing_bbox) for existing_bbox in cluster):
-                cluster.append(bbox)
-                added = True
-                break
-        
-        if not added:
-            clusters.append([bbox])  # new cluster
-    
-    # Merge bounding boxes inside each cluster
-    merged_clusters = [merge_bounding_boxes(cluster) for cluster in clusters]
-    
-    return merged_clusters
+    max_offset = image_rect.width * 0.2
+    left_within = line_rect.x0 >= image_rect.x0 - max_offset
+    right_within = line_rect.x1 <= image_rect.x1 + max_offset
+
+    return left_within and right_within

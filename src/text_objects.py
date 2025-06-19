@@ -4,46 +4,12 @@ Most of the code is copied from:
 - the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
 import pymupdf
-import os
 from collections import defaultdict
+from typing import Callable, TypeVar
 
 from .bounding_box import merge_bounding_boxes
 
-def text_from_document(doc) -> dict:
-    """ Retrieve text per page from a single pdf file
-    Returns dictionary with pagenumber as key and all text on that page as item"""
-
-    page_text= {}
-    for page_number, page in enumerate(doc,start=1):
-        text = page.get_text()
-        
-        page_text[page_number]= text
-    
-    return(page_text)
-
-
-def process_documents(input_path):
-    """ Retrieves text from input file or folder and returns dictionary"""
-    
-    results = {}
-    
-    if os.path.isfile(input_path):
-        with pymupdf.Document(input_path) as doc:
-
-            results[os.path.basename(input_path)] = text_from_document(doc)
-
-    elif os.path.isdir(input_path):
-        for filename in os.listdir(input_path):
-
-            if filename.lower().endswith('.pdf'):
-                file_path = os.path.join(input_path, filename)
-                with pymupdf.Document(file_path) as doc:
-                    results[filename] = text_from_document(doc)
-    else:
-        print(f"Input path is invalid: {input_path}")
-    
-    return results
-
+T = TypeVar('T')
 
 class TextWord:
 
@@ -196,3 +162,42 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
             remaining_indices.difference_update(selected_indices)
 
     return blocks
+
+def cluster_text_elements(
+        elements: list[T],
+        key_fn: Callable[[T], float],
+        tolerance: int = 10
+) -> list[list[T]]:
+    """Cluster text elements based on coordinates of bounding box.
+
+    Args:
+        elements: List of object containing a `rect` attribute
+        key_fn: Function that extracts a float from each element (e.g. lambda obj: obj.rect.y0)
+        tolerance: max allowed difference between entries and a cluster key
+    """
+
+    if not elements:
+        return []
+
+    # Dictionary to hold clusters, keys are representative attribute values
+    grouped = defaultdict(list)
+
+    for element in elements:
+        attribute = key_fn(element)
+        matched_key = None
+
+        # Check if attribute is within tolerance of an existing cluster
+        for existing_key in grouped:
+            if abs(existing_key - attribute) <= tolerance:
+                matched_key = existing_key
+                break
+
+        # Add to an existing cluster or create a new one
+        if matched_key is not None:
+            grouped[matched_key].append(element)
+        else:
+            grouped[attribute].append(element)
+
+    clusters = list(grouped.values())
+
+    return clusters

@@ -3,8 +3,8 @@ import logging
 import numpy as np
 from scipy.stats import entropy
 from ..geometric_objects import Line
-from ..text_objects import TextLine, TextWord
-from ..utils import is_description, cluster_text_elements
+from ..text_objects import TextLine, TextWord, cluster_text_elements
+from ..utils import is_description
 from ..page_structure import PageContext
 
 logger = logging.getLogger(__name__)

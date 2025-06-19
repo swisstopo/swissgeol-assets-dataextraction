@@ -31,12 +31,10 @@ def line_from_array(line:np.ndarray) -> Line:
     return Line(start, end)
 
 def extract_geometric_lines(page: pymupdf.Page) -> list:
-    """Extracts all edges and lines on a page."""
+    """Extracts all lines on a page using line segment detection."""
     image = turn_page_to_image(page)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), sigmaX=1.2)
-
-    edges = canny_edge_detection(blurred)
 
     lsd_lines = line_segment_detection(blurred)
 
@@ -46,16 +44,7 @@ def extract_geometric_lines(page: pymupdf.Page) -> list:
     else:
         lines = [line_from_array(lsd_line) for lsd_line in lsd_lines]
 
-    return [edges,lines]
-
-
-def canny_edge_detection(preprocessed_image: NDArray[np.uint8]) -> cv2.typing.MatLike:
-    """detects edges using canny detection from preprocessed image"""
-    v = np.median(preprocessed_image)
-    lower = int(max(0, 0.66 * v))
-    upper = int(min(255, 1.33 * v))
-    return cv2.Canny(preprocessed_image, lower, upper)
-
+    return lines
 
 def line_segment_detection(preprocessed_image:NDArray[np.uint8]) -> NDArray[np.float32]:
     """detects straight lines using LineSegmentDetector from preprocessed image"""

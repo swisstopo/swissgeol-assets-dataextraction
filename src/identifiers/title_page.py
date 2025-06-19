@@ -26,7 +26,7 @@ def identify_title_page(ctx: PageContext) -> bool:
     if has_aligned_layout(ctx):
         return True
 
-    if contains_content_clues(ctx.lines):
+    if multiple_sizes and large_font:
         return True
 
     return False

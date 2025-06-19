@@ -20,10 +20,6 @@ def load_ground_truth(ground_truth_path: Path) -> Optional[Dict[str, Any]]:
         return None
 
 
-def get_label(row: pd.Series, suffix: str) -> str:
-    return next((label for label in LABELS if row.get(f"{label}_{suffix}")), "None")
-
-
 def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str, Any]) -> tuple[dict, int, int]:
     """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
     stats = {
