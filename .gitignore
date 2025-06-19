@@ -1,7 +1,26 @@
-/data
+# Ignore all data and outputs
+/data/*
+!data/gt_*.jsons
+/evaluation/
+/mlruns/
+/mlartifacts/
+
+# Jupyter notebook checkpoints
 .ipynb_checkpoints/
-*/__pycache__/*
-/mlruns
-/mlflow_temp_results
-/notebooks/data
-/evaluation
+
+# Python cache
+__pycache__/
+
+# Virtual environments
+env/
+.venv/
+
+# IDE config
+.idea/
+
+# Package metadata
+*.egg-info/
+
+# Environment files
+.env
+!*.env.template

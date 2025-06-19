@@ -4,11 +4,8 @@ Most of this code is from the swissgeol-boreholes-dataextraction repo (https://g
 from __future__ import annotations
 
 import numpy as np
-import logging
 from dataclasses import dataclass
 from math import atan2, degrees
-
-logger = logging.getLogger(__name__)
 
 
 @dataclass(frozen=True)

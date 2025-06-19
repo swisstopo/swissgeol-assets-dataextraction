@@ -1,6 +1,5 @@
 import math
 from abc import ABC
-
 import numpy as np
 
 from .identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
@@ -9,9 +8,6 @@ from .identifiers.text import identify_text
 from .identifiers.title_page import sparse_title_page
 from .line_detection import extract_geometric_lines
 from .page_classes import PageClasses
-
-import logging
-logger = logging.getLogger(__name__)
 
 class PageClassifier(ABC):
     def determine_class(self, page, context, matching_params, features) -> PageClasses:
@@ -44,7 +40,7 @@ class PageClassifier(ABC):
         Short lines (often from text artifacts) are filtered out when text is present.
         """
         if not context.geometric_lines:
-            _, geometric_lines = extract_geometric_lines(page)
+            geometric_lines = extract_geometric_lines(page)
 
             if len(context.words) > 7:
                 mean_font_size = np.mean([line.font_size for line in context.lines])
