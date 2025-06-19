@@ -6,7 +6,7 @@ import numpy as np
 from .identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
 from .identifiers.map import identify_map
 from .identifiers.text import identify_text
-from .identifiers.title_page import sparse_title_page
+from .identifiers.title_page import identify_title_page
 from .line_detection import extract_geometric_lines
 from .page_classes import PageClasses
 
@@ -25,7 +25,7 @@ class PageClassifier(ABC):
         if self._detect_map(page, context, matching_params):
             return PageClasses.MAP
 
-        if sparse_title_page(context.lines):
+        if identify_title_page(context):
             return PageClasses.TITLE_PAGE
 
         return PageClasses.UNKNOWN
