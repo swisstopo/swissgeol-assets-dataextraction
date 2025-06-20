@@ -1,7 +1,6 @@
 import logging
 from statistics import stdev
-from typing import Callable
-
+from typing import Callable, Sequence
 from ..keyword_finding import find_pattern, date_patterns, phone_patterns
 from ..page_structure import PageContext
 from ..text_objects import TextLine
@@ -20,6 +19,10 @@ def identify_title_page(ctx: PageContext, matching_params) -> bool:
     if not (3 <= len(ctx.lines) <= 35):
         return False
 
+    vertical_distances = vertical_spacing(ctx.lines)
+    mean_gaps = sum(vertical_distances) / len(vertical_distances)
+    if mean_gaps <= 25:
+        return False
     if has_centered_layout(ctx):
         return True
 
@@ -44,7 +47,7 @@ def has_centered_layout(ctx: PageContext)-> bool:
     valid_clusters = []
     for cluster in centered_clusters:
         x0_values = [line.rect.x0 for line in cluster]
-        filtered_x0 = remove_outliers_if_needed(x0_values) #  removes a single line if this decreases x0 variability drastically
+        filtered_x0 = remove_outlier_if_needed(x0_values) #  removes a single line if this decreases x0 variability drastically
         if stdev(filtered_x0) >= 0.05 * page_width:
             valid_clusters.append(cluster)
 
@@ -93,23 +96,42 @@ def contains_content_clues(ctx: PageContext, matching_params) -> bool:
     hits = sum([has_title_keyword, has_date, has_phone])
     return hits >= 2
 
-def remove_outliers_if_needed(x0s:list,threshold: float = 0.6)->list[float]:
+def remove_outlier_if_needed(
+    values: list[float],
+    threshold: float = 0.6,
+    removable_indices: Sequence[int] | None = None
+) -> list[float]:
     """
-    Removes a single outlier from x0 values if it significantly reduces the standard deviation.
+    Removes one value (from allowed positions) if doing so significantly reduces the standard deviation.
+
+    Args:
+        values: List of floats.
+        threshold: Reduction ratio threshold for std dev.
+        removable_indices: Indices allowed to be removed (e.g. [0, 1, -1, -2]). If None, all indices are considered.
+
+    Returns:
+        A filtered list with at most one value removed, or the original list if no improvement found.
     """
+    if len(values) < 3 or stdev(values) == 0:
+        return values
 
-    if len(x0s) < 3 or stdev(x0s) == 0:
-        return x0s
-
-    original_std = stdev(x0s)
-    best_filtered = x0s
+    original_std = stdev(values)
+    best_filtered = values
     best_ratio = 1.0
 
-    for i in range(len(x0s)):
-        trial = x0s[:i] + x0s[i + 1:]
-        trial_std = stdev(trial)
+    if removable_indices is None:
+        candidate_indices = range(len(values))
+    else:
+        candidate_indices = [(i if i >= 0 else len(values) + i) for i in removable_indices]
+        candidate_indices = [i for i in candidate_indices if 0 <= i < len(values)]
 
+    for i in candidate_indices:
+        trial = values[:i] + values[i + 1:]
+        if len(trial) < 2:
+            continue
+        trial_std = stdev(trial)
         ratio = trial_std / original_std
+
         if ratio < best_ratio and ratio < threshold:
             best_ratio = ratio
             best_filtered = trial
@@ -171,3 +193,19 @@ def find_aligned_clusters(
             clusters.append(cluster)
 
     return clusters
+
+
+def vertical_spacing(lines:list[TextLine]) -> list[float]:
+    sorted_lines = sorted(lines, key=lambda line : (line.rect.y0, line.rect.x0))
+    distances = []
+    for line in sorted_lines:
+        line.rect
+
+    for i in range(len(sorted_lines) - 1):
+        distance = sorted_lines[i+1].rect.y0 - sorted_lines[i].rect.y0
+        distances.append(distance)
+
+
+    filtered = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0, 1, -2, -1])
+
+    return filtered

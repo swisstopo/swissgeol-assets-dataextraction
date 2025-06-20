@@ -8,7 +8,7 @@ from .text_objects import extract_words, create_text_lines, create_text_blocks
 from .detect_language import detect_language_of_page
 from .bounding_box import merge_bounding_boxes
 from .page_graphics import extract_page_graphics
-from .page_structure import PageAnalysis, PageContext, compute_text_features
+from .page_structure import PageAnalysis, PageContext
 from .page_classifier import DigitalPageClassifier,ScannedPageClassifier
 
 logger = logging.getLogger(__name__)
@@ -49,9 +49,7 @@ def classify_page(page:pymupdf.Page,
         image_rects = image_rects
     )
 
-    analysis.features = compute_text_features(context.lines, context.text_blocks)
-
-    page_class = classifier.determine_class(page, context, matching_params, analysis.features)
+    page_class = classifier.determine_class(page, context, matching_params)
     analysis.set_class(page_class)
 
     return analysis
