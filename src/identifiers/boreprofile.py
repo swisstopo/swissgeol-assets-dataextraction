@@ -56,7 +56,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
 
     descriptions = detect_material_description(
         ctx.lines, ctx.words,
-        matching_params["material_description"].get(ctx.language, {})
+        matching_params["material_description"].get(ctx.language, [])
     )
 
     # Find sidebars
@@ -79,7 +79,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     ratio = material_words / total_words if total_words else 0.0
 
     # Keyword match
-    keyword_set = matching_params["boreprofile"].get(ctx.language, {})
+    keyword_set = matching_params["boreprofile"].get(ctx.language, [])
     has_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in keyword_set)
 
     # Apply boosts
@@ -90,7 +90,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
 
 def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[str]:
     caption_lines = find_figure_description(ctx)
-    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, {}).get("must_contain", [])
+    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, []).get("must_contain", [])
 
     if len(keyword_groups) < 2:
         logger.warning(

@@ -85,7 +85,7 @@ def identify_map(ctx: PageContext, matching_params) -> bool:
 
     map_keyword_lines = [
         line for line in ctx.lines
-        if is_description(line, matching_params["map_terms"].get(ctx.language, {})) or find_map_scales(line)
+        if is_description(line, matching_params["map_terms"].get(ctx.language, [])) or find_map_scales(line)
     ]
     text_score = map_text_score(ctx, map_keyword_lines)
 

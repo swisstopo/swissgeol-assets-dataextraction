@@ -84,7 +84,7 @@ def contains_content_clues(ctx: PageContext, matching_params) -> bool:
     - a date
     - a phone number
     """
-    title_keywords = matching_params["title_page"].get(ctx.language, {})
+    title_keywords = matching_params["title_page"].get(ctx.language, [])
     has_title_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in title_keywords)
 
     has_date = any(find_pattern(line, date_patterns) for line in ctx.lines)
