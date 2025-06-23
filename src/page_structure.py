@@ -15,6 +15,7 @@ class PageContext:
     text_blocks: list[TextBlock]
     language: str
     page_rect: pymupdf.Rect
+    text_rect: pymupdf.Rect
     geometric_lines: list[Line]
     is_digital: bool
     drawings: list

@@ -20,9 +20,11 @@ def identify_title_page(ctx: PageContext, matching_params) -> bool:
         return False
 
     vertical_distances = vertical_spacing(ctx.lines)
-    mean_gaps = sum(vertical_distances) / len(vertical_distances)
-    if mean_gaps <= 25:
-        return False
+    if vertical_distances:
+        mean_gaps = sum(vertical_distances) / len(vertical_distances)
+        if mean_gaps <= 35:
+            return False
+
     if has_centered_layout(ctx):
         return True
 
@@ -195,17 +197,42 @@ def find_aligned_clusters(
     return clusters
 
 
-def vertical_spacing(lines:list[TextLine]) -> list[float]:
-    sorted_lines = sorted(lines, key=lambda line : (line.rect.y0, line.rect.x0))
-    distances = []
-    for line in sorted_lines:
-        line.rect
+def vertical_spacing(lines: list[TextLine]) -> list[float]:
+    """Compute vertical distances between vertically non-overlapping text lines,
+    and filtering out first or last line if they drastically decrease mean gaps."""
+    merged_lines = merge_y_overlapping_lines(lines)
+    # compute vertical spacing between merged lines
+    distances = [
+        merged_lines[i + 1].rect.y0 - merged_lines[i].rect.y0
+        for i in range(len(merged_lines) - 1)
+    ]
+    # remove potential header / footnote
+    filtered_distances = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0,-1])
 
-    for i in range(len(sorted_lines) - 1):
-        distance = sorted_lines[i+1].rect.y0 - sorted_lines[i].rect.y0
-        distances.append(distance)
+    return filtered_distances
 
+def merge_y_overlapping_lines(lines):
+    # sort lines by y0 (top) and x0 (left)
+    sorted_lines = sorted(lines, key=lambda line: (line.rect.y0, line.rect.x0))
 
-    filtered = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0, 1, -2, -1])
+    # merge vertically overlapping lines
+    merged_lines = []
+    current_group = [sorted_lines[0]]
 
-    return filtered
+    def vertically_overlap(line1, line2):
+        return not (line1.rect.y1 < line2.rect.y0 or line2.rect.y1 < line1.rect.y0)
+
+    for i in range(1, len(sorted_lines)):
+        if vertically_overlap(current_group[-1], sorted_lines[i]):
+            current_group.append(sorted_lines[i])
+        else:
+            merged_words = [word for line in current_group for word in line.words]
+            merged_lines.append(TextLine(merged_words))
+            current_group = [sorted_lines[i]]
+
+    # Add last group
+    if current_group:
+        merged_words = [word for line in current_group for word in line.words]
+        merged_lines.append(TextLine(words=merged_words))
+
+    return merged_lines

@@ -65,7 +65,7 @@ class DigitalPageClassifier(PageClassifier):
             For digitally born pages, we suppress text classification if images
             covers more than 70% of the total text page area."""
         total_image_coverage = sum(
-            img.page_coverage(context.page_rect) for img in context.image_rects
+            img.page_coverage(context.text_rect) for img in context.image_rects
         )
         return total_image_coverage< 0.70 and identify_text(context)
 
