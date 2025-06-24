@@ -44,7 +44,8 @@ def get_page_bbox(page, dpi=150):
 
     bbox = find_document_bounding_box(img)
     if bbox is None:
-        return None
+        logger.info("No bounding box detected via image. Falling back to page.rect")
+        return page.rect
 
     x, y, w, h = bbox
     scale = 72 / dpi  # Convert from pixels to PDF points

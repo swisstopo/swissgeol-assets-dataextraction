@@ -9,6 +9,11 @@ def identify_text(ctx:PageContext):
     mean_words_per_line = np.mean(words_per_line)
 
     block_area = sum(block.rect.get_area() for block in ctx.text_blocks)
+
+    if block_area == 0:
+        logger.warning("Text block area is zero. Cannot compute word density.")
+        return False
+
     word_area = sum(
         word.rect.get_area()
         for block in ctx.text_blocks
