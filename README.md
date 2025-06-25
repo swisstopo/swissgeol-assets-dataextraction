@@ -79,12 +79,47 @@ mlflow ui
 ```
 4. Run the classification:
 ```bash
-python main.py -i <input_path> -g <ground_truth_path>
+python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name>
 ```
+If no classifier is specified, the baseline classifier is used by default.
+
+| Classifier Name | Description                                                                   |
+|------------------|-------------------------------------------------------------------------------|
+| `baseline`       | Default. Rule-based classifier using layout, keyword matching, and heuristics |
+| `pixtral`        | Uses the Pixtral Large via Amazon Bedrock to classify PDF pages               |
+
 **Example**
 ```bash
-python main.py -i data/single_pages/ -g data/gt_single_pages.json
+python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
+
+## AWS Setup for pixtral Classifier
+
+To run classification using the Pixtral Large Model, you must configure your AWS credentials:
+1. Ensure you have access to Amazon Bedrock and the Pixtral model.
+2. Set up your credentials:
+   1. **AWS CLI**
+
+     ```
+     aws configure
+     ```
+
+   2. **Manually via config files**
+   
+     Create or edit the following files
+     **~/.aws/config**
+     ```
+     [default]
+     region=eu-central-1
+     output=json
+     ```
+     **~/.aws/credentials**
+     ```
+     [default]
+     aws_access_key_id=YOUR_ACCESS_KEY
+     aws_secret_access_key=YOUR_SECRET_KEY
+     ```
+
 
 ## Language-Detection
 
