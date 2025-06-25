@@ -2,12 +2,12 @@ import math
 from abc import ABC
 import numpy as np
 
-from .identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
-from .identifiers.map import identify_map
-from .identifiers.text import identify_text
-from .identifiers.title_page import sparse_title_page
-from .line_detection import extract_geometric_lines
-from .page_classes import PageClasses
+from identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
+from identifiers.map import identify_map
+from identifiers.text import identify_text
+from identifiers.title_page import sparse_title_page
+from line_detection import extract_geometric_lines
+from page_classes import PageClasses
 
 class PageClassifier(ABC):
     def determine_class(self, page, context, matching_params, features) -> PageClasses:

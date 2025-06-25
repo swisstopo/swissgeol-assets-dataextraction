@@ -55,7 +55,8 @@ def downscale_pdf_page_to_bytes(page: pymupdf.Page, scale: float = 1.0) -> bytes
     return doc.tobytes(deflate=True, garbage=3, use_objstms=1)
 
 def get_page_bytes(page: pymupdf.Page, page_number: int, max_mb:float = 4.5) -> bytes:
-    """Returns PDF bytes of a single page. Downscales only if it exceeds Bedrock size limit."""    # Step 1: Try extracting as-is
+    """Returns PDF bytes of a single page. Downscales only if it exceeds pixtral size limit."""
+
     max_bytes = int(max_mb * 1024 * 1024)
 
     single_page_pdf = pymupdf.open()

@@ -9,8 +9,8 @@ from .detect_language import detect_language_of_page
 from .bounding_box import merge_bounding_boxes
 from .page_graphics import extract_page_graphics, get_page_bytes
 from .page_structure import PageAnalysis, PageContext, compute_text_features
-from .page_classifier import DigitalPageClassifier,ScannedPageClassifier
-from .pixtral_classifier import PixtralPDFClassifier
+from classifiers.baseline_classifier import DigitalPageClassifier,ScannedPageClassifier
+from classifiers.pixtral_classifier import PixtralPDFClassifier
 
 logger = logging.getLogger(__name__)
 

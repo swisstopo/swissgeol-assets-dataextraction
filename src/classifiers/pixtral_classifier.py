@@ -1,6 +1,6 @@
 import boto3
 from botocore.exceptions import ClientError
-from .page_classes import PageClasses
+from page_classes import PageClasses
 import logging
 import re
 
@@ -13,6 +13,17 @@ class PixtralPDFClassifier:
         self.fallback_classifier = fallback_classifier
 
     def determine_class(self, page_bytes: bytes, page_name: str = "Page", fallback_args: dict = None) -> PageClasses:
+        """
+            Determines the class of a document page using the Pixtral model.
+
+            Args:
+                page_bytes (bytes): The image content of the page as a byte string.
+                page_name (str, optional): An optional name for the page (used in logging/debugging). Defaults to "Page".
+                fallback_args (dict, optional): Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
+
+            Returns:
+                PageClasses: The predicted page class.
+            """
         conversation = [
             {
                 "role": "user",
@@ -64,7 +75,7 @@ class PixtralPDFClassifier:
 
 
 def clean_label(label: str) -> str:
-    """Clean LLM output string to remove formatting, quotes, punctuation."""
+    """Clean pixtral output string to remove formatting, quotes, punctuation."""
     label = label.strip().lower()
     label = re.sub(r"[`\"']", "", label)  # remove backticks, quotes
     label = re.sub(r"[.:\s]+$", "", label)  # remove trailing punctuation/spaces
