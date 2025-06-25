@@ -1,6 +1,8 @@
 import pymupdf
 import cv2
 import numpy as np
+import logging
+logger = logging.getLogger(__name__)
 
 def merge_bounding_boxes(rects):
     """Computes the smallest bbox that contains all input rectangles."""
