@@ -65,19 +65,19 @@ def flatten_dict(d, parent_key='', sep='.') -> dict:
             items.append((new_key, v))
     return dict(items)
 
-def process_pdfs(pdf_files: list[Path], **matching_params) -> list[dict]:
+def process_pdfs(pdf_files: list[Path], classifier: str, **matching_params) -> list[dict]:
     results = []
     with tqdm(total=len(pdf_files)) as pbar:
         for pdf in pdf_files:
             pbar.set_description(f"Processing {pdf.name}")
-            classification_data = classify_pdf(pdf, matching_params)
+            classification_data = classify_pdf(pdf, classifier, matching_params)
             if classification_data:
                 results.append(classification_data)
             pbar.update(1)
 
     return results
 
-def main(input_path: str, ground_truth_path: str = None):
+def main(input_path: str, ground_truth_path: str = None, classifier:str = "baseline"):
     input_path= Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
     pdf_files = get_pdf_files(input_path)
@@ -94,7 +94,7 @@ def main(input_path: str, ground_truth_path: str = None):
     logger.info(f"Start classifying {len(pdf_files)} PDF files")
     
     # Processed PDFs
-    results = process_pdfs(pdf_files, **matching_params)
+    results = process_pdfs(pdf_files, classifier, **matching_params)
 
     if not results:
         logger.warning("No data to save.")
@@ -124,5 +124,9 @@ if __name__ == "__main__":
         "-g", "--ground_truth_path", type=str, required=False,
         help="(Optional) Path to the ground truth JSON file for evaluation."
     )
+    parser.add_argument(
+        "-c","--classifier", type=str, required=False, default="baseline",
+        help="Specify which classifier to use for classification. Default set to baseline."
+    )
     args = parser.parse_args()
-    main(args.input_path, args.ground_truth_path)
+    main(args.input_path, args.ground_truth_path, args.classifier)

@@ -40,4 +40,5 @@ def get_images_from_page(page:pymupdf.Page) ->list[ImageRect]:
 
     return extracted_images
 
-
+    def page_to_bytes(page) -> bytes:
+        return page.tobytes()
