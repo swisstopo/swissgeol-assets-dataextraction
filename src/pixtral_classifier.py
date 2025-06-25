@@ -1,13 +1,17 @@
 import boto3
 from botocore.exceptions import ClientError
 from .page_classes import PageClasses
+import logging
+
+logger = logging.getLogger(__name__)
 
 class PixtralPDFClassifier:
-    def __init__(self, region="eu-central-1", model_id="eu.mistral.pixtral-large-2502-v1:0"):
+    def __init__(self, region="eu-central-1", model_id="eu.mistral.pixtral-large-2502-v1:0", fallback_classifier=None):
         self.client = boto3.client("bedrock-runtime", region_name=region)
         self.model_id = model_id
+        self.fallback_classifier = fallback_classifier
 
-    def determine_class(self, page_bytes: bytes, page_name: str = "Page") -> PageClasses:
+    def determine_class(self, page_bytes: bytes, page_name: str = "Page", fallback_args: dict = None) -> PageClasses:
         conversation = [
             {
                 "role": "user",
@@ -33,7 +37,9 @@ class PixtralPDFClassifier:
             string_label = response["output"]["message"]["content"][0]["text"].strip().lower()
             return map_string_to_page_class(string_label)
         except (ClientError, Exception) as e:
-            print(f"Pixtral classification failed: {e}")
+            logger.info(f"Pixtral classification failed: {e}. Fallback to baseline classification")
+            if self.fallback_classifier and fallback_args:
+                return self.fallback_classifier.determine_class(**fallback_args)
             return PageClasses.UNKNOWN
 
 def map_string_to_page_class(label: str) -> PageClasses:
