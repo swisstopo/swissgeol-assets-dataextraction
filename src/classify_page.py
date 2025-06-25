@@ -36,7 +36,7 @@ def classify_page(page:pymupdf.Page,
         classifier = PixtralPDFClassifier()
 
     elif classifier_name == "baseline":
-        classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier
+        classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
 
     words = extract_words(page, page_number)
     lines = create_text_lines(page, page_number)
