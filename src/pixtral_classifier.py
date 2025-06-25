@@ -16,7 +16,17 @@ class PixtralPDFClassifier:
             {
                 "role": "user",
                 "content": [
-                    {"text": "Classify this page as one of: title page, table, boreprofile, map, text, other. Return only the category name."},
+                    {"text":
+                    "You are a document classification expert.\n\n"
+                    "Carefully analyze the layout and content of the following scanned PDF page.\n\n"
+                    "Classify it into exactly one of the following categories:\n"
+                    "- title page\n"
+                    "- text\n"
+                    "- boreprofile\n"
+                    "- map\n"
+                    "- unknown\n"
+                    "Return **only** the category name — no explanation, no extra text.\n\n"
+                    "If you're uncertain, choose 'unknown'."},
                     {
                         "document": {
                             "format": "pdf",
@@ -35,7 +45,14 @@ class PixtralPDFClassifier:
                 inferenceConfig={"maxTokens": 200, "temperature": 0.2},
             )
             string_label = response["output"]["message"]["content"][0]["text"].strip().lower()
-            return map_string_to_page_class(string_label)
+            category = map_string_to_page_class(string_label)
+
+            if category == PageClasses.UNKNOWN and string_label not in ("unknown", ""):
+                logger.warning(f"Pixtral returned malformed category: '{string_label}' — falling back to baseline.")
+                if self.fallback_classifier and fallback_args:
+                    return self.fallback_classifier.determine_class(**fallback_args)
+
+            return category
         except (ClientError, Exception) as e:
             logger.info(f"Pixtral classification failed: {e}. Fallback to baseline classification")
             if self.fallback_classifier and fallback_args:
