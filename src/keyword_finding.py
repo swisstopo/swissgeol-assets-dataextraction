@@ -7,7 +7,7 @@ from .page_structure import PageContext
 from .text_objects import TextLine
 logger = logging.getLogger(__name__)
 
-figure_pattern = re.compile(
+FIGURE_PATTERNS = re.compile(
     r"^(?:"                                               # Start of line + non-capturing group
     r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
     r")?"                                                        # Optional label
@@ -16,13 +16,13 @@ figure_pattern = re.compile(
     flags=re.IGNORECASE
 )
 
-date_patterns = [
+DATE_PATTERNS = [
     r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}\b",  # e.g. January 2000
     r"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b",  # e.g. 01.02.2001 or 1-2-01
     r"\b(19[0-9]{2}|20[0-1][0-9]|202[0-5])\b"  # 4-digit year
 ]
 
-phone_patterns = [r"\b(?:tel\.?|telefon)\s*[:\-]?\s*\+?\d[\d\s/().-]{8,}\b",
+PHONE_PATTERNS = [r"\b(?:tel\.?|telefon)\s*[:\-]?\s*\+?\d[\d\s/().-]{8,}\b",
                   r"\b(?:0041|\+41|0)[\s]?\d{2}[\s]?\d{3}[\s]?\d{2}[\s]?\d{2}\b"
                   ]
 
@@ -71,7 +71,7 @@ def find_figure_description(ctx:PageContext) -> list[TextLine]:
     figure_description_lines = []
     for line in relevant_lines:
         line_text = line.line_text()
-        if figure_pattern.match(line_text):
+        if FIGURE_PATTERNS.match(line_text):
             figure_description_lines.append(line)
 
     return figure_description_lines

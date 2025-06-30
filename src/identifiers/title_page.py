@@ -1,7 +1,7 @@
 import logging
 from statistics import stdev
 from typing import Callable, Sequence
-from ..keyword_finding import find_pattern, date_patterns, phone_patterns
+from ..keyword_finding import find_pattern, DATE_PATTERNS, PHONE_PATTERNS
 from ..page_structure import PageContext
 from ..text_objects import TextLine
 
@@ -92,8 +92,8 @@ def contains_content_clues(ctx: PageContext, matching_params) -> bool:
     title_keywords = matching_params["title_page"].get(ctx.language, [])
     has_title_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in title_keywords)
 
-    has_date = any(find_pattern(line, date_patterns) for line in ctx.lines)
-    has_phone = any(find_pattern(line, phone_patterns) for line in ctx.lines)
+    has_date = any(find_pattern(line, DATE_PATTERNS) for line in ctx.lines)
+    has_phone = any(find_pattern(line, PHONE_PATTERNS) for line in ctx.lines)
 
     hits = sum([has_title_keyword, has_date, has_phone])
     return hits >= 2
