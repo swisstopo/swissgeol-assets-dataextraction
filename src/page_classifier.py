@@ -1,7 +1,8 @@
 import math
-from abc import ABC
 import numpy as np
+import pymupdf
 
+from page_structure import PageContext
 from .identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
 from .identifiers.map import identify_map
 from .identifiers.text import identify_text
@@ -9,8 +10,19 @@ from .identifiers.title_page import identify_title_page
 from .line_detection import extract_geometric_lines
 from .page_classes import PageClasses
 
-class PageClassifier(ABC):
-    def determine_class(self, page, context, matching_params) -> PageClasses:
+class PageClassifier:
+    """
+       Baseline classifier for single document pages based on layout, content, and geometric features.
+
+       Subclasses can override `_detect_text`, `_detect_boreprofile`, or `_detect_map`
+       to customize classification behavior.
+       """
+    def determine_class(
+            self,
+            page: pymupdf.Page,
+            context: PageContext,
+            matching_params: dict
+    ) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content."""
         if self._detect_text(page, context, matching_params):
             return PageClasses.TEXT
@@ -26,13 +38,13 @@ class PageClassifier(ABC):
 
         return PageClasses.UNKNOWN
 
-    def _detect_text(self, page, context, matching_params) -> bool:
+    def _detect_text(self, page: pymupdf.Page,  context: PageContext,  matching_params: dict) -> bool:
         return identify_text(context)
 
-    def _detect_boreprofile(self, page, context, matching_params) -> bool:
+    def _detect_boreprofile(self,page: pymupdf.Page,  context: PageContext,  matching_params: dict) -> bool:
         return identify_boreprofile(context, matching_params)
 
-    def _detect_map(self, page, context, matching_params) -> bool:
+    def _detect_map(self, page: pymupdf.Page,  context: PageContext,  matching_params: dict)  -> bool:
         """
         Determines whether a page should be classified as a map page.
 
@@ -59,7 +71,12 @@ class ScannedPageClassifier(PageClassifier):
     pass
 
 class DigitalPageClassifier(PageClassifier):
-    def _detect_text(self, page, context, matching_params) -> bool:
+    """
+    Baseline classifier for digitally born documents.
+
+    Uses image coverage and figure metadata to adjust classification logic.
+    """
+    def _detect_text(self, page: pymupdf.Page,  context: PageContext,  matching_params: dict)  -> bool:
         """Determines whether a page should be classified as a text page.
 
             For digitally born pages, we suppress text classification if images
@@ -69,12 +86,12 @@ class DigitalPageClassifier(PageClassifier):
         )
         return total_image_coverage< 0.70 and identify_text(context)
 
-    def _detect_boreprofile(self, page, context, matching_params) -> bool:
+    def _detect_boreprofile(self, page: pymupdf.Page,  context: PageContext,  matching_params: dict) -> bool:
         if context.image_rects and keywords_in_figure_description(context, matching_params):
             return True
         return context.drawings and super()._detect_boreprofile(page,context, matching_params)
 
-    def _detect_map(self, page, context, matching_params) -> bool:
+    def _detect_map(self, page: pymupdf.Page,  context: PageContext,  matching_params: dict) -> bool:
         if not (context.image_rects or context.drawings):
             return False
         return super()._detect_map(page, context, matching_params)

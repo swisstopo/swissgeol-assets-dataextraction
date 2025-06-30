@@ -7,7 +7,7 @@ from ..text_objects import TextLine
 
 logger = logging.getLogger(__name__)
 
-def identify_title_page(ctx: PageContext, matching_params) -> bool:
+def identify_title_page(ctx: PageContext, matching_params: dict) -> bool:
     """
        Identifies whether a page is likely a title page based on a combination of:
        - Line count
@@ -202,16 +202,13 @@ def vertical_spacing(lines: list[TextLine]) -> list[float]:
     and filtering out first or last line if they drastically decrease mean gaps."""
     merged_lines = merge_y_overlapping_lines(lines)
     # compute vertical spacing between merged lines
-    distances = [
-        merged_lines[i + 1].rect.y0 - merged_lines[i].rect.y0
-        for i in range(len(merged_lines) - 1)
-    ]
+    distances = [below.rect.y0 - above.rect.y0 for above, below in zip(merged_lines, merged_lines[1:])]
     # remove potential header / footnote
     filtered_distances = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0,-1])
 
     return filtered_distances
 
-def merge_y_overlapping_lines(lines):
+def merge_y_overlapping_lines(lines: list[TextLine]) -> list[TextLine]:
     # sort lines by y0 (top) and x0 (left)
     sorted_lines = sorted(lines, key=lambda line: (line.rect.y0, line.rect.x0))
 

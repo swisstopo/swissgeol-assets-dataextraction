@@ -1,10 +1,9 @@
-import numpy as np
 import pymupdf
 from dataclasses import dataclass
 
-from .page_classes import PageClasses
-from .text_objects import TextLine, TextWord, TextBlock
-from .geometric_objects import Line
+from src.page_classes import PageClasses
+from src.text_objects import TextLine, TextWord, TextBlock
+from src.geometric_objects import Line
 
 @dataclass()
 class PageContext:
