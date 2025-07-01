@@ -10,6 +10,9 @@ logger = logging.getLogger(__name__)
 
 
 class PixtralPDFClassifier:
+    MAX_DOCUMENT_SIZE_MB = 4.5
+    SLACK_SIZE_MB = 0.2
+
     def __init__(
         self,
         region="eu-central-1",

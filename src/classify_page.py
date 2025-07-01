@@ -53,7 +53,8 @@ def classify_page(
     )
 
     if classifier_name == "pixtral":
-        page_bytes = get_page_bytes(page, page_number)
+        max_doc_size = PixtralPDFClassifier.MAX_DOCUMENT_SIZE_MB - PixtralPDFClassifier.SLACK_SIZE_MB
+        page_bytes = get_page_bytes(page, page_number, max_mb=max_doc_size)
         fallback = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
 
         classifier = PixtralPDFClassifier(fallback_classifier=fallback)
