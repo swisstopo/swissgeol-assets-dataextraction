@@ -1,13 +1,13 @@
-import regex
 import logging
 import re
+from typing import Optional
 
 from .bounding_box import is_line_below_box
 from .page_structure import PageContext
-from .text_objects import TextWord, TextLine
+from .text_objects import TextLine
 logger = logging.getLogger(__name__)
 
-figure_pattern = re.compile(
+FIGURE_PATTERNS = re.compile(
     r"^(?:"                                               # Start of line + non-capturing group
     r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
     r")?"                                                        # Optional label
@@ -16,12 +16,33 @@ figure_pattern = re.compile(
     flags=re.IGNORECASE
 )
 
-def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
-    for keyword in keywords:
-        pattern = regex.compile(r"(\b" + regex.escape(keyword) + r"\b)", flags=regex.IGNORECASE)
-        match = pattern.search(word.text)
+DATE_PATTERNS = [
+    r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}\b",  # e.g. January 2000
+    r"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b",  # e.g. 01.02.2001 or 1-2-01
+    r"\b(19[0-9]{2}|20[0-1][0-9]|202[0-5])\b"  # 4-digit year
+]
+
+PHONE_PATTERNS = [r"\b(?:tel\.?|telefon)\s*[:\-]?\s*\+?\d[\d\s/().-]{8,}\b",
+                  r"\b(?:0041|\+41|0)[\s]?\d{2}[\s]?\d{3}[\s]?\d{2}[\s]?\d{2}\b"
+                  ]
+
+
+def find_pattern(line: TextLine, patterns: list[str]) -> Optional[str]:
+    """
+        Searches for a match of any given regex pattern in the text of a line.
+
+        Args:
+            line: A TextLine object with a .line_text() method.
+            patterns: List of regex strings to search for.
+
+        Returns:
+            The first matching string if found, otherwise None.
+        """
+    text = line.line_text().lower()
+    for pattern in patterns:
+        match = re.search(pattern, text)
         if match:
-            return match.group(1)
+            return match.group()
     return None
 
 def find_figure_description(ctx:PageContext) -> list[TextLine]:
@@ -50,7 +71,7 @@ def find_figure_description(ctx:PageContext) -> list[TextLine]:
     figure_description_lines = []
     for line in relevant_lines:
         line_text = line.line_text()
-        if figure_pattern.match(line_text):
+        if FIGURE_PATTERNS.match(line_text):
             figure_description_lines.append(line)
 
     return figure_description_lines

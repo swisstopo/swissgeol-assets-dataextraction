@@ -42,7 +42,7 @@ def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
     clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
 
-def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
+def identify_boreprofile(ctx: PageContext, matching_params: dict) -> bool:
     """
     Determines whether a page contains a boreprofile.
 
@@ -53,10 +53,14 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     - +0.1 if a valid sidebar is found
     - +0.05 if boreprofile keywords are present
     """
+    keywords= matching_params["material_description"].get(ctx.language, [])
+
+    if not keywords:
+        logger.warning(f"No keywords for language '{ctx.language}', falling back to 'de'")
+        keywords = matching_params["material_description"].get("de", [])
 
     descriptions = detect_material_description(
-        ctx.lines, ctx.words,
-        matching_params["material_description"].get(ctx.language, {})
+        ctx.lines, ctx.words, keywords
     )
 
     # Find sidebars
@@ -79,7 +83,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
     ratio = material_words / total_words if total_words else 0.0
 
     # Keyword match
-    keyword_set = matching_params["boreprofile"].get(ctx.language, {})
+    keyword_set = matching_params["boreprofile"].get(ctx.language, [])
     has_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in keyword_set)
 
     # Apply boosts
@@ -90,7 +94,7 @@ def identify_boreprofile(ctx: PageContext, matching_params) -> bool:
 
 def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[str]:
     caption_lines = find_figure_description(ctx)
-    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, {}).get("must_contain", [])
+    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, []).get("must_contain", [])
 
     if len(keyword_groups) < 2:
         logger.warning(

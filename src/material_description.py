@@ -2,7 +2,7 @@
 The same including and excluding matching parameters used."""
 import pymupdf
 
-from .text_objects import TextLine, TextWord,cluster_text_elements
+from .text_objects import TextLine, TextWord, cluster_text_elements
 from .utils import is_description
 
 class MaterialDescription:

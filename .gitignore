@@ -17,6 +17,7 @@ env/
 
 # IDE config
 .idea/
+.vscode/
 
 # Package metadata
 *.egg-info/

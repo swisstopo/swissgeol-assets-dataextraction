@@ -86,6 +86,64 @@ python main.py -i <input_path> -g <ground_truth_path>
 python main.py -i data/single_pages/ -g data/gt_single_pages.json
 ```
 
+## Output Format
+The script processes PDF pages and outputs predictions in `data/predictions.json`. 
+The output is structured as a list of classification results per page per report.
+#### Example Output
+```json
+[
+  {
+    "filename": "1799_3.pdf",
+    "classification": [
+      {
+        "Page": 1,
+        "Text": 0,
+        "Boreprofile": 0,
+        "Maps": 1,
+        "Title_Page": 0,
+        "Unknown": 0
+      },
+      {
+        "Page": 2,
+        "Text": 1,
+        "Boreprofile": 0,
+        "Maps": 0,
+        "Title_Page": 0,
+        "Unknown": 0
+      }
+    ]
+  },
+  {
+    "filename": "1800_1.pdf",
+    "classification": [
+      {
+        "Page": 1,
+        "Text": 0,
+        "Boreprofile": 1,
+        "Maps": 0,
+        "Title_Page": 0,
+        "Unknown": 0
+      }
+    ]
+  }
+]
+
+```
+**Explanation**:
+- filename: The name of the processed PDF file.
+- classification: A list of dictionaries, each representing the classification of  a PDF page of the report.
+  - Each dictionary contains:
+  - Page: The page number (1-indexed). 
+  - One key per possible class (e.g., Text, Boreprofile, Maps, Title_Page, Unknown) with binary values:
+    - 1: class was assigned to the page. 
+    - 0: class was not assigned.
+
+**Further Notes:**
+- The classifier supports batch input of multiple reports.
+- Output is returned as a standard Python list of dictionaries and can be serialized directly as JSON.
+- Input must be preprocessed: PDFs should already have OCR. 
+- Classification is currently multi-class with a single label per page. Future updates may support multiple-labels.
+
 ## Language-Detection
 
 This module performs language detection on input documents.
