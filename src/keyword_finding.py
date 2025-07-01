@@ -1,11 +1,9 @@
 import logging
 import re
 
-import regex
-
 from src.bounding_box import is_line_below_box
 from src.page_structure import PageContext
-from src.text_objects import TextLine, TextWord
+from src.text_objects import TextLine
 
 logger = logging.getLogger(__name__)
 
@@ -18,11 +16,30 @@ FIGURE_PATTERNS = re.compile(
     flags=re.IGNORECASE,
 )
 
+DATE_PATTERNS = [
+    r"\b(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\w*\s+\d{4}\b",  # e.g. January 2000
+    r"\b\d{1,2}[./-]\d{1,2}[./-]\d{2,4}\b",  # e.g. 01.02.2001 or 1-2-01
+    r"\b(19[0-9]{2}|20[0-1][0-9]|202[0-5])\b",  # 4-digit year
+]
 
-def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
-    for keyword in keywords:
-        pattern = regex.compile(r"(\b" + regex.escape(keyword) + r"\b)", flags=regex.IGNORECASE)
-        match = pattern.search(word.text)
+PHONE_PATTERNS = [
+    r"\b(?:tel\.?|telefon)\s*[:\-]?\s*\+?\d[\d\s/().-]{8,}\b",
+    r"\b(?:0041|\+41|0)[\s]?\d{2}[\s]?\d{3}[\s]?\d{2}[\s]?\d{2}\b",
+]
+
+
+def find_pattern(line: TextLine, patterns: list[str]) -> str | None:
+    """
+    Searches for a match of any given regex pattern in the text of a line.
+    Args:
+        line: A TextLine object with a .line_text() method.
+        patterns: List of regex strings to search for.
+    Returns:
+        The first matching string if found, otherwise None.
+    """
+    text = line.line_text().lower()
+    for pattern in patterns:
+        match = re.search(pattern, text)
         if match:
             return match.group()
     return None

@@ -5,7 +5,7 @@ import pymupdf
 from shapely.geometry import box
 from shapely.ops import unary_union
 
-from ..page_structure import PageContext
+from src.page_structure import PageContext
 
 logger = logging.getLogger(__name__)
 

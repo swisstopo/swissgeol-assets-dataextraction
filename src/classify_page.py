@@ -5,13 +5,12 @@ import pymupdf
 
 from classifiers.baseline_classifier import DigitalPageClassifier, ScannedPageClassifier
 from classifiers.pixtral_classifier import PixtralPDFClassifier
-from src.bounding_box import merge_bounding_boxes, get_page_bbox
+from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
 from src.page_graphics import extract_page_graphics, get_page_bytes
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
 from src.utils import is_digitally_born
-
 
 logger = logging.getLogger(__name__)
 
@@ -32,11 +31,6 @@ def classify_page(
     analysis = PageAnalysis(page_number)
 
     is_digital = is_digitally_born(page)
-    if classifier_name == "pixtral":
-        classifier = PixtralPDFClassifier()
-
-    elif classifier_name == "baseline":
-        classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
 
     words = extract_words(page, page_number)
     lines = create_text_lines(page, page_number)
@@ -73,6 +67,7 @@ def classify_page(
             page_bytes, page_name=f"page_{page_number}", fallback_args=fallback_args
         )
     else:
+        classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
         page_class = classifier.determine_class(page, context, matching_params)
 
     analysis.set_class(page_class)
