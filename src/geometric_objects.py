@@ -1,6 +1,7 @@
 """
 Most of this code is from the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,7 +12,7 @@ from math import atan2, degrees
 @dataclass(frozen=True)
 class Point:
     """Class to represent a point in 2D space.
-        Code copied from swissgeol-boreholes-dataextraction repo. """
+    Code copied from swissgeol-boreholes-dataextraction repo."""
 
     x: float
     y: float
@@ -32,7 +33,7 @@ class Line:
     end: Point
 
     def __post_init__(self):
-        object.__setattr__(self, 'length', self.start.distance_to(self.end))
+        object.__setattr__(self, "length", self.start.distance_to(self.end))
 
     @property
     def line_angle(self) -> float:
