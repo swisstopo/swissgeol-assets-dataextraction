@@ -1,7 +1,7 @@
-from ..text_objects import TextLine
+from src.text_objects import TextLine
+
 
 def sparse_title_page(lines: list[TextLine]) -> bool:
-
     if not lines or len(lines) > 30:
         return False
 

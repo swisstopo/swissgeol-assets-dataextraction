@@ -1,45 +1,56 @@
-import boto3
-from botocore.exceptions import ClientError
-from page_classes import PageClasses
 import logging
 import re
 
+import boto3
+from botocore.exceptions import ClientError
+
+from page_classes import PageClasses
+
 logger = logging.getLogger(__name__)
 
+
 class PixtralPDFClassifier:
-    def __init__(self, region="eu-central-1", model_id="eu.mistral.pixtral-large-2502-v1:0", fallback_classifier=None):
+    def __init__(
+        self,
+        region="eu-central-1",
+        model_id="eu.mistral.pixtral-large-2502-v1:0",
+        fallback_classifier=None,
+    ):
         self.client = boto3.client("bedrock-runtime", region_name=region)
         self.model_id = model_id
         self.fallback_classifier = fallback_classifier
 
     def determine_class(self, page_bytes: bytes, page_name: str = "Page", fallback_args: dict = None) -> PageClasses:
         """
-            Determines the class of a document page using the Pixtral model.
+        Determines the class of a document page using the Pixtral model.
 
-            Args:
-                page_bytes (bytes): The image content of the page as a byte string.
-                page_name (str, optional): An optional name for the page (used in logging/debugging). Defaults to "Page".
-                fallback_args (dict, optional): Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
+        Args:
+            page_bytes (bytes): The image content of the page as a byte string.
+            page_name (str, optional): An optional name for the page (used in logging/debugging). Defaults to "Page".
+            fallback_args (dict, optional): Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
 
-            Returns:
-                PageClasses: The predicted page class.
-            """
+        Returns:
+            PageClasses: The predicted page class.
+        """
         conversation = [
             {
                 "role": "user",
                 "content": [
-                    {"text":
-                    "You are a document classification expert.\n\n"
-                    "Carefully analyze the layout, formatting, and content of the following scanned PDF page.\n\n"
-                    "Classify it into **exactly one** of the following categories:\n"
-                    "- title page: first or early pages that contain report titles, author names, company names, dates, logos, or file metadata — usually sparse and centered.\n"
-                    "- text: pages with flowing paragraphs or body text, typically structured in columns or full-width.\n"
-                    "- boreprofile: pages with borehole diagrams, longitudinal profiles, or geotechnical probes.\n"
-                    "- map: geological or topographic maps, often including scale bars or coordinates.\n"
-                    "- unknown: any other layout such as tables, mixed content, charts, or pages you cannot confidently classify.\n\n"
-                    "**Important**: Do not classify a page as 'text' unless it clearly contains continuous paragraphs.\n\n"
-                    "Return only the category name, e.g., title page or map.\n\n"
-                    "If unsure, return `unknown`."},
+                    {
+                        "text": "You are a document layout classification expert.\n\n"
+                        "Carefully examine the **layout, visual structure, formatting cues, and content** of the following scanned PDF page.\n\n"
+                        "Classify the page into **exactly one** of the following categories:\n"
+                        "- **title page**: Early pages showing report titles, author names, company logos, dates, or metadata. These are typically sparse, center-aligned, and minimal in text.\n"
+                        "- **text**: Pages with continuous body paragraphs, often arranged in full-width or multi-column layouts. Must clearly show flowing narrative text.\n"
+                        "- **boreprofile**: Pages that contain borehole logs, geotechnical cross-sections, longitudinal profiles, or probe data — often with diagrams and axes.\n"
+                        "- **map**: Pages with geological or topographic maps, typically containing scale bars, coordinates, legends, or terrain features.\n"
+                        "- **unknown**: Anything else — such as pages with tables, charts, mixed layouts, or unclear structure. Also use if classification is uncertain.\n\n"
+                        "**Critical Notes**:\n"
+                        "- Only classify a page as **text** if there are clearly visible, uninterrupted paragraphs.\n"
+                        "- Pay close attention to **visual layout and spatial positioning** of elements.\n"
+                        "- Prioritize accuracy over guessing — if in doubt, return `unknown`.\n\n"
+                        "Return only the category name: title page, text, boreprofile, map, or unknown."
+                    },
                     {
                         "document": {
                             "format": "pdf",
@@ -80,6 +91,7 @@ def clean_label(label: str) -> str:
     label = re.sub(r"[`\"']", "", label)  # remove backticks, quotes
     label = re.sub(r"[.:\s]+$", "", label)  # remove trailing punctuation/spaces
     return label
+
 
 def map_string_to_page_class(label: str) -> PageClasses:
     """Maps a string label to a PageClasses enum member."""

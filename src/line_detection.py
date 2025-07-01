@@ -1,13 +1,16 @@
 from __future__ import annotations
-import numpy as np
-import cv2
-import pymupdf
+
 import logging
+
+import cv2
+import numpy as np
+import pymupdf
 from numpy.typing import NDArray
 
-from .geometric_objects import Point, Line
+from src.geometric_objects import Line, Point
 
 logger = logging.getLogger(__name__)
+
 
 def turn_page_to_image(page: pymupdf.Page, zoom: float = 2.0) -> np.ndarray:
     """turns pdf page into an BGR image"""
@@ -25,10 +28,12 @@ def turn_page_to_image(page: pymupdf.Page, zoom: float = 2.0) -> np.ndarray:
 
     return img
 
-def line_from_array(line:np.ndarray) -> Line:
+
+def line_from_array(line: np.ndarray) -> Line:
     start = Point(int(line[0][0]), int(line[0][1]))
     end = Point(int(line[0][2]), int(line[0][3]))
     return Line(start, end)
+
 
 def extract_geometric_lines(page: pymupdf.Page) -> list:
     """Extracts all lines on a page using line segment detection."""
@@ -46,7 +51,10 @@ def extract_geometric_lines(page: pymupdf.Page) -> list:
 
     return lines
 
-def line_segment_detection(preprocessed_image:NDArray[np.uint8]) -> NDArray[np.float32]:
+
+def line_segment_detection(
+    preprocessed_image: NDArray[np.uint8],
+) -> NDArray[np.float32]:
     """detects straight lines using LineSegmentDetector from preprocessed image"""
     lsd = cv2.createLineSegmentDetector()
     lines = lsd.detect(preprocessed_image)[0]
