@@ -86,14 +86,14 @@ def identify_map(ctx: PageContext, matching_params) -> bool:
     Returns:
         bool: True if combined score exceeds 0.4 threshold.
     """
+    keywords = matching_params["map_terms"].get(ctx.language, [])
+    if not keywords:
+        logger.warning(f"No keywords for language '{ctx.language}', falling back to 'de'")
+        keywords = matching_params["map_terms"].get("de", [])
 
     line_score = map_lines_score(ctx)
 
-    map_keyword_lines = [
-        line
-        for line in ctx.lines
-        if is_description(line, matching_params["map_terms"].get(ctx.language, {})) or find_map_scales(line)
-    ]
+    map_keyword_lines = [line for line in ctx.lines if is_description(line, keywords) or find_map_scales(line)]
     text_score = map_text_score(ctx, map_keyword_lines)
 
     text_boost = 0.1 if text_score > 0.75 else 0.0

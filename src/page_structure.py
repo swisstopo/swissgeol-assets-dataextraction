@@ -17,6 +17,7 @@ class PageContext:
     text_blocks: list[TextBlock]
     language: str
     page_rect: pymupdf.Rect
+    text_rect: pymupdf.Rect
     geometric_lines: list[Line]
     is_digital: bool
     drawings: list
@@ -24,22 +25,18 @@ class PageContext:
 
 
 class PageAnalysis:
-    """Stores the classification result and associated features for a single page."""
+    """Stores the classification result for a single page."""
 
     def __init__(self, page_number: int):
         self.page_number = page_number
         self.classification: dict[PageClasses, int] = {cls: 0 for cls in PageClasses}
-        self.features = {}
 
     def set_class(self, label: PageClasses):
         self.classification[label] = 1
 
     def to_classification_dict(self):
         """Only exports classification and page number to dict"""
-        return {
-            "Page": self.page_number,
-            **{cls.value: val for cls, val in self.classification.items()},
-        }
+        return {"Page": self.page_number, **{cls.value: val for cls, val in self.classification.items()}}
 
 
 def compute_text_features(lines, text_blocks) -> dict:

@@ -1,6 +1,7 @@
 import logging
-import pymupdf
 from dataclasses import dataclass
+
+import pymupdf
 
 logger = logging.getLogger(__name__)
 

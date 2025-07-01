@@ -9,7 +9,7 @@ from src.text_objects import TextLine, TextWord
 
 logger = logging.getLogger(__name__)
 
-figure_pattern = re.compile(
+FIGURE_PATTERNS = re.compile(
     r"^(?:"  # Start of line + non-capturing group
     r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
     r")?"  # Optional label
@@ -24,7 +24,7 @@ def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
         pattern = regex.compile(r"(\b" + regex.escape(keyword) + r"\b)", flags=regex.IGNORECASE)
         match = pattern.search(word.text)
         if match:
-            return match.group(1)
+            return match.group()
     return None
 
 
@@ -54,7 +54,7 @@ def find_figure_description(ctx: PageContext) -> list[TextLine]:
     figure_description_lines = []
     for line in relevant_lines:
         line_text = line.line_text()
-        if figure_pattern.match(line_text):
+        if FIGURE_PATTERNS.match(line_text):
             figure_description_lines.append(line)
 
     return figure_description_lines

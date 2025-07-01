@@ -5,12 +5,13 @@ import pymupdf
 
 from classifiers.baseline_classifier import DigitalPageClassifier, ScannedPageClassifier
 from classifiers.pixtral_classifier import PixtralPDFClassifier
-from src.bounding_box import merge_bounding_boxes
+from src.bounding_box import merge_bounding_boxes, get_page_bbox
 from src.detect_language import detect_language_of_page
 from src.page_graphics import extract_page_graphics, get_page_bytes
-from src.page_structure import PageAnalysis, PageContext, compute_text_features
+from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
 from src.utils import is_digitally_born
+
 
 logger = logging.getLogger(__name__)
 
@@ -41,21 +42,21 @@ def classify_page(
     lines = create_text_lines(page, page_number)
     text_blocks = create_text_blocks(lines)
     drawings, image_rects = extract_page_graphics(page, is_digital)
-    page_text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page.rect
+    page_rect = get_page_bbox(page)
+    text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
 
     context = PageContext(
         lines=lines,
         words=words,
         text_blocks=text_blocks,
         language=language,
-        page_rect=page_text_rect,
+        page_rect=page_rect,
+        text_rect=text_rect,
         geometric_lines=[],
         is_digital=is_digital,
         drawings=drawings,
         image_rects=image_rects,
     )
-
-    analysis.features = compute_text_features(context.lines, context.text_blocks)
 
     if classifier_name == "pixtral":
         page_bytes = get_page_bytes(page, page_number)
@@ -66,14 +67,13 @@ def classify_page(
             "page": page,
             "context": context,
             "matching_params": matching_params,
-            "features": analysis.features,
         }
 
         page_class = classifier.determine_class(
             page_bytes, page_name=f"page_{page_number}", fallback_args=fallback_args
         )
     else:
-        page_class = classifier.determine_class(page, context, matching_params, analysis.features)
+        page_class = classifier.determine_class(page, context, matching_params)
 
     analysis.set_class(page_class)
 

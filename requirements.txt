@@ -17,3 +17,4 @@ pygit2==1.17.0
 dotenv >= 0.9.9
 scikit-image == 0.25.2
 pre-commit==3.6.2
+shapely==2.1.1
