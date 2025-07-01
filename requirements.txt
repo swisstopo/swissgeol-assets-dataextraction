@@ -16,3 +16,4 @@ mlflow==2.21.0
 pygit2==1.17.0
 dotenv >= 0.9.9
 scikit-image == 0.25.2
+pre-commit==3.6.2

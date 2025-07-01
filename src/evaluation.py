@@ -1,19 +1,21 @@
-import mlflow
-import json
 import csv
-import pandas as pd
+import json
 import logging
-from typing import Optional, Dict, Any
 from pathlib import Path
+from typing import Any, Dict, Optional
 
-from .page_classes import PageClasses
+import mlflow
+import pandas as pd
+
+from src.page_classes import PageClasses
 
 logger = logging.getLogger(__name__)
 LABELS = [cls.value for cls in PageClasses]
 
+
 def load_ground_truth(ground_truth_path: Path) -> Optional[Dict[str, Any]]:
     try:
-        with open(ground_truth_path, 'r') as f:
+        with open(ground_truth_path, "r") as f:
             return {entry["filename"]: entry["classification"] for entry in json.load(f)}
     except Exception as e:
         logger.error(f"Invalid ground truth path: {e}")
@@ -27,8 +29,9 @@ def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str,
             "true_positives": 0,
             "false_negatives": 0,
             "false_positives": 0,
-            "true_negatives": 0
-        } for label in LABELS
+            "true_negatives": 0,
+        }
+        for label in LABELS
     }
 
     total_files, total_pages = 0, 0
@@ -69,15 +72,25 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
 
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
-        writer.writerow(["Class", "True_Positives", "False_Negatives", "False_Positives", "True_Negatives"])
+        writer.writerow(
+            [
+                "Class",
+                "True_Positives",
+                "False_Negatives",
+                "False_Positives",
+                "True_Negatives",
+            ]
+        )
         for label, s in stats.items():
-            writer.writerow([
-                label,
-                s["true_positives"],
-                s["false_negatives"],
-                s["false_positives"],
-                s["true_negatives"]
-            ])
+            writer.writerow(
+                [
+                    label,
+                    s["true_positives"],
+                    s["false_negatives"],
+                    s["false_positives"],
+                    s["true_negatives"],
+                ]
+            )
     return csv_path
 
 
@@ -104,11 +117,11 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
     report_path = output_dir / "per_page_comparison.csv"
 
     columns = (
-        ["Filename", "Page"] +
-        [f"{label}_pred" for label in LABELS] +
-        [f"{label}_gt" for label in LABELS] +
-        [f"{label}_match" for label in LABELS] +
-        ["All_labels_match"]
+        ["Filename", "Page"]
+        + [f"{label}_pred" for label in LABELS]
+        + [f"{label}_gt" for label in LABELS]
+        + [f"{label}_match" for label in LABELS]
+        + ["All_labels_match"]
     )
     rows = []
 
@@ -153,24 +166,23 @@ def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
     df["Predicted_labels"] = df.apply(lambda row: get_active_labels(row, suffix="pred"), axis=1)
     df["Ground_truth_labels"] = df.apply(lambda row: get_active_labels(row, suffix="gt"), axis=1)
 
-    misclassified = df[df["All_labels_match"] == 0][
-        ["Filename", "Page", "Ground_truth_labels", "Predicted_labels"]
-    ]
+    misclassified = df[df["All_labels_match"] == 0][["Filename", "Page", "Ground_truth_labels", "Predicted_labels"]]
 
     mis_path = output_dir / "misclassifications.csv"
     misclassified.to_csv(mis_path, index=False)
     mlflow.log_artifact(str(mis_path))
 
     for true_class in LABELS:
-        class_mis = misclassified[
-            misclassified["Ground_truth_labels"].apply(lambda labels: true_class in labels)
-        ]
+        class_mis = misclassified[misclassified["Ground_truth_labels"].apply(lambda labels: true_class in labels)]
         if not class_mis.empty:
             path = output_dir / f"misclassified_{true_class}.csv"
             class_mis.to_csv(path, index=False)
             mlflow.log_artifact(str(path))
 
-def evaluate_results(predictions: dict, ground_truth_path: Path, output_dir: Path = Path("evaluation")) -> Optional[dict]:
+
+def evaluate_results(
+    predictions: dict, ground_truth_path: Path, output_dir: Path = Path("evaluation")
+) -> Optional[dict]:
     """Main entry point for evaluating predictions against ground truth."""
     output_dir.mkdir(parents=True, exist_ok=True)
 

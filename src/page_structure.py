@@ -1,10 +1,12 @@
-import numpy as np
-import pymupdf
 from dataclasses import dataclass
 
-from .page_classes import PageClasses
-from .text_objects import TextLine, TextWord, TextBlock
-from .geometric_objects import Line
+import numpy as np
+import pymupdf
+
+from src.geometric_objects import Line
+from src.page_classes import PageClasses
+from src.text_objects import TextBlock, TextLine, TextWord
+
 
 @dataclass()
 class PageContext:
@@ -20,6 +22,7 @@ class PageContext:
     drawings: list
     image_rects: list
 
+
 class PageAnalysis:
     """Stores the classification result and associated features for a single page."""
 
@@ -33,9 +36,11 @@ class PageAnalysis:
 
     def to_classification_dict(self):
         """Only exports classification and page number to dict"""
-        return { "Page": self.page_number,
-        **{cls.value: val for cls, val in self.classification.items()}
-                 }
+        return {
+            "Page": self.page_number,
+            **{cls.value: val for cls, val in self.classification.items()},
+        }
+
 
 def compute_text_features(lines, text_blocks) -> dict:
     words_per_line = [len(line.words) for line in lines]
@@ -46,12 +51,13 @@ def compute_text_features(lines, text_blocks) -> dict:
         word.rect.get_area()
         for block in text_blocks
         for line in block.lines
-        for word in line.words if len(line.words) > 1
+        for word in line.words
+        if len(line.words) > 1
     )
 
     return {
         "mean_words_per_line": mean_words_per_line,
         "block_area": block_area,
         "word_area": word_area,
-        "word_density": word_area / block_area if block_area else 0
+        "word_density": word_area / block_area if block_area else 0,
     }

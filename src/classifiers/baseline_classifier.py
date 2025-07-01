@@ -9,6 +9,7 @@ from identifiers.title_page import sparse_title_page
 from line_detection import extract_geometric_lines
 from page_classes import PageClasses
 
+
 class PageClassifier(ABC):
     def determine_class(self, page, context, matching_params, features) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content."""
@@ -46,33 +47,30 @@ class PageClassifier(ABC):
                 mean_font_size = np.mean([line.font_size for line in context.lines])
                 min_line_length = mean_font_size * math.sqrt(2)
 
-                geometric_lines = [
-                    line for line in geometric_lines
-                    if line.length > min_line_length
-                ]
+                geometric_lines = [line for line in geometric_lines if line.length > min_line_length]
 
             context.geometric_lines = geometric_lines
 
         return identify_map(context, matching_params)
 
+
 class ScannedPageClassifier(PageClassifier):
     pass
+
 
 class DigitalPageClassifier(PageClassifier):
     def _detect_text(self, page, context, matching_params, features) -> bool:
         """Determines whether a page should be classified as a text page.
 
-            For digitally born pages, we suppress text classification if images
-            covers more than 70% of the total text page area."""
-        total_image_coverage = sum(
-            img.page_coverage(context.page_rect) for img in context.image_rects
-        )
-        return total_image_coverage< 0.70 and identify_text(features)
+        For digitally born pages, we suppress text classification if images
+        covers more than 70% of the total text page area."""
+        total_image_coverage = sum(img.page_coverage(context.page_rect) for img in context.image_rects)
+        return total_image_coverage < 0.70 and identify_text(features)
 
     def _detect_boreprofile(self, page, context, matching_params) -> bool:
         if context.image_rects and keywords_in_figure_description(context, matching_params):
             return True
-        return context.drawings and super()._detect_boreprofile(page,context, matching_params)
+        return context.drawings and super()._detect_boreprofile(page, context, matching_params)
 
     def _detect_map(self, page, context, matching_params) -> bool:
         if not (context.image_rects or context.drawings):

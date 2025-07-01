@@ -1,4 +1,3 @@
-
 title_page_substrings = {
     "page_de_garde_1": [
         ["PAGE DE GARDE", "P A G E DE G A R D E"],
@@ -6,7 +5,7 @@ title_page_substrings = {
         ["numéro ou signe"],
         ["distinctif original"],
         ["Commettants"],
-        ["Réseau km"]
+        ["Réseau km"],
     ],
     "page_de_garde_2": [
         ["PAGE DE GARDE", "P A G E DE G A R D E"],
@@ -19,7 +18,7 @@ title_page_substrings = {
         ["Lieu de dépôt"],
         ["Disponibilité"],
         ["date limite"],
-        ["Numéro AGS"]
+        ["Numéro AGS"],
     ],
     "page_de_garde_3": [
         ["PAGE DE GARDE", "P A G E DE G A R D E"],
@@ -28,7 +27,7 @@ title_page_substrings = {
         ["signe distinctif"],
         ["original du"],
         ["Commettants"],
-        ["Réseau km"]
+        ["Réseau km"],
     ],
     "belegblatt_1": [
         ["BELEGBLATT", "B E L E G B L A T T"],
@@ -39,7 +38,7 @@ title_page_substrings = {
         ["Kartenblatt"],
         ["Auftraggeber"],
         ["oder Rechts"],
-        ["nachfolger"]
+        ["nachfolger"],
     ],
     "belegblatt_2": [
         ["BELEGBLATT", "B E L E G B L A T T"],
@@ -49,7 +48,7 @@ title_page_substrings = {
         ["Dokumentes"],
         ["Km-Netz"],
         ["Kartenblatt"],
-        ["Auftraggeber"]
+        ["Auftraggeber"],
     ],
     "belegblatt_3": [
         ["BELEGBLATT", "B E L E G B L A T T"],
@@ -59,7 +58,7 @@ title_page_substrings = {
         ["des Dokumentes"],
         ["Km-Netz"],
         ["Kartenblatt"],
-        ["Auftraggeber"]
+        ["Auftraggeber"],
     ],
     "auszug_aus_dem_titelverzeichnis_1": [
         ["Auszug aus dem Titelverzeichnis"],
@@ -67,7 +66,7 @@ title_page_substrings = {
         ["Unser Zeichen:"],
         ["InfoGeol-Nr."],
         ["Metatitel"],
-        ["Dokumentenzusammensetzung"]
+        ["Dokumentenzusammensetzung"],
     ],
     "auszug_aus_dem_titelverzeichnis_2": [
         ["Auszug aus dem Titelverzeichnis"],
@@ -91,7 +90,7 @@ title_page_substrings = {
         ["NOTIZEN"],
         ["DIAGRAMME"],
         ["SEITEN"],
-        ["BEILAGEN"]
+        ["BEILAGEN"],
     ],
     "sgs_dokumentnummer": [
         ["SGS-DOKUMENTNUMMER"],
@@ -102,24 +101,17 @@ title_page_substrings = {
         ["STANDORT"],
         ["VERFUEGBARKEIT"],
         ["NATIONALKARTENBLATT"],
-        ["STICHWOERTER"]
-    ]
+        ["STICHWOERTER"],
+    ],
 }
 
 
 def title_page_type(text: str) -> str | None:
     return next(
-        (
-            type_id
-            for type_id, substrings in title_page_substrings.items()
-            if is_title_page(text, substrings)
-        ),
-        None
+        (type_id for type_id, substrings in title_page_substrings.items() if is_title_page(text, substrings)), None
     )
 
+
 def is_title_page(text: str, substrings: list[list[str]]) -> bool:
-    evaluations = [
-        any(substring in text for substring in substring_list)
-        for substring_list in substrings
-    ]
+    evaluations = [any(substring in text for substring in substring_list) for substring_list in substrings]
     return len([evaluation for evaluation in evaluations if evaluation]) / len(evaluations) >= 0.7

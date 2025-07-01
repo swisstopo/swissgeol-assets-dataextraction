@@ -1,20 +1,23 @@
-import regex
 import logging
 import re
 
-from .bounding_box import is_line_below_box
-from .page_structure import PageContext
-from .text_objects import TextWord, TextLine
+import regex
+
+from src.bounding_box import is_line_below_box
+from src.page_structure import PageContext
+from src.text_objects import TextLine, TextWord
+
 logger = logging.getLogger(__name__)
 
 figure_pattern = re.compile(
-    r"^(?:"                                               # Start of line + non-capturing group
+    r"^(?:"  # Start of line + non-capturing group
     r"(?:fig(?:ure)?|abb(?:ildung)?|tab(?:le)?)\.?\s*[:.]?\s*"
-    r")?"                                                        # Optional label
-    r"\d{1,2}(?:[.:]\d{1,2}){0,3}"                               # Number + optional decimal/subsection
-    r"\b",                                                       # Word boundary after pattern
-    flags=re.IGNORECASE
+    r")?"  # Optional label
+    r"\d{1,2}(?:[.:]\d{1,2}){0,3}"  # Number + optional decimal/subsection
+    r"\b",  # Word boundary after pattern
+    flags=re.IGNORECASE,
 )
+
 
 def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
     for keyword in keywords:
@@ -24,15 +27,16 @@ def find_keyword(word: TextWord, keywords: list[str]) -> TextWord:
             return match.group(1)
     return None
 
-def find_figure_description(ctx:PageContext) -> list[TextLine]:
+
+def find_figure_description(ctx: PageContext) -> list[TextLine]:
     """
-       Identifies lines near images that likely contain figure, table, or illustration captions,
-        based on if line appears below any image and if it matches known figure/table patterns.
-       Args:
-           ctx (PageContext): The page context containing text lines and images.
-       Returns:
-           list[TextLine]: A list of lines matching the caption criteria.
-       """
+    Identifies lines near images that likely contain figure, table, or illustration captions,
+     based on if line appears below any image and if it matches known figure/table patterns.
+    Args:
+        ctx (PageContext): The page context containing text lines and images.
+    Returns:
+        list[TextLine]: A list of lines matching the caption criteria.
+    """
 
     relevant_lines = []
     added_lines = set()

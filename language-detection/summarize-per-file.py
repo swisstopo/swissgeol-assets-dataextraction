@@ -42,7 +42,7 @@ def language_summary(asset_pages) -> str:
 
 
 def ocr_type(asset_pages) -> str:
-    filtered_pages = [page for page in asset_pages if not page['title_page_type'] and page["ocr_type"]]
+    filtered_pages = [page for page in asset_pages if not page["title_page_type"] and page["ocr_type"]]
     if len(filtered_pages) == 0:
         return ""
     if all(page["ocr_type"] == "ocr" for page in filtered_pages):
@@ -88,7 +88,7 @@ def ocr_summary(asset_pages) -> str:
 
 
 output = []
-with open("data/pages.csv", 'r', newline='') as pages_file:
+with open("data/pages.csv", "r", newline="") as pages_file:
     reader = csv.DictReader(pages_file)
     files = {}
     for row in reader:
@@ -130,14 +130,16 @@ with open("data/pages.csv", 'r', newline='') as pages_file:
             if value >= 2
             if language_code != best_language
         ]
-        output.append([
-            filename,
-            page_count,
-            best_language,
-            ",".join(other_significant_langauges),
-            language_summary(file_pages),
-            ocr_type(file_pages),
-            ocr_summary(file_pages)]
+        output.append(
+            [
+                filename,
+                page_count,
+                best_language,
+                ",".join(other_significant_langauges),
+                language_summary(file_pages),
+                ocr_type(file_pages),
+                ocr_summary(file_pages),
+            ]
         )
 
 df = pd.DataFrame(
@@ -149,16 +151,19 @@ df = pd.DataFrame(
         "other_significant_languages",
         "notes",
         "text_type",
-        "text_type_notes"
-    ]
+        "text_type_notes",
+    ],
 )
 df.to_csv("data/files.csv", index=False)
 
 regular = df[~df["filename"].str.lower().str.endswith("_ldoc.pdf")]
 ldoc = df[df["filename"].str.lower().str.endswith("_ldoc.pdf")]
 
+
 def stats(df):
-    other_significant_languages = df["other_significant_languages"].str.split(",").explode("other_significant_languages")
+    other_significant_languages = (
+        df["other_significant_languages"].str.split(",").explode("other_significant_languages")
+    )
     print()
     print(df["best_language"].value_counts(dropna=False))
     with_additional_count = df["other_significant_languages"].map(lambda x: len(x) > 0).sum()
@@ -168,9 +173,9 @@ def stats(df):
     print()
     print()
 
+
 print("{} regular files".format(len(regular)))
 stats(regular)
 
 print("{} _LDoc.pdf files.".format(len(ldoc)))
 stats(ldoc)
-

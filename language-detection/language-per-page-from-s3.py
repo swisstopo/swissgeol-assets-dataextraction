@@ -10,8 +10,8 @@ from ocrdetection import text_type
 s3_input = "asset/asset_files_new_ocr/"
 s3_aws_profile = "swissgeol-prod"
 s3_session = boto3.Session(profile_name=s3_aws_profile)
-s3 = s3_session.resource('s3')
-bucket = s3.Bucket('swissgeol-assets-swisstopo')
+s3 = s3_session.resource("s3")
+bucket = s3.Bucket("swissgeol-assets-swisstopo")
 
 
 def key_to_filename(key):
@@ -23,20 +23,22 @@ objs = list(bucket.objects.filter(Prefix=s3_input))
 detector = _FastText("models/lid.176.bin")  # cf. https://github.com/facebookresearch/fastText/issues/1056
 
 
-with open("data/pages.csv", 'w', newline='') as pages_file:
+with open("data/pages.csv", "w", newline="") as pages_file:
     pages_writer = csv.writer(pages_file, quoting=csv.QUOTE_MINIMAL)
-    pages_writer.writerow([
-        "filename",
-        "page_number",
-        "language_code",
-        "character_count",
-        "word_count_not_short",
-        "ocr_type",
-        "title_page_type",
-        "width",
-        "height",
-        "repeated_text"
-    ])
+    pages_writer.writerow(
+        [
+            "filename",
+            "page_number",
+            "language_code",
+            "character_count",
+            "word_count_not_short",
+            "ocr_type",
+            "title_page_type",
+            "width",
+            "height",
+            "repeated_text",
+        ]
+    )
     for obj in objs:
         if obj.size:
             filename = key_to_filename(obj.key)
@@ -57,7 +59,7 @@ with open("data/pages.csv", 'w', newline='') as pages_file:
                         print("Page {}".format(page_number))
                         text = page.get_text()
                         character_count = len(text)
-                        word_count_not_short = len(re.findall(r'[^\W\d_]{5,}', text))
+                        word_count_not_short = len(re.findall(r"[^\W\d_]{5,}", text))
 
                         repeated_text = ""
                         half_length = int(len(text) / 2)
@@ -69,11 +71,9 @@ with open("data/pages.csv", 'w', newline='') as pages_file:
                         # many occurrences of "Ng" as a label on a graph, might cause the language identification to
                         # return Vietnamese).
                         # Also, Fasttext works on single lines of text only, so we convert newlines to a regular space.
-                        text_for_detection = " ".join([
-                            line
-                            for line in text.split("\n")
-                            if len([char for char in line if char.isalpha()]) > 4
-                        ])
+                        text_for_detection = " ".join(
+                            [line for line in text.split("\n") if len([char for char in line if char.isalpha()]) > 4]
+                        )
                         # We ignore single-character words, because they cause too many false positives. For example,
                         # the OCR might misread zeroes as the letter O, and then language identification might pick
                         # Portuguese, because "o" is an article in the Portuguese language. In doing this, we might
@@ -85,11 +85,7 @@ with open("data/pages.csv", 'w', newline='') as pages_file:
                         # Remove stuff between whitespace that doesn't contain any regular letter. Removes numeric
                         # data, as this tends to confuse the Fasttext language identification model. This also
                         # removes "Unicode junk" that sometimes appears in digitally-born PDFs such as 44165.pdf.
-                        text_for_detection = re.sub(
-                            r"(^|\s)[^a-zA-Zéàèöäüç]+(?=\s|$)",
-                            " ",
-                            text_for_detection
-                        )
+                        text_for_detection = re.sub(r"(^|\s)[^a-zA-Zéàèöäüç]+(?=\s|$)", " ", text_for_detection)
                         # Ignore any token with digits.
                         text_for_detection = re.sub(r"(^|\s)\S*[0-9]\S*(?=\s|$)", " ", text_for_detection)
                         # The Fasttext language identification model does not work well with all-uppercase text (cf.
@@ -116,21 +112,23 @@ with open("data/pages.csv", 'w', newline='') as pages_file:
                                 score = scores[0]
 
                                 if score > 0.7:
-                                    language_code = labels[0].replace("__label__", '')
+                                    language_code = labels[0].replace("__label__", "")
 
                         title_page_type = title_page.title_page_type(text) or ""
 
-                        pages_writer.writerow([
-                            filename,
-                            page_number,
-                            language_code,
-                            character_count,
-                            word_count_not_short,
-                            text_type(page),
-                            title_page_type,
-                            page.rect.width,
-                            page.rect.height,
-                            repeated_text
-                        ])
+                        pages_writer.writerow(
+                            [
+                                filename,
+                                page_number,
+                                language_code,
+                                character_count,
+                                word_count_not_short,
+                                text_type(page),
+                                title_page_type,
+                                page.rect.width,
+                                page.rect.height,
+                                repeated_text,
+                            ]
+                        )
 
                 os.remove(tmp_file_path)

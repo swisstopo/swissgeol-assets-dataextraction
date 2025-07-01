@@ -73,7 +73,7 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-3. Configure environment variables and start Mlflow logging (optional)
+3. Configure environment variables (create a file called `.env` with the variables inside `.env.template`)and start Mlflow logging (optional)
 ```bash
 mlflow ui
 ```
@@ -92,6 +92,23 @@ If no classifier is specified, the baseline classifier is used by default.
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
+
+## Pre-Commit
+We use pre-commit hooks to format our code in a unified way.
+
+Pre-commit comes in the venv environment (installed as described above). After activating the environment you have to install pre-commit  in your terminal by running:
+```bash
+pre-commit install
+```
+This needs to be done only once.
+
+After installing pre-commit, it will trigger 'hooks' upon each `git commit -m ...` command. The hooks will be applied on all the files in the commit. A hook is nothing but a script specified in `.pre-commit-config.yaml`.
+
+We use [ruffs](https://github.com/astral-sh/ruff) [pre-commit package](https://github.com/astral-sh/ruff-pre-commit) for linting and formatting. It will apply the same formating as the vscode Ruff extension would (v0.12.0).
+
+If you want to skip the hooks, you can use `git commit -m "..." --no-verify`.
+
+More information about pre-commit can be found [here](https://pre-commit.com).
 
 ## AWS Setup for pixtral Classifier
 
