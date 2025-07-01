@@ -1,20 +1,22 @@
 import logging
 from statistics import stdev
 from typing import Callable, Sequence
-from ..keyword_finding import find_pattern, DATE_PATTERNS, PHONE_PATTERNS
-from ..page_structure import PageContext
-from ..text_objects import TextLine
+
+from src.keyword_finding import DATE_PATTERNS, PHONE_PATTERNS, find_pattern
+from src.page_structure import PageContext
+from src.text_objects import TextLine
 
 logger = logging.getLogger(__name__)
 
+
 def identify_title_page(ctx: PageContext, matching_params: dict) -> bool:
     """
-       Identifies whether a page is likely a title page based on a combination of:
-       - Line count
-       - Centered or consistently aligned layout
-       - Content clues (e.g., dates, keywords, phone info)
-       - Large or varied fonts
-       """
+    Identifies whether a page is likely a title page based on a combination of:
+    - Line count
+    - Centered or consistently aligned layout
+    - Content clues (e.g., dates, keywords, phone info)
+    - Large or varied fonts
+    """
 
     if not (3 <= len(ctx.lines) <= 35):
         return False
@@ -36,28 +38,30 @@ def identify_title_page(ctx: PageContext, matching_params: dict) -> bool:
 
     return False
 
-def has_centered_layout(ctx: PageContext)-> bool:
+
+def has_centered_layout(ctx: PageContext) -> bool:
     """
     Checks if the majority of text is in clusters that are horizontally centered.
     Filters out 'centered' clusters that are actually right-aligned based on x0 spread.
     """
     page_width = ctx.page_rect.width
-    centered_clusters = find_aligned_clusters(ctx.lines,
-                                              key_func = lambda line: line.rect.x0 + 0.5 * line.rect.width,
-                                              threshold = 0.05 * page_width)
+    centered_clusters = find_aligned_clusters(
+        ctx.lines, key_func=lambda line: line.rect.x0 + 0.5 * line.rect.width, threshold=0.05 * page_width
+    )
 
     valid_clusters = []
     for cluster in centered_clusters:
         x0_values = [line.rect.x0 for line in cluster]
-        filtered_x0 = remove_outlier_if_needed(x0_values) #  removes a single line if this decreases x0 variability drastically
+        filtered_x0 = remove_outlier_if_needed(
+            x0_values
+        )  #  removes a single line if this decreases x0 variability drastically
         if stdev(filtered_x0) >= 0.05 * page_width:
             valid_clusters.append(cluster)
 
     if not valid_clusters:
         return False
 
-    cluster_words = sum(len(line.words)
-                        for cluster in valid_clusters for line in cluster)
+    cluster_words = sum(len(line.words) for cluster in valid_clusters for line in cluster)
 
     return cluster_words / len(ctx.words) > 0.75
 
@@ -75,12 +79,14 @@ def has_aligned_layout(ctx: PageContext) -> bool:
 
     return words / len(ctx.words) > 0.75
 
+
 def has_large_font_layout(ctx: PageContext) -> bool:
     """
     Returns True if the page has at least one large font size and high font variety.
     """
     font_sizes = [line.font_size for line in ctx.lines]
     return len(set(font_sizes)) > 5 and max(font_sizes, default=0) > 20
+
 
 def contains_content_clues(ctx: PageContext, matching_params) -> bool:
     """
@@ -98,10 +104,9 @@ def contains_content_clues(ctx: PageContext, matching_params) -> bool:
     hits = sum([has_title_keyword, has_date, has_phone])
     return hits >= 2
 
+
 def remove_outlier_if_needed(
-    values: list[float],
-    threshold: float = 0.6,
-    removable_indices: Sequence[int] | None = None
+    values: list[float], threshold: float = 0.6, removable_indices: Sequence[int] | None = None
 ) -> list[float]:
     """
     Removes one value (from allowed positions) if doing so significantly reduces the standard deviation.
@@ -128,7 +133,7 @@ def remove_outlier_if_needed(
         candidate_indices = [i for i in candidate_indices if 0 <= i < len(values)]
 
     for i in candidate_indices:
-        trial = values[:i] + values[i + 1:]
+        trial = values[:i] + values[i + 1 :]
         if len(trial) < 2:
             continue
         trial_std = stdev(trial)
@@ -139,6 +144,7 @@ def remove_outlier_if_needed(
             best_filtered = trial
 
     return best_filtered
+
 
 def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[list[TextLine]]:
     """
@@ -151,12 +157,12 @@ def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[li
     layout_funcs = [
         lambda line: line.rect.x0,  # left-aligned
         lambda line: line.rect.x1,  # right-aligned
-        lambda line: line.rect.x0 + 0.5 * line.rect.width  # center-aligned
+        lambda line: line.rect.x0 + 0.5 * line.rect.width,  # center-aligned
     ]
 
     for layout in layout_funcs:
         unassigned_lines = list(remaining_lines)
-        clusters = find_aligned_clusters(unassigned_lines, layout, threshold = 0.05 * page_width)
+        clusters = find_aligned_clusters(unassigned_lines, layout, threshold=0.05 * page_width)
 
         for cluster in clusters:
             all_clusters.append(cluster)
@@ -164,15 +170,14 @@ def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[li
 
     return all_clusters
 
+
 def find_aligned_clusters(
-    lines: list[TextLine],
-    key_func: Callable[[TextLine], float],
-    threshold: float
+    lines: list[TextLine], key_func: Callable[[TextLine], float], threshold: float
 ) -> list[list[TextLine]]:
     """
-        Finds clusters of lines aligned by a given key (e.g. x0, x1, center).
-        Considers only lines with vertical proximity to last line of current cluster.
-        """
+    Finds clusters of lines aligned by a given key (e.g. x0, x1, center).
+    Considers only lines with vertical proximity to last line of current cluster.
+    """
     remaining_lines = set(lines)
     clusters = []
 
@@ -183,9 +188,10 @@ def find_aligned_clusters(
         font_size = current_line.font_size
 
         close_lines = {
-            line for line in remaining_lines
-            if abs(key_func(line) - cluster_key) < threshold and
-               abs(line.rect.y0 - current_line.rect.y0) < 5.0 * font_size
+            line
+            for line in remaining_lines
+            if abs(key_func(line) - cluster_key) < threshold
+            and abs(line.rect.y0 - current_line.rect.y0) < 5.0 * font_size
         }
 
         cluster.extend(close_lines)
@@ -204,9 +210,10 @@ def vertical_spacing(lines: list[TextLine]) -> list[float]:
     # compute vertical spacing between merged lines
     distances = [below.rect.y0 - above.rect.y0 for above, below in zip(merged_lines, merged_lines[1:])]
     # remove potential header / footnote
-    filtered_distances = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0,-1])
+    filtered_distances = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0, -1])
 
     return filtered_distances
+
 
 def merge_y_overlapping_lines(lines: list[TextLine]) -> list[TextLine]:
     # sort lines by y0 (top) and x0 (left)

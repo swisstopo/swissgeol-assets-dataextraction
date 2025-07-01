@@ -1,14 +1,16 @@
 import logging
 import re
-import pymupdf
 from dataclasses import dataclass
 
-from ..text_objects import TextWord, cluster_text_elements
-from ..page_structure import PageContext
-from ..material_description import detect_material_description
-from ..keyword_finding import find_figure_description
+import pymupdf
+
+from src.keyword_finding import find_figure_description
+from src.material_description import detect_material_description
+from src.page_structure import PageContext
+from src.text_objects import TextWord, cluster_text_elements
 
 logger = logging.getLogger(__name__)
+
 
 @dataclass
 class Entry:
@@ -17,6 +19,7 @@ class Entry:
 
     def __repr__(self):
         return f"{self.value}"
+
 
 def is_strictly_increasing(entries: list[Entry]) -> bool:
     return all(entries[i].value < entries[i + 1].value for i in range(len(entries) - 1))
@@ -42,6 +45,7 @@ def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
     clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
 
+
 def identify_boreprofile(ctx: PageContext, matching_params: dict) -> bool:
     """
     Determines whether a page contains a boreprofile.
@@ -53,33 +57,25 @@ def identify_boreprofile(ctx: PageContext, matching_params: dict) -> bool:
     - +0.1 if a valid sidebar is found
     - +0.05 if boreprofile keywords are present
     """
-    keywords= matching_params["material_description"].get(ctx.language, [])
+    keywords = matching_params["material_description"].get(ctx.language, [])
 
     if not keywords:
         logger.warning(f"No keywords for language '{ctx.language}', falling back to 'de'")
         keywords = matching_params["material_description"].get("de", [])
 
-    descriptions = detect_material_description(
-        ctx.lines, ctx.words, keywords
-    )
+    descriptions = detect_material_description(ctx.lines, ctx.words, keywords)
 
     # Find sidebars
     sidebars = create_sidebars(ctx.words)
     has_sidebar = bool(sidebars)
 
-    valid_descriptions = [
-        desc for desc in descriptions if desc.is_valid
-    ]
+    valid_descriptions = [desc for desc in descriptions if desc.is_valid]
     if not valid_descriptions:
         return False
 
     # Calculate ratio between material description and total page words
     total_words = sum(1 for word in ctx.words if word.text.isalpha())
-    material_words = sum(
-        len(line.words)
-        for desc in valid_descriptions
-        for line in desc.text_lines
-    )
+    material_words = sum(len(line.words) for desc in valid_descriptions for line in desc.text_lines)
     ratio = material_words / total_words if total_words else 0.0
 
     # Keyword match
@@ -92,21 +88,24 @@ def identify_boreprofile(ctx: PageContext, matching_params: dict) -> bool:
 
     return ratio > 0.3
 
+
 def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[str]:
     caption_lines = find_figure_description(ctx)
-    keyword_groups = matching_params["caption_description"]["boreprofile"].get(ctx.language, []).get("must_contain", [])
+    keyword_groups = (
+        matching_params["caption_description"]["boreprofile"].get(ctx.language, []).get("must_contain", [])
+    )
 
     if len(keyword_groups) < 2:
         logger.warning(
-            f"Need 2 keyword groups (profile and borehole keywords) in figure_description.boreprofile, but got: {keyword_groups}")
+            f"Need 2 keyword groups (profile and borehole keywords) in figure_description.boreprofile, but got: {keyword_groups}"
+        )
         return []
 
     matched_lines = []
     for line in caption_lines:
         text = line.line_text().lower()
 
-        if all(any(keyword in text for keyword in group)
-               for group in keyword_groups):
+        if all(any(keyword in text for keyword in group) for group in keyword_groups):
             matched_lines.append(line)
 
     return matched_lines

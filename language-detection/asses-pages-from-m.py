@@ -35,21 +35,23 @@ else:
     last_filename = None
     last_page_number = None
 
-with open(csvPath, 'a', newline='') as pages_file:
+with open(csvPath, "a", newline="") as pages_file:
     pages_writer = csv.writer(pages_file, quoting=csv.QUOTE_MINIMAL)
     if last_filename is None:
-        pages_writer.writerow([
-            "filename",
-            "page_number",
-            "character_count",
-            "word_count_not_short",
-            "ocr_type",
-            "width",
-            "height",
-            "mediabox_width",
-            "mediabox_height",
-            "rotation"
-        ])
+        pages_writer.writerow(
+            [
+                "filename",
+                "page_number",
+                "character_count",
+                "word_count_not_short",
+                "ocr_type",
+                "width",
+                "height",
+                "mediabox_width",
+                "mediabox_height",
+                "rotation",
+            ]
+        )
 
     for root, dirs, files in os.walk(directory):
         for filename in files:
@@ -60,7 +62,7 @@ with open(csvPath, 'a', newline='') as pages_file:
                 # print()
                 # print(filename)
 
-                if filename in ['32669.pdf', '32670.pdf', '32672.pdf', '32673.pdf']:
+                if filename in ["32669.pdf", "32670.pdf", "32672.pdf", "32673.pdf"]:
                     print(filename)
                     with fitz.Document(os.path.join(root, filename)) as doc:
                         for page_index, page in enumerate(doc):
@@ -72,20 +74,22 @@ with open(csvPath, 'a', newline='') as pages_file:
                             print("Page {}".format(page_number))
                             text = page.get_text()
                             character_count = len(text)
-                            word_count_not_short = len(re.findall(r'[^\W\d_]{5,}', text))
+                            word_count_not_short = len(re.findall(r"[^\W\d_]{5,}", text))
 
-                            pages_writer.writerow([
-                                filename,
-                                page_number,
-                                character_count,
-                                word_count_not_short,
-                                text_type(page),
-                                page.rect.width,
-                                page.rect.height,
-                                page.mediabox.width,
-                                page.mediabox.height,
-                                page.rotation
-                            ])
+                            pages_writer.writerow(
+                                [
+                                    filename,
+                                    page_number,
+                                    character_count,
+                                    word_count_not_short,
+                                    text_type(page),
+                                    page.rect.width,
+                                    page.rect.height,
+                                    page.mediabox.width,
+                                    page.mediabox.height,
+                                    page.rotation,
+                                ]
+                            )
                             pages_file.flush()
 
                 last_filename = None

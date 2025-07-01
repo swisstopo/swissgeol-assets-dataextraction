@@ -16,7 +16,11 @@ def asset_rows(asset, entries) -> list[list[str]]:
         all_languages.remove(best_language)
 
     mismatch = ""
-    if asset["language_item_code"] and asset["language_item_code"] != 'other' and asset["language_item_code"].lower() != best_language:
+    if (
+        asset["language_item_code"]
+        and asset["language_item_code"] != "other"
+        and asset["language_item_code"].lower() != best_language
+    ):
         mismatch = "!!"
 
     rows = []
@@ -30,17 +34,19 @@ def asset_rows(asset, entries) -> list[list[str]]:
         ",".join(all_languages),
         "",
         asset["title_original"],
-        asset["title_public"]
+        asset["title_public"],
     ]
     for index, entry in enumerate(entries):
         row = asset_data.copy()
-        row.extend([
-            entry["file_name"],
-            "https://assets.swissgeol.ch/api/file/{}".format(entry["file_id"]),
-            entry["file_language"],
-            entry["file_additional_languages"],
-            entry["file_language_details"]
-        ])
+        row.extend(
+            [
+                entry["file_name"],
+                "https://assets.swissgeol.ch/api/file/{}".format(entry["file_id"]),
+                entry["file_language"],
+                entry["file_additional_languages"],
+                entry["file_language_details"],
+            ]
+        )
         rows.append(row)
 
         asset_data = ["" for value in asset_data]
@@ -48,33 +54,35 @@ def asset_rows(asset, entries) -> list[list[str]]:
     return rows
 
 
-with open("data/assets-language.csv", 'w', newline='') as summary_file:
+with open("data/assets-language.csv", "w", newline="") as summary_file:
     writer = csv.writer(summary_file, quoting=csv.QUOTE_MINIMAL)
-    writer.writerow([
-        "asset_id",
-        "sgs_id",
-        "current_language",
-        "mismatch",
-        "identified_language",
-        "corrected_language",
-        "identified_additional_languages",
-        "corrected_additional_languages",
-        "original_title",
-        "meta_title",
-        "file_name",
-        "link",
-        "file_language",
-        "file_additional_languages",
-        "file_language_details"
-    ])
+    writer.writerow(
+        [
+            "asset_id",
+            "sgs_id",
+            "current_language",
+            "mismatch",
+            "identified_language",
+            "corrected_language",
+            "identified_additional_languages",
+            "corrected_additional_languages",
+            "original_title",
+            "meta_title",
+            "file_name",
+            "link",
+            "file_language",
+            "file_additional_languages",
+            "file_language_details",
+        ]
+    )
 
-    with open("data/files.csv", 'r', newline='') as asset_files_input:
+    with open("data/files.csv", "r", newline="") as asset_files_input:
         reader = csv.DictReader(asset_files_input)
         files = {}
         for row in reader:
             files[row["filename"]] = row
 
-    with open("data/assets-db.csv", 'r', newline='') as assets_db_file:
+    with open("data/assets-db.csv", "r", newline="") as assets_db_file:
         reader = csv.DictReader(assets_db_file)
         current_asset = None
         asset_entries = []

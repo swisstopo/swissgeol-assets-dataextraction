@@ -73,18 +73,70 @@ source venv/bin/activate
 ```bash
 pip install -r requirements.txt
 ```
-3. Configure environment variables and start Mlflow logging (optional)
+3. Configure environment variables (create a file called `.env` with the variables inside `.env.template`)and start Mlflow logging (optional)
 ```bash
 mlflow ui
 ```
 4. Run the classification:
 ```bash
-python main.py -i <input_path> -g <ground_truth_path>
+python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name>
 ```
+If no classifier is specified, the baseline classifier is used by default.
+
+| Classifier Name | Description                                                                   |
+|------------------|-------------------------------------------------------------------------------|
+| `baseline`       | Default. Rule-based classifier using layout, keyword matching, and heuristics |
+| `pixtral`        | Uses the Pixtral Large via Amazon Bedrock to classify PDF pages               |
+
 **Example**
 ```bash
-python main.py -i data/single_pages/ -g data/gt_single_pages.json
+python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
+
+## Pre-Commit
+We use pre-commit hooks to format our code in a unified way.
+
+Pre-commit comes in the venv environment (installed as described above). After activating the environment you have to install pre-commit  in your terminal by running:
+```bash
+pre-commit install
+```
+This needs to be done only once.
+
+After installing pre-commit, it will trigger 'hooks' upon each `git commit -m ...` command. The hooks will be applied on all the files in the commit. A hook is nothing but a script specified in `.pre-commit-config.yaml`.
+
+We use [ruffs](https://github.com/astral-sh/ruff) [pre-commit package](https://github.com/astral-sh/ruff-pre-commit) for linting and formatting. It will apply the same formating as the vscode Ruff extension would (v0.12.0).
+
+If you want to skip the hooks, you can use `git commit -m "..." --no-verify`.
+
+More information about pre-commit can be found [here](https://pre-commit.com).
+
+## AWS Setup for pixtral Classifier
+
+To run classification using the Pixtral Large Model, you must configure your AWS credentials:
+1. Ensure you have access to Amazon Bedrock and the Pixtral model.
+2. Set up your credentials:
+   1. **AWS CLI**
+
+     ```
+     aws configure
+     ```
+
+   2. **Manually via config files**
+   
+     Create or edit the following files
+     **~/.aws/config**
+     ```
+     [default]
+     region=eu-central-1
+     output=json
+     ```
+     **~/.aws/credentials**
+     ```
+     [default]
+     aws_access_key_id=YOUR_ACCESS_KEY
+     aws_secret_access_key=YOUR_SECRET_KEY
+     ```
+
 
 ## Output Format
 The script processes PDF pages and outputs predictions in `data/predictions.json`. 

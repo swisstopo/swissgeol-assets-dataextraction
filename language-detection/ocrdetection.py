@@ -17,4 +17,3 @@ def text_type(page: fitz.Page) -> str:
 
     else:
         return "none"
-
