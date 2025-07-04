@@ -1,0 +1,26 @@
+# model_path: "google-bert/bert-base-uncased"
+model_path: "microsoft/layoutlmv3-base"
+
+# Data parameters
+train_folder_path: "data/single_pages_splits/train"
+# train_folder_path: "data/single_pages/train_test"
+val_folder_path: "data/single_pages_splits/val"
+# val_folder_path: "data/single_pages/val_test"
+ground_truth_file_path: "data/gt_single_pages.json"
+
+# Training hyperparameters
+batch_size: 32
+num_epochs: 32
+learning_rate: 1e-3
+weight_decay: 0.001
+warmup_ratio: 0.1
+#lr_scheduler_type: "cosine"
+lr_scheduler_type: "cosine_with_restarts"
+max_grad_norm: 5.0
+
+#custom parameters
+unfreeze_layers:
+  - "classifier"
+
+# Inference parameters
+inference_batch_size: 32
