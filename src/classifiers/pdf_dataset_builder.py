@@ -1,12 +1,35 @@
 import logging
 from pathlib import Path
+from typing import Callable
 
 import pymupdf
-from datasets import Dataset
+from datasets import Dataset, IterableDataset
 from PIL import Image
 from tqdm import tqdm
 
 logger = logging.getLogger(__name__)
+
+
+# class LazyPreprocessingDataset(IterableDataset):
+#     def __init__(self, dataset, preprocess_fn, batch_size):
+#         self.dataset = dataset
+#         self.preprocess_fn = preprocess_fn
+#         self.batch_size = batch_size
+#         self._epoch = 0
+
+#     def __iter__(self):
+#         batch = []
+#         for sample in self.dataset:
+#             batch.append(sample)
+#             if len(batch) >= self.batch_size:
+#                 yield from self.preprocess_fn(batch)
+#                 batch = []
+#         if batch:
+#             yield from self.preprocess_fn(batch)
+
+#     def set_epoch(self, epoch: int):
+#         """Sets the current epoch. Trainer will call this for each epoch when using distributed or IterableDataset."""
+#         self._epoch = epoch
 
 
 def extract_layoutlm_data_from_pdf(doc: pymupdf.Document):
@@ -64,11 +87,40 @@ def build_dataset_from_path_list(pdf_list: list[Path], ground_truth_map: dict | 
             label = ground_truth_map[(file_path.name, page_num)] if ground_truth_map else None
 
             all_samples.append({"words": page["words"], "bboxes": norm_boxes, "image": page["image"], "label": label})
-    print(
-        f" There is {sum(1 for s in all_samples if s['label'] is None)} None labels."
-        f"({[s for s in all_samples if s['label'] is None]})."
-    )
     return Dataset.from_list(all_samples)
+
+
+def build_lazy_dataset(
+    pdf_list: list[Path],
+    preprocess_fn: Callable,
+    ground_truth_map: dict | None = None,
+) -> IterableDataset:
+    def sample_generator():
+        for file_path in pdf_list:
+            if not file_path.name.lower().endswith(".pdf"):
+                continue
+            doc = pymupdf.open(file_path)
+            pages = extract_layoutlm_data_from_pdf(doc)
+
+            for page_num, page in enumerate(pages, start=1):
+                norm_boxes = [normalize_box(b, page["width"], page["height"]) for b in page["boxes"]]
+                label = ground_truth_map.get((file_path.name, page_num)) if ground_truth_map else None
+                if label is None:
+                    print("no label")
+                yield preprocess_fn(
+                    {
+                        "words": page["words"],
+                        "bboxes": norm_boxes,
+                        "image": page["image"],
+                        "label": label,
+                    }
+                )
+
+    return IterableDataset.from_generator(sample_generator)
+
+    # return LazyPreprocessingDataset(raw_dataset, wrapped_preprocess, batch_size=batch_size)
+
+    # return IterableDataset.from_generator(sample_generator)
 
 
 def build_dataset_from_page_list(page_list: list[pymupdf.Page], ground_truth_map: dict | None = None) -> Dataset:
