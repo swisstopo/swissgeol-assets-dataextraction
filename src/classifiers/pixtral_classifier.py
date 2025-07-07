@@ -1,9 +1,11 @@
 import logging
 import re
+import os
 
 import boto3
 from botocore.exceptions import ClientError
 
+from classifiers.baseline_classifier import ScannedPageClassifier
 from page_classes import PageClasses
 
 logger = logging.getLogger(__name__)
@@ -11,16 +13,14 @@ logger = logging.getLogger(__name__)
 
 class PixtralPDFClassifier:
     MAX_DOCUMENT_SIZE_MB = 4.5
-    SLACK_SIZE_MB = 0.2
+    SLACK_SIZE_MB = 0.3
 
     def __init__(
         self,
-        region="eu-central-1",
-        model_id="eu.mistral.pixtral-large-2502-v1:0",
-        fallback_classifier=None,
+        fallback_classifier=ScannedPageClassifier,
     ):
-        self.client = boto3.client("bedrock-runtime", region_name=region)
-        self.model_id = model_id
+        self.client = boto3.client("bedrock-runtime", region_name=os.environ.get("AWS_MODEL_REGION"))
+        self.model_id = os.environ.get("AWS_MODEL_ID")
         self.fallback_classifier = fallback_classifier
 
     def determine_class(self, page_bytes: bytes, page_name: str = "Page", fallback_args: dict = None) -> PageClasses:
@@ -51,7 +51,6 @@ class PixtralPDFClassifier:
                         "**Critical Notes**:\n"
                         "- Only classify a page as **text** if there are clearly visible, uninterrupted paragraphs.\n"
                         "- Pay close attention to **visual layout and spatial positioning** of elements.\n"
-                        "- Prioritize accuracy over guessing — if in doubt, return `unknown`.\n\n"
                         "Return only the category name: title page, text, boreprofile, map, or unknown."
                     },
                     {
@@ -72,6 +71,7 @@ class PixtralPDFClassifier:
                 inferenceConfig={"maxTokens": 200, "temperature": 0.2},
             )
             string_label = response["output"]["message"]["content"][0]["text"]
+            logger.info(string_label)
             cleaned_label = clean_label(string_label)
             category = map_string_to_page_class(cleaned_label)
 
@@ -80,6 +80,7 @@ class PixtralPDFClassifier:
                 if self.fallback_classifier and fallback_args:
                     return self.fallback_classifier.determine_class(**fallback_args)
 
+            logger.info(f"classified as: {category}")
             return category
         except (ClientError, Exception) as e:
             logger.info(f"Pixtral classification failed: {e}. Fallback to baseline classification")

@@ -1,8 +1,9 @@
 import logging
+import math
 from dataclasses import dataclass
 
 import pymupdf
-
+from pathlib import Path
 logger = logging.getLogger(__name__)
 
 
@@ -69,20 +70,27 @@ def get_page_bytes(page: pymupdf.Page, page_number: int, max_mb: float = 4.5) ->
         return page_bytes
 
     logger.info(f"Page {page_number} is {len(page_bytes) / 1024 / 1024:.2f} MB — downscaling.")
-    scale = 1.0
-    for attempt in range(5):
-        if scale < 0.2:
-            logger.warning("Scale dropped below 0.2. stopping downscaling.")
-            break
 
+    scale = 1.0
+    for attempt in range(10):
         page_bytes = downscale_pdf_page_to_bytes(page, scale=scale)
-        if len(page_bytes) <= max_bytes:
-            logger.info(f"Successfully resized page at scale={scale:.2f}, size={len(page_bytes) / 1024 / 1024:.2f} MB")
+        current_size = len(page_bytes)
+
+        if current_size <= max_bytes:
+            logger.info(f"Success at scale={scale:.2f}, size={len(page_bytes) / 1024 / 1024:.2f} MB")
             return page_bytes
+
         logger.info(
             f"Attempt {attempt + 1}: scale={scale:.2f}, size={len(page_bytes) / 1024 / 1024:.2f} MB — too large"
         )
-        scale *= 0.85
+        ratio = max_bytes / current_size
+        proposed_scale = scale * math.sqrt(ratio)
+        proposed_scale = (scale + proposed_scale) /2
+
+        if abs(scale - proposed_scale) < 0.01:
+            logger.debug("Scale converged — applying nudge.")
+            proposed_scale *= 0.9
+        scale = min(max(proposed_scale, 0.2), scale)  # clamp
 
     logger.info(f"Final size {len(page_bytes) / 1024 / 1024:.2f} MB after 5 attempts. Returning last attempt.")
     return page_bytes
