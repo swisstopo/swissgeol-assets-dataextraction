@@ -77,7 +77,7 @@ def has_aligned_layout(ctx: PageContext) -> bool:
     clusters = get_all_layout_clusters(ctx.lines, ctx.page_rect.width)
     words = sum(len(line.words) for cluster in clusters for line in cluster)
 
-    return words / len(ctx.words) > 0.75
+    return words / len(ctx.words) > 0.8
 
 
 def has_large_font_layout(ctx: PageContext) -> bool:
@@ -172,7 +172,9 @@ def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[li
 
 
 def find_aligned_clusters(
-    lines: list[TextLine], key_func: Callable[[TextLine], float], threshold: float
+    lines: list[TextLine],
+    key_func: Callable[[TextLine], float],
+    threshold: float
 ) -> list[list[TextLine]]:
     """
     Finds clusters of lines aligned by a given key (e.g. x0, x1, center).
@@ -181,21 +183,29 @@ def find_aligned_clusters(
     remaining_lines = set(lines)
     clusters = []
 
-    while remaining_lines:
-        current_line = remaining_lines.pop()
-        cluster = [current_line]
-        cluster_key = key_func(current_line)
-        font_size = current_line.font_size
+    for current_line in sorted(lines, key = lambda l: l.rect.y0):
+        if current_line not in remaining_lines:
+            continue #already clustered
 
-        close_lines = {
-            line
-            for line in remaining_lines
-            if abs(key_func(line) - cluster_key) < threshold
-            and abs(line.rect.y0 - current_line.rect.y0) < 5.0 * font_size
-        }
+        remaining_lines.remove(current_line)
+        cluster = []
+        line_queue = [current_line]
 
-        cluster.extend(close_lines)
-        remaining_lines -= close_lines
+        while line_queue:
+            line = line_queue.pop()
+            cluster_key = key_func(line)
+            cluster.append(line)
+            font_size = line.font_size
+
+            close_lines = {
+                other
+                for other in remaining_lines
+                if abs(key_func(other) - cluster_key) < threshold # limit for how much misaligned other line can be
+                and abs(other.rect.y0 - line.rect.y0) < 5.0 * font_size #limit for how far below other line can lie
+            }
+
+            line_queue.extend(close_lines) # add close lines into queue
+            remaining_lines -= close_lines # remove all close lines
 
         if len(cluster) > 1:
             clusters.append(cluster)
