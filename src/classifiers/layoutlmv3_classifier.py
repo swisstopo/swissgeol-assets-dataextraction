@@ -6,6 +6,7 @@ import math
 import os
 import time
 from pathlib import Path
+from typing import Callable
 
 import click
 import mlflow
@@ -35,7 +36,7 @@ if __name__ == "__main__":
     # Only configure logging if this script is run directly (e.g. training pipeline entrypoint)
     import os
 
-    os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"
+    os.environ["TRANSFORMERS_NO_ADVISORY_WARNINGS"] = "1"  # remove warning
 
     logging.basicConfig(
         format="%(asctime)s %(levelname)-8s %(message)s", level=logging.INFO, datefmt="%Y-%m-%d %H:%M:%S"
@@ -54,21 +55,41 @@ class LayoutLMv3PageClassifier:
     """
 
     def __init__(self, model_path=None):
+        """Initializes the LayoutLMv3PageClassifier with a pre-trained model.
+
+        Args:
+            model_path (str): Path to the pre-trained LayoutLMv3 model. A valid model path is required.
+                If None, it raises a ValueError.
+        """
         if model_path is None:
             raise ValueError("Model path should specify the path to a trained model.")
         self.model = LayoutLMv3(model_name_or_path=model_path)
 
     def _prepare_data(self, page_list: list[pymupdf.Page], batch_size=32) -> DataLoader:
+        """Prepares the data for the LayoutLMv3 model.
+
+        Args:
+            page_list (list[pymupdf.Page]): List of pymupdf Page objects to be classified.
+            batch_size (int): Batch size for the DataLoader.
+
+        Returns:
+            DataLoader: A DataLoader containing the processed data ready for classification.
+        """
         data = build_dataset_from_page_list(page_list, ground_truth_map=None)
 
-        processed_data = data.map(self.model.preprocess, batched=True, batch_size=batch_size)
-        processed_data = processed_data.remove_columns(["words", "bboxes", "image"])
+        processed_data = data.map(self.model.preprocess, remove_columns=["words", "bboxes", "image"])
 
         dataloader = DataLoader(processed_data, batch_size, collate_fn=default_data_collator)
         return dataloader
 
     def determine_class(self, page: pymupdf.Page) -> PageClasses:
-        """Determines the page class (e.g., BOREPROFILE, MAP) based on page content."""
+        """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
+
+        Args:
+            page (pymupdf.Page): The page to classify.
+        Returns:
+            PageClasses: The predicted class of the page.
+        """
         dataloader = self._prepare_data([page])
 
         predictions, _ = self.model.predict_batch(dataloader)
@@ -77,6 +98,12 @@ class LayoutLMv3PageClassifier:
 
 
 class LayoutLMv3:
+    """LayoutLMv3 model for page classification.
+
+    This class wraps the LayoutLMv3ForSequenceClassification model and provides methods for preprocessing,
+    prediction, and training. It supports freezing and unfreezing layers for fine-tuning.
+    """
+
     label2id = {"Boreprofile": 0, "Maps": 1, "Text": 2, "Title_Page": 3, "Unknown": 4}
     id2label = {v: k for k, v in label2id.items()}
     num_labels = len(label2id)
@@ -94,6 +121,13 @@ class LayoutLMv3:
         model_name_or_path="microsoft/layoutlmv3-base",
         device=None,
     ):
+        """Initializes the LayoutLMv3 model.
+        Args:
+            model_name_or_path (str): Path to a finetuned LayoutLMv3 model checkpoint or a Hugging Face model name.
+                If a local path is provided, it should point to a directory containing the model files.
+            device (str): Device to run the model on, e.g., "cuda" or "cpu". If None, it defaults to "cuda" if available,
+                otherwise "cpu".
+        """
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         # Only use `apply_ocr=False` if using a base model name (not a saved checkpoint)
         if Path(model_name_or_path).exists():
@@ -106,7 +140,23 @@ class LayoutLMv3:
         )  # total number of params: 125'921'413 (503.7 MB)
         self.hf_model.to(self.device).eval()
 
-    def preprocess(self, sample: list):
+    def preprocess(self, sample: dict) -> dict:
+        """Preprocess a single sample for LayoutLMv3.
+
+        Args:
+            sample (dict): A dictionary containing the following keys:
+                - "words": List of words in the page.
+                - "bboxes": List of bounding boxes corresponding to the words.
+                - "image": The image of the page as a PIL Image or numpy array.
+                - "label": The label for the sample (optional).
+        Returns:
+            dict: A dictionary containing the processed inputs for the model, including:
+                - "input_ids": Token IDs for the words.
+                - "attention_mask": Attention mask for the input tokens.
+                - "bbox": Bounding boxes for the words.
+                - "pixel_values": Pixel values of the image.
+                - "label": The label for the sample, if available.
+        """
         encoding = self.processor(
             text=sample["words"],
             boxes=sample["bboxes"],
@@ -124,29 +174,16 @@ class LayoutLMv3:
             "label": sample["label"] if "label" in sample else None,
         }
 
-    # def preprocess(self, samples: list):
-    #     encodings = [
-    #         self.processor(
-    #             text=sample["words"],
-    #             boxes=sample["bboxes"],
-    #             images=sample["image"],
-    #             return_tensors="pt",
-    #             padding="max_length",
-    #             truncation=True,
-    #         )
-    #         for sample in samples
-    #     ]
-    #     return [
-    #         {
-    #             "input_ids": encoding.input_ids[0],
-    #             "attention_mask": encoding.attention_mask[0],
-    #             "bbox": encoding.bbox[0],
-    #             "pixel_values": encoding.pixel_values[0],
-    #         }
-    #         for encoding in encodings
-    #     ]
+    def predict_batch(self, dataloader: DataLoader) -> tuple[list[int], list[list[float]]]:
+        """Predicts classes for a batch of samples using the LayoutLMv3 model.
 
-    def predict_batch(self, dataloader):
+        Args:
+            dataloader (DataLoader): A DataLoader containing the preprocessed samples.
+        Returns:
+            tuple: A tuple containing:
+                - all_preds: List of predicted class IDs for each sample.
+                - all_probs: List of predicted probabilities for each class for each sample.
+        """
         all_preds = []
         all_probs = []
 
@@ -167,7 +204,7 @@ class LayoutLMv3:
         return all_preds, all_probs
 
     def freeze_all_layers(self):
-        """Freeze all layers (base bert model + classifier)."""
+        """Freeze all layers of the model."""
         for name, param in self.hf_model.named_parameters():
             logger.debug(f"Freezing Param: {name}")
             param.requires_grad = False
@@ -178,6 +215,9 @@ class LayoutLMv3:
         Args:
             unfreeze_list (list[str]): A list of layers to unfreeze. Possible values are:
                 - "classifier"
+                - "rel_pos_encoder"
+                - "layer_11"
+                - "all" (unfreezes all layers)
         """
         if not unfreeze_list:
             logger.warning("No layer to unfreeze, the model will not be trained.")
@@ -201,6 +241,8 @@ class LayoutLMv3:
         This will put requires_grad=True for the following parameters:
             - classifier.weight
             - classifier.bias
+            - classifier.out_proj.weight
+            - classifier.out_proj.bias
         """
         for name, param in self.hf_model.named_parameters():
             if name.startswith("classifier."):
@@ -211,8 +253,9 @@ class LayoutLMv3:
         """Unfreeze all the classifier layers.
 
         This will put requires_grad=True for the following parameters:
-            - classifier.weight
-            - classifier.bias
+            - layoutlmv3.encoder.rel_pos_bias.weight
+            - layoutlmv3.encoder.rel_pos_x_bias.weight
+            - layoutlmv3.encoder.rel_pos_y_bias.weight
         """
         for name, param in self.hf_model.named_parameters():
             if name.startswith("layoutlmv3.encoder.rel_pos_"):
@@ -252,55 +295,60 @@ class LayoutLMv3:
             param.requires_grad = True
 
 
-# class SaveProcessorCallback(TrainerCallback):
-#     def __init__(self, processor):
-#         self.processor = processor
-
-#     def on_save(self, args, state, control, **kwargs):
-#         # Save processor in the checkpoint folder
-#         self.processor.save_pretrained(args.output_dir)
-
-
 class LayoutLMv3Trainer:
-    def __init__(self, model_config, out_directory, model_checkpoint):
+    """Trainer class for LayoutLMv3 model.
+
+    This class handles the training and evaluation of the LayoutLMv3 model using the Hugging Face Trainer API.
+    It initializes the model, loads the training and validation datasets, sets up the training arguments,
+    and provides methods for training, saving the model, logging metrics, and saving the training state.
+    """
+
+    def __init__(self, model_config: dict, out_directory: Path, model_checkpoint: Path):
+        """Initializes the LayoutLMv3Trainer with the model configuration and output directory.
+
+        Args:
+            model_config (dict): The configuration dictionary containing model parameters and paths.
+            out_directory (Path): The directory where the trained model and logs will be saved.
+            model_checkpoint (Path | None): Optional path to a pre-trained model checkpoint. If None, the model will
+                be initialized from the hugging face librairy using the config file.
+        """
         model_path = model_config["model_path"] if model_checkpoint is None else model_checkpoint
         self.model = LayoutLMv3(model_path)
+
+        # Freeze all layers by default and unfreeze only the specified layers to fine-tune
         self.model.freeze_all_layers()
         self.model.unfreeze_list(model_config["unfreeze_layers"])
 
         self.out_directory = out_directory
 
-        training_data_path = Path(model_config["train_folder_path"])
-        val_data_path = Path(model_config["val_folder_path"])
-        ground_truth_file_path = Path(model_config["ground_truth_file_path"])
-        train_dataset, eval_dataset, num_pages = self.load_data(
-            training_data_path, val_data_path, ground_truth_file_path
-        )
+        train_dataset, eval_dataset, tot_num_pages = self.load_data(model_config)
 
-        train_steps = math.ceil(num_pages / (model_config["batch_size"]))  # for one epoch
-        self.training_arguments = self.setup_training_args(model_config, train_steps)
+        self.training_arguments = self.setup_training_args(model_config, tot_num_pages)
 
         self.trainer = Trainer(
             model=self.model.hf_model,
             args=self.training_arguments,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
-            processing_class=self.model.processor,  # ???
-            # data_collator=DataCollatorWithPadding(tokenizer=self.model.processor),
+            processing_class=self.model.processor,
             compute_metrics=self.get_compute_metrics_func(),
         )
 
-    def setup_training_args(self, model_config: dict, train_steps: int) -> TrainingArguments:
+    def setup_training_args(self, model_config: dict, tot_num_pages: int) -> TrainingArguments:
         """Create a TrainingArgument object from the config file.
 
         Args:
             model_config (dict): The dictionary containing the model configuration.
+            tot_num_pages (int): The total number of pages in the training dataset.
 
         Returns:
             TrainingArgument: the training arguments.
         """
         report_to = "mlflow" if mlflow_tracking else "none"
 
+        # The total number of training steps is needed to setup the scheduler (because generator datasets are used)
+        # This wrongly displays the current epoch in the logs, but it is not a big problem.
+        train_steps = math.ceil(tot_num_pages / (model_config["batch_size"]))  # for one epoch
         total_steps = train_steps * model_config["num_epochs"]
 
         # Read hyperparameters from the config file
@@ -310,7 +358,7 @@ class LayoutLMv3Trainer:
             per_device_train_batch_size=model_config["batch_size"],
             per_device_eval_batch_size=model_config["batch_size"],
             num_train_epochs=model_config["num_epochs"],
-            max_steps=total_steps,  # required to properly setup the scheduler (because generator datasets are used)
+            max_steps=total_steps,  #
             weight_decay=float(model_config["weight_decay"]),
             learning_rate=float(model_config["learning_rate"]),
             lr_scheduler_type=model_config["lr_scheduler_type"],
@@ -321,48 +369,48 @@ class LayoutLMv3Trainer:
             save_strategy="epoch",
             load_best_model_at_end=True,
             report_to=report_to,
-            logging_first_step=True,
+            # logging_first_step=True,
             save_total_limit=2,  # Limit checkpoints to save space, only keep best two
             dataloader_pin_memory=not torch.backends.mps.is_available(),  # Fix MPS pin_memory warning
         )
-        # TrainingArguments(
-        #     output_dir=self.out_directory,
-        #     logging_dir=self.out_directory / "logs",
-        #     per_device_train_batch_size=model_config["batch_size"],
-        #     per_device_eval_batch_size=model_config["batch_size"],
-        #     max_steps=total_steps,
-        #     weight_decay=float(model_config["weight_decay"]),
-        #     learning_rate=float(model_config["learning_rate"]),
-        #     lr_scheduler_type=model_config["lr_scheduler_type"],
-        #     warmup_ratio=float(model_config["warmup_ratio"]),
-        #     max_grad_norm=float(model_config["max_grad_norm"]),
-        #     logging_steps=train_steps,
-        #     eval_steps=train_steps,
-        #     save_steps=train_steps,
-        #     load_best_model_at_end=True,
-        #     report_to=report_to,
-        #     save_total_limit=2,
-        #     # Fix MPS pin_memory warning
-        #     dataloader_pin_memory=not use_mps,
-        #     # Fix epoch calculation - tell trainer how many steps per epoch
-        #     logging_first_step=True,
-        # )
+
         return training_args
 
-    def load_data(
-        self, training_data_path: Path, val_data_path: Path, ground_truth_file_path: Path
-    ) -> tuple[Dataset, Dataset, int]:
+    def load_data(self, model_config: dict) -> tuple[Dataset, Dataset, int]:
+        """Load training and validation datasets from the specified paths in the model configuration.
+
+        Args:
+            model_config (dict): The configuration dictionary containing paths to training and validation datasets,
+                as well as the ground truth file.
+        Returns:
+            tuple[Dataset, Dataset, int]: A tuple containing:
+                - train_dataset: The training dataset as a Dataset object.
+                - val_dataset: The validation dataset as a Dataset object.
+                - num_pages: The total number of pages in the training dataset.
+        """
+        ground_truth_file_path = Path(model_config["ground_truth_file_path"])
         ground_truth_map = self.build_ground_truth_map(ground_truth_file_path)
 
+        training_data_path = Path(model_config["train_folder_path"])
         train_files = [p for p in training_data_path.iterdir() if p.name.lower().endswith(".pdf")]
         num_pages = self.count_pdf_pages(train_files)
         train_dataset = build_lazy_dataset(train_files, self.model.preprocess, ground_truth_map)
 
+        val_data_path = Path(model_config["val_folder_path"])
         val_files = [p for p in val_data_path.iterdir() if p.name.lower().endswith(".pdf")]
         val_dataset = build_lazy_dataset(val_files, self.model.preprocess, ground_truth_map)
         return train_dataset, val_dataset, num_pages
 
     def build_ground_truth_map(self, ground_truth_file_path: Path) -> dict[tuple[str, int], int]:
+        """Build a ground truth map from the JSON file.
+
+        Args:
+            ground_truth_file_path (Path): Path to the ground truth JSON file.
+        Returns:
+            dict[tuple[str, int], int]: A dictionary mapping (filename, page number) to label IDs.
+                The keys are tuples of (filename, page number) and the values are label IDs inferred from the
+                    ground truth data.
+        """
         with open(ground_truth_file_path, "r") as f:
             gt_data = json.load(f)
 
@@ -378,9 +426,25 @@ class LayoutLMv3Trainer:
         return label_lookup
 
     def count_pdf_pages(self, pdf_files: list[Path]) -> int:
+        """Count the total number of pages in a list of PDF files.
+
+        Args:
+            pdf_files (list[Path]): List of Path objects representing PDF files.
+        Returns:
+            int: The total number of pages across all PDF files.
+        """
         return sum(len(pymupdf.open(pdf)) for pdf in pdf_files)
 
-    def get_compute_metrics_func(self):
+    def get_compute_metrics_func(self) -> Callable[[EvalPrediction], dict[str, float]]:
+        """Returns a function to compute metrics for the LayoutLMv3 model.
+
+        This function computes micro-averaged precision, recall, and F1 score based on the model's predictions
+        on the evaluation set and the true labels. It is only used for evaluation and will not be used during training.
+
+        Returns:
+            function: A function that takes an EvalPrediction object and returns a dictionary of metrics.
+        """
+
         def compute_metrics(eval_pred: EvalPrediction) -> dict[str, float]:
             logits, labels = eval_pred
             predictions = logits.argmax(axis=-1)
@@ -406,19 +470,37 @@ class LayoutLMv3Trainer:
         return compute_metrics
 
     def train(self):
+        """Train the LayoutLMv3 model using the Hugging Face Trainer.
+
+        Returns:
+            transformers.TrainerResult: The result of the training, including metrics and other information.
+        """
         return self.trainer.train()
 
     def save_model(self):
+        """Save the trained model and processor to the output directory."""
         self.trainer.save_model()
-        # self.model.processor.save_pretrained(self.out_directory)
 
     def log_metrics(self, split, metrics):
+        """Log metrics to the trainer's logging system.
+
+        Args:
+            split (str): The split of the dataset (e.g., "train", "eval").
+            metrics (dict): A dictionary containing the metrics to log.
+        """
         self.trainer.log_metrics(split, metrics)
 
     def save_metrics(self, split, metrics):
+        """Save metrics to the trainer's output directory.
+
+        Args:
+            split (str): The split of the dataset (e.g., "train", "eval").
+            metrics (dict): A dictionary containing the metrics to save.
+        """
         self.trainer.save_metrics(split, metrics)
 
     def save_state(self):
+        """Save the trainer's state to the output directory."""
         self.trainer.save_state()
 
 
@@ -472,7 +554,14 @@ def train_model(
     model_checkpoint: Path,
     out_directory: Path,
 ):
-    """Train a LayoutLMv3 model using the specified datasets and configurations from the YAML config file."""
+    """Train a LayoutLMv3 model using the specified datasets and configurations from the YAML config file.
+
+    Args:
+        config_file_path (Path): Path to the YAML configuration file containing model parameters and paths.
+        model_checkpoint (Path): Optional path to a pre-trained model checkpoint. If None, the model will be initialized
+            from the Hugging Face library using the config file.
+        out_directory (Path): Path to the output directory where the trained model and logs will be saved.
+    """
 
     with open(config_file_path) as f:
         model_config = yaml.safe_load(f)

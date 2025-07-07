@@ -68,8 +68,8 @@ def classify_page(
         page_class = classifier.determine_class(
             page_bytes, page_name=f"page_{page_number}", fallback_args=fallback_args
         )
-    elif classifier_name.lower() in ["layoutlmv3", "layout"]:
-        model_path = "models/20250703-155456/checkpoint-32"
+    elif classifier_name.lower() == "layoutlmv3":
+        model_path = "models/20250707-121044_stage2_good/checkpoint-512"
         classifier = LayoutLMv3PageClassifier(model_path)
 
         page_class = classifier.determine_class(page)
