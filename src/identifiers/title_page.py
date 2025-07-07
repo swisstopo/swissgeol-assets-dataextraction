@@ -8,6 +8,9 @@ from src.text_objects import TextLine
 
 logger = logging.getLogger(__name__)
 
+ALIGNED_WORD_RATIO_THRESHOLD = 0.8
+VERTICAL_SPACING_FACTOR = 5.0
+
 
 def identify_title_page(ctx: PageContext, matching_params: dict) -> bool:
     """
@@ -77,7 +80,7 @@ def has_aligned_layout(ctx: PageContext) -> bool:
     clusters = get_all_layout_clusters(ctx.lines, ctx.page_rect.width)
     words = sum(len(line.words) for cluster in clusters for line in cluster)
 
-    return words / len(ctx.words) > 0.8
+    return words / len(ctx.words) > ALIGNED_WORD_RATIO_THRESHOLD
 
 
 def has_large_font_layout(ctx: PageContext) -> bool:
@@ -177,8 +180,17 @@ def find_aligned_clusters(
     threshold: float
 ) -> list[list[TextLine]]:
     """
-    Finds clusters of lines aligned by a given key (e.g. x0, x1, center).
-    Considers only lines with vertical proximity to last line of current cluster.
+     Groups text lines into alignment clusters based on a key function (e.g. x0-position).
+    This function finds clusters of visually aligned lines by comparing each line’s alignment key
+    (e.g. x0, center, x1) and vertical position.
+
+       Parameters:
+        lines (list[TextLine]): List of text lines to cluster.
+        key_func (Callable): Function to extract the alignment key from a line (e.g. lambda l: l.rect.x0).
+        threshold (float): Maximal misalignment between lines for them to be considered aligned.
+
+    Returns:
+        list[list[TextLine]]: List of clusters, each a list of aligned TextLines.
     """
     remaining_lines = set(lines)
     clusters = []
@@ -201,7 +213,7 @@ def find_aligned_clusters(
                 other
                 for other in remaining_lines
                 if abs(key_func(other) - cluster_key) < threshold # limit for how much misaligned other line can be
-                and abs(other.rect.y0 - line.rect.y0) < 5.0 * font_size #limit for how far below other line can lie
+                and abs(other.rect.y0 - line.rect.y0) < VERTICAL_SPACING_FACTOR * font_size #limit for how far below other line can lie
             }
 
             line_queue.extend(close_lines) # add close lines into queue
