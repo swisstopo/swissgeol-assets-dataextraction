@@ -25,6 +25,7 @@ from transformers import (
     TrainingArguments,
     default_data_collator,
 )
+from transformers.trainer_utils import TrainOutput
 
 from classifiers.pdf_dataset_builder import (
     build_dataset_from_page_list,
@@ -54,7 +55,7 @@ class LayoutLMv3PageClassifier:
     Transformer-based page classifier using LayoutLMv3.
     """
 
-    def __init__(self, model_path=None):
+    def __init__(self, model_path: str = None):
         """Initializes the LayoutLMv3PageClassifier with a pre-trained model.
 
         Args:
@@ -65,7 +66,7 @@ class LayoutLMv3PageClassifier:
             raise ValueError("Model path should specify the path to a trained model.")
         self.model = LayoutLMv3(model_name_or_path=model_path)
 
-    def _prepare_data(self, page_list: list[pymupdf.Page], batch_size=32) -> DataLoader:
+    def _prepare_data(self, page_list: list[pymupdf.Page], batch_size: int = 32) -> DataLoader:
         """Prepares the data for the LayoutLMv3 model.
 
         Args:
@@ -116,11 +117,7 @@ class LayoutLMv3:
     }
     id2enum = {v: k for k, v in enum2id.items()}
 
-    def __init__(
-        self,
-        model_name_or_path="microsoft/layoutlmv3-base",
-        device=None,
-    ):
+    def __init__(self, model_name_or_path="microsoft/layoutlmv3-base", device=None):
         """Initializes the LayoutLMv3 model.
         Args:
             model_name_or_path (str): Path to a finetuned LayoutLMv3 model checkpoint or a Hugging Face model name.
@@ -442,7 +439,7 @@ class LayoutLMv3Trainer:
         on the evaluation set and the true labels. It is only used for evaluation and will not be used during training.
 
         Returns:
-            function: A function that takes an EvalPrediction object and returns a dictionary of metrics.
+            Callable: A function that takes an EvalPrediction object and returns a dictionary of metrics.
         """
 
         def compute_metrics(eval_pred: EvalPrediction) -> dict[str, float]:
@@ -469,11 +466,11 @@ class LayoutLMv3Trainer:
 
         return compute_metrics
 
-    def train(self):
+    def train(self) -> TrainOutput:
         """Train the LayoutLMv3 model using the Hugging Face Trainer.
 
         Returns:
-            transformers.TrainerResult: The result of the training, including metrics and other information.
+            TrainOutput: The result of the training, including metrics and other information.
         """
         return self.trainer.train()
 
@@ -509,7 +506,13 @@ def setup_mlflow_tracking(
     out_directory: Path,
     experiment_name: str = "LayoutLMv3 training",
 ):
-    """Set up MLFlow tracking."""
+    """Set up MLFlow tracking.
+
+    Args:
+        model_config (dict): The configuration dictionary containing model parameters and paths.
+        out_directory (Path): The directory where the trained model and logs will be saved.
+        experiment_name (str): The name of the MLFlow experiment.
+    """
     if mlflow.active_run():
         mlflow.end_run()  # Ensure the previous run is closed
     mlflow.set_experiment(experiment_name)
@@ -535,7 +538,7 @@ def common_options(f):
         "--model-checkpoint",
         type=click.Path(exists=True, path_type=Path),
         default=None,
-        help="Path to a local folder containing an existing bert model (e.g. models/your_model_folder).",
+        help="Path to a local folder containing an existing layoutlmv3 model (e.g. models/your_model_folder).",
     )(f)
     f = click.option(
         "-o",
@@ -579,7 +582,7 @@ def train_model(
     logger.info("Beginning the training.")
     train_result = trainer.train()
 
-    trainer.save_model()  # Saves the tokenizer too for easy upload
+    trainer.save_model()
     metrics = train_result.metrics
     trainer.log_metrics("train", metrics)
     trainer.save_metrics("train", metrics)

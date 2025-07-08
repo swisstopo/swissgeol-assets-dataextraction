@@ -57,7 +57,7 @@ def extract_layoutlm_data_from_page(page: pymupdf.Page) -> dict:
     }
 
 
-def normalize_box(box: list, width: int, height: int):
+def normalize_box(box: list, width: int, height: int) -> list[int]:
     """Normalizes a bounding box to a range of 0 to 1000 based on the page dimensions.
 
     Args:
@@ -70,10 +70,10 @@ def normalize_box(box: list, width: int, height: int):
               scaled to a range of 0 to 1000.
     """
     return [
-        int(1000 * box[0] / width),
-        int(1000 * box[1] / height),
-        int(1000 * box[2] / width),
-        int(1000 * box[3] / height),
+        max(0, int(1000 * box[0] / width)),
+        max(0, int(1000 * box[1] / height)),
+        max(0, int(1000 * box[2] / width)),
+        max(0, int(1000 * box[3] / height)),
     ]
 
 
