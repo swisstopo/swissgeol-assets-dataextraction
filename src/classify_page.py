@@ -4,10 +4,11 @@ from pathlib import Path
 import pymupdf
 
 from classifiers.baseline_classifier import DigitalPageClassifier, ScannedPageClassifier
+from classifiers.config_loader import get_aws_config, load_config
 from classifiers.pixtral_classifier import PixtralPDFClassifier
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
-from src.page_graphics import extract_page_graphics, get_page_bytes
+from src.page_graphics import extract_page_graphics, get_page_image_bytes
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
 from src.utils import is_digitally_born
@@ -53,11 +54,20 @@ def classify_page(
     )
 
     if classifier_name == "pixtral":
-        max_doc_size = PixtralPDFClassifier.MAX_DOCUMENT_SIZE_MB - PixtralPDFClassifier.SLACK_SIZE_MB
-        page_bytes = get_page_bytes(page, page_number, max_mb=max_doc_size)
+        full_config = load_config()
+        pixtral_config = full_config["pixtral"]
+        aws_config = get_aws_config()
+
+        max_doc_size = pixtral_config["max_document_size_mb"] - pixtral_config["slack_size_mb"]
+        image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
         fallback = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
 
-        classifier = PixtralPDFClassifier(fallback_classifier=fallback)
+        classifier = PixtralPDFClassifier(
+            config=pixtral_config,
+            aws_config=aws_config,
+            fallback_classifier=fallback
+        )
+
         fallback_args = {
             "page": page,
             "context": context,
@@ -65,7 +75,8 @@ def classify_page(
         }
 
         page_class = classifier.determine_class(
-            page_bytes, page_name=f"page_{page_number}", fallback_args=fallback_args
+            image_bytes=image_bytes,
+            fallback_args=fallback_args
         )
     else:
         classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
@@ -74,7 +85,6 @@ def classify_page(
     analysis.set_class(page_class)
 
     return analysis
-
 
 def classify_pdf(file_path: Path, classifier: str, matching_params: dict) -> dict:
     """Processes a pdf File, classifies each page"""

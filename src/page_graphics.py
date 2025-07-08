@@ -1,7 +1,8 @@
 import logging
 import math
 from dataclasses import dataclass
-
+from PIL import Image
+import io
 import pymupdf
 from pathlib import Path
 logger = logging.getLogger(__name__)
@@ -45,52 +46,51 @@ def get_images_from_page(page: pymupdf.Page) -> list[ImageRect]:
     return extracted_images
 
 
-def downscale_pdf_page_to_bytes(page: pymupdf.Page, scale: float = 1.0) -> bytes:
-    """Render a page to an image and re-embed as a compressed PDF page."""
+def get_page_image_bytes(page: pymupdf.Page, page_number: int, max_mb: float = 4.5) -> bytes:
+    """
+    Returns JPEG image bytes of a single PDF page. Downscales if image exceeds allowed size.
+    """
+    max_bytes = int(max_mb * 1024 * 1024)
+    scale = 1.0
+
+    for attempt in range(10):
+        # Render and convert to JPEG
+        pdf_doc = pymupdf.open()
+        pdf_doc.insert_pdf(page.parent, from_page=page_number, to_page=page_number)
+        page_bytes = pdf_doc.tobytes(deflate=True, garbage=3, use_objstms=1)
+        image_bytes = convert_pdf_to_jpeg(page_bytes, scale=scale)
+
+        size_mb = len(image_bytes) / 1024 / 1024
+        if len(image_bytes) <= max_bytes:
+            return image_bytes
+
+        logger.info(f"[image-bytes] Attempt {attempt + 1}: scale={scale:.2f}, size={size_mb:.2f} MB — too large")
+
+        # Update scale
+        ratio = max_bytes / len(image_bytes)
+        proposed = scale * math.sqrt(ratio)
+        new_scale = (scale + proposed) / 2
+
+        if abs(scale - new_scale) < 0.01:
+            logger.debug("[image-bytes] Convergence detected — applying small nudge.")
+            new_scale *= 0.95
+
+        scale = max(min(new_scale, scale), 0.2)
+
+    logger.warning(f"[image-bytes] Final size {len(image_bytes) / 1024 / 1024:.2f} MB after 10 attempts.")
+    return image_bytes
+
+def convert_pdf_to_jpeg(page_bytes: bytes, scale: float = 1.0) -> bytes:
+    """
+    Converts a PDF page (as bytes) to JPEG image bytes using PyMuPDF and PIL.
+    """
+    doc = pymupdf.open(stream=page_bytes, filetype="pdf")
+    page = doc[0]
     pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), colorspace=pymupdf.csRGB)
 
-    doc = pymupdf.open()
-    img_rect = pymupdf.Rect(0, 0, pix.width, pix.height)
-    pdf_page = doc.new_page(width=pix.width, height=pix.height)
-    pdf_page.insert_image(img_rect, pixmap=pix)
+    logger.info(f"[convert] PDF rendered to image: {pix.width}x{pix.height} at scale={scale:.2f}")
 
-    return doc.tobytes(deflate=True, garbage=3, use_objstms=1)
-
-
-def get_page_bytes(page: pymupdf.Page, page_number: int, max_mb: float = 4.5) -> bytes:
-    """Returns PDF bytes of a single page. Downscales only if it exceeds pixtral size limit."""
-
-    max_bytes = int(max_mb * 1024 * 1024)
-
-    single_page_pdf = pymupdf.open()
-    single_page_pdf.insert_pdf(page.parent, from_page=page_number, to_page=page_number)
-    page_bytes = single_page_pdf.tobytes(deflate=True, garbage=3, use_objstms=1)
-
-    if len(page_bytes) < max_bytes:
-        return page_bytes
-
-    logger.info(f"Page {page_number} is {len(page_bytes) / 1024 / 1024:.2f} MB — downscaling.")
-
-    scale = 1.0
-    for attempt in range(10):
-        page_bytes = downscale_pdf_page_to_bytes(page, scale=scale)
-        current_size = len(page_bytes)
-
-        if current_size <= max_bytes:
-            logger.info(f"Success at scale={scale:.2f}, size={len(page_bytes) / 1024 / 1024:.2f} MB")
-            return page_bytes
-
-        logger.info(
-            f"Attempt {attempt + 1}: scale={scale:.2f}, size={len(page_bytes) / 1024 / 1024:.2f} MB — too large"
-        )
-        ratio = max_bytes / current_size
-        proposed_scale = scale * math.sqrt(ratio)
-        proposed_scale = (scale + proposed_scale) /2
-
-        if abs(scale - proposed_scale) < 0.01:
-            logger.debug("Scale converged — applying nudge.")
-            proposed_scale *= 0.9
-        scale = min(max(proposed_scale, 0.2), scale)  # clamp
-
-    logger.info(f"Final size {len(page_bytes) / 1024 / 1024:.2f} MB after 5 attempts. Returning last attempt.")
-    return page_bytes
+    image = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+    stream = io.BytesIO()
+    image.save(stream, format="JPEG", quality=90)
+    return stream.getvalue()
