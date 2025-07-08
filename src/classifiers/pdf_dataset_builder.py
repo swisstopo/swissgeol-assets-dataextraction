@@ -67,7 +67,7 @@ def normalize_box(box: list, width: int, height: int) -> list[int]:
 
     Returns:
         list: A list containing the normalized bounding box coordinates [x0, y0, x1, y1],
-              scaled to a range of 0 to 1000.
+              scaled to a range of 0 to 1000. Negative values are clamped to 0.
     """
     return [
         max(0, int(1000 * box[0] / width)),
@@ -103,22 +103,22 @@ def build_lazy_dataset(
         for file_path in pdf_list:
             if not file_path.name.lower().endswith(".pdf"):
                 continue
-            doc = pymupdf.open(file_path)
-            pages = extract_layoutlm_data_from_pdf(doc)
+            with pymupdf.open(file_path) as doc:
+                pages = extract_layoutlm_data_from_pdf(doc)
 
-            for page_num, page in enumerate(pages, start=1):
-                norm_boxes = [normalize_box(b, page["width"], page["height"]) for b in page["boxes"]]
-                label = ground_truth_map.get((file_path.name, page_num)) if ground_truth_map else None
-                if label is None:
-                    print("no label")
-                yield preprocess_fn(
-                    {
-                        "words": page["words"],
-                        "bboxes": norm_boxes,
-                        "image": page["image"],
-                        "label": label,
-                    }
-                )
+                for page_num, page in enumerate(pages, start=1):
+                    norm_boxes = [normalize_box(b, page["width"], page["height"]) for b in page["boxes"]]
+                    label = ground_truth_map.get((file_path.name, page_num)) if ground_truth_map else None
+                    if label is None:
+                        logger.info(f"Label not found for {file_path.name}, page {page_num}. Skipping.")
+                    yield preprocess_fn(
+                        {
+                            "words": page["words"],
+                            "bboxes": norm_boxes,
+                            "image": page["image"],
+                            "label": label,
+                        }
+                    )
 
     return IterableDataset.from_generator(sample_generator)
 

@@ -11,9 +11,15 @@ import click
 @click.option("--val-ratio", default=0.2, help="Proportion of validation set (default: 0.2)")
 @click.option("--seed", default=42, help="Random seed for reproducibility")
 def split_dataset(input_dir: Path, output_dir: Path, val_ratio: float, seed: int):
-    """
-    Recursively splits PDFs in INPUT_DIR into flat train/val folders under OUTPUT_DIR.
-    Does NOT preserve original subdirectory structure.
+    """Recursively splits PDFs in input_dir into flat train/val folders under OUTPUT_DIR.
+
+    It does not preserve original subdirectory structure.
+
+    Args:
+        input_dir: Directory containing PDF files to split.
+        output_dir: Directory where train/val folders will be created.
+        val_ratio: Proportion of files to use for validation (default: 0.2).
+        seed: Random seed for shuffling files (default: 42).
     """
     pdf_files = list(input_dir.rglob("*.pdf"))
     if not pdf_files:

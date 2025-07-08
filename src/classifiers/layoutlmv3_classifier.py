@@ -64,7 +64,7 @@ class LayoutLMv3PageClassifier:
         """
         if model_path is None:
             raise ValueError("Model path should specify the path to a trained model.")
-        self.model = LayoutLMv3(model_name_or_path=model_path)
+        self.model = LayoutLMv3(model_name_or_path=model_path, device="cpu")
 
     def _prepare_data(self, page_list: list[pymupdf.Page], batch_size: int = 32) -> DataLoader:
         """Prepares the data for the LayoutLMv3 model.
@@ -117,7 +117,7 @@ class LayoutLMv3:
     }
     id2enum = {v: k for k, v in enum2id.items()}
 
-    def __init__(self, model_name_or_path="microsoft/layoutlmv3-base", device=None):
+    def __init__(self, model_name_or_path: str = "microsoft/layoutlmv3-base", device: str = None):
         """Initializes the LayoutLMv3 model.
         Args:
             model_name_or_path (str): Path to a finetuned LayoutLMv3 model checkpoint or a Hugging Face model name.
@@ -187,8 +187,6 @@ class LayoutLMv3:
         self.hf_model.eval()
         with torch.no_grad():
             for batch in dataloader:
-                # Move data to device if needed
-                # batch = {k: v.to(self.device) for k, v in batch.items()}
                 outputs = self.hf_model(**batch)
                 logits = outputs.logits
 
@@ -230,7 +228,7 @@ class LayoutLMv3:
             elif layer == "layer_11":
                 self.unfreeze_layer_11()
             else:
-                raise ValueError(f"Uknown layer to unfreeze: {layer}.")
+                raise ValueError(f"Unknown layer to unfreeze: {layer}.")
 
     def unfreeze_classifier(self):
         """Unfreeze all the classifier layers.
@@ -310,9 +308,9 @@ class LayoutLMv3Trainer:
                 be initialized from the hugging face librairy using the config file.
         """
         model_path = model_config["model_path"] if model_checkpoint is None else model_checkpoint
-        self.model = LayoutLMv3(model_path)
+        self.model = LayoutLMv3(model_path, device="cpu")
 
-        # Freeze all layers by default and unfreeze only the specified layers to fine-tune
+        # Freeze all layers and unfreeze only the specified layers to fine tune
         self.model.freeze_all_layers()
         self.model.unfreeze_list(model_config["unfreeze_layers"])
 
@@ -343,7 +341,8 @@ class LayoutLMv3Trainer:
         """
         report_to = "mlflow" if mlflow_tracking else "none"
 
-        # The total number of training steps is needed to setup the scheduler (because generator datasets are used)
+        # The total number of training steps is needed to setup the scheduler (because generator datasets are used and
+        # the number of steps is not known in advance).
         # This wrongly displays the current epoch in the logs, but it is not a big problem.
         train_steps = math.ceil(tot_num_pages / (model_config["batch_size"]))  # for one epoch
         total_steps = train_steps * model_config["num_epochs"]
@@ -355,7 +354,7 @@ class LayoutLMv3Trainer:
             per_device_train_batch_size=model_config["batch_size"],
             per_device_eval_batch_size=model_config["batch_size"],
             num_train_epochs=model_config["num_epochs"],
-            max_steps=total_steps,  #
+            max_steps=total_steps,
             weight_decay=float(model_config["weight_decay"]),
             learning_rate=float(model_config["learning_rate"]),
             lr_scheduler_type=model_config["lr_scheduler_type"],
@@ -430,7 +429,13 @@ class LayoutLMv3Trainer:
         Returns:
             int: The total number of pages across all PDF files.
         """
-        return sum(len(pymupdf.open(pdf)) for pdf in pdf_files)
+        total_pages = 0
+        for pdf in pdf_files:
+            if not pdf.name.lower().endswith(".pdf"):
+                continue
+            with pymupdf.open(pdf) as doc:
+                total_pages += len(doc)
+        return total_pages
 
     def get_compute_metrics_func(self) -> Callable[[EvalPrediction], dict[str, float]]:
         """Returns a function to compute metrics for the LayoutLMv3 model.
@@ -587,7 +592,7 @@ def train_model(
     trainer.log_metrics("train", metrics)
     trainer.save_metrics("train", metrics)
     trainer.save_state()
-    logger.info("Training successfull.")
+    logger.info("Training successful.")
 
 
 if __name__ == "__main__":

@@ -2,9 +2,7 @@ model_path: "microsoft/layoutlmv3-base"
 
 # Data parameters
 train_folder_path: "data/single_pages_splits/train"
-# train_folder_path: "data/single_pages/train_test"
 val_folder_path: "data/single_pages_splits/val"
-# val_folder_path: "data/single_pages/val_test"
 ground_truth_file_path: "data/gt_single_pages.json"
 
 # Training hyperparameters

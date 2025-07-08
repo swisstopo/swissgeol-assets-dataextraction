@@ -70,7 +70,7 @@ def classify_page(
         )
     elif classifier_name.lower() == "layoutlmv3":
         # for now, we need to hardcode the path to the model. This can be changed to be
-        # passed as a parameter if we chose this method.
+        # passed as a parameter if we chose to continue with this model.
         model_path = "models/20250707-193312_stage2_best/checkpoint-64_best"
         classifier = LayoutLMv3PageClassifier(model_path)
 
