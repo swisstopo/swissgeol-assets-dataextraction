@@ -1,10 +1,8 @@
 import logging
 import boto3
-import pymupdf
 
 from botocore.exceptions import ClientError
 
-from src.page_graphics import convert_pdf_to_jpeg
 from src.classifiers.utils import clean_label, map_string_to_page_class
 from src.page_classes import PageClasses
 from src.classifiers.config_loader import load_prompt
@@ -23,7 +21,6 @@ class PixtralPDFClassifier:
         self.client = boto3.client("bedrock-runtime", region_name=aws_config["region"])
         self.fallback_classifier = fallback_classifier
         self.model_id = aws_config["model_id"]
-        self.fallback_classifier = fallback_classifier
 
     def determine_class(self,
                         image_bytes: bytes,
@@ -31,6 +28,12 @@ class PixtralPDFClassifier:
         """
         Determines the class of a document page using the Pixtral model.
         Falls back to baseline classifier if output is malformed or ClientError.
+        Args:
+            image_bytes (bytes): The image content of the page as a byte string.
+            fallback_args (dict, optional): Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
+
+        Returns:
+            PageClasses: The predicted page class.
         """
         conversation = self._build_conversation(image_bytes=image_bytes)
 
@@ -48,9 +51,14 @@ class PixtralPDFClassifier:
 
             return category
 
-        except (ClientError, Exception) as e:
-            logger.info(f"Pixtral classification failed: {e}. Fallback to baseline classification")
+        except ClientError as e:
+            logger.info(f"Pixtral classification failed due to ClientError: {e}. Fallback to baseline classification")
+            if self.fallback_classifier and fallback_args:
+                return self.fallback_classifier.determine_class(**fallback_args)
+            return PageClasses.UNKNOWN
 
+        except Exception as e:
+            logger.exception(f"Unexpected error during Pixtral classification: {e}")
             if self.fallback_classifier and fallback_args:
                 return self.fallback_classifier.determine_class(**fallback_args)
             return PageClasses.UNKNOWN
