@@ -4,12 +4,14 @@ import logging
 import os
 from pathlib import Path
 
-import yaml
 from dotenv import load_dotenv
 from tqdm import tqdm
 
+from src.classifiers.classifier_type import ClassifierTypes
+from src.classifiers.classifier_creation import create_classifier
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
+from src.utils import read_params
 
 # Load .env and check MLFlow
 load_dotenv()
@@ -33,11 +35,6 @@ def get_pdf_files(input_path: Path) -> list[Path]:
 
     logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
     return []
-
-
-def read_params(params_name: str) -> dict:
-    with open(params_name) as f:
-        return yaml.safe_load(f)
 
 
 def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dict):
@@ -72,7 +69,7 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def process_pdfs(pdf_files: list[Path], classifier: str, **matching_params) -> list[dict]:
+def process_pdfs(pdf_files: list[Path], classifier, **matching_params) -> list[dict]:
     results = []
     with tqdm(total=len(pdf_files)) as pbar:
         for pdf in pdf_files:
@@ -85,7 +82,18 @@ def process_pdfs(pdf_files: list[Path], classifier: str, **matching_params) -> l
     return results
 
 
-def main(input_path: str, ground_truth_path: str = None, classifier: str = "baseline"):
+def main(input_path: str, ground_truth_path: str = None, classifier_name: str = "baseline"):
+    """
+    Run the page classification pipeline on input documents.
+
+    Args:
+        input_path (str): Path to directory with PDF pages or documents.
+        ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
+        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+
+    Raises:
+        ValueError: If an unsupported classifier is specified.
+    """
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
     pdf_files = get_pdf_files(input_path)
@@ -100,6 +108,10 @@ def main(input_path: str, ground_truth_path: str = None, classifier: str = "base
         setup_mlflow(input_path, ground_truth_path, matching_params)
 
     logger.info(f"Start classifying {len(pdf_files)} PDF files")
+
+    # Set up classifier
+    classifier_type = ClassifierTypes.infer_type(classifier_name)
+    classifier = create_classifier(classifier_type)
 
     # Processed PDFs
     results = process_pdfs(pdf_files, classifier, **matching_params)

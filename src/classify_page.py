@@ -3,9 +3,7 @@ from pathlib import Path
 
 import pymupdf
 
-from classifiers.baseline_classifier import DigitalPageClassifier, ScannedPageClassifier
-from classifiers.config_loader import get_aws_config, load_config
-from classifiers.pixtral_classifier import PixtralPDFClassifier
+from src.classifiers.classifier_type import ClassifierTypes
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
 from src.page_graphics import extract_page_graphics, get_page_image_bytes
@@ -17,15 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 def classify_page(
-    page: pymupdf.Page, page_number: int, matching_params: dict, language: str, classifier_name: str = "baseline"
+    page: pymupdf.Page, page_number: int, classifier, language: str, matching_params: dict
 ) -> PageAnalysis:
     """classifies single pages into Text-, Boreprofile-, Map-, Title- or Unknown Page.
     Args:
         page: page that get classified
         page_number: page number in report
-        matching_params: dictionary holding including and excluding expressions for classes in supported languages
+        matching_params: dictionary holding including and excluding expressions for page classes in supported languages
         language: language of page content
-        classifier_name: classifier name used for classification
+        classifier: classifier used for classification
     Returns:
         PageAnalysis object with classification and features,
     """
@@ -52,21 +50,12 @@ def classify_page(
         drawings=drawings,
         image_rects=image_rects,
     )
+    print(id(classifier.type))
+    print(id(ClassifierTypes.PIXTRAL))
 
-    if classifier_name == "pixtral":
-        full_config = load_config()
-        pixtral_config = full_config["pixtral"]
-        aws_config = get_aws_config()
-
-        max_doc_size = pixtral_config["max_document_size_mb"] - pixtral_config["slack_size_mb"]
+    if classifier.type == ClassifierTypes.PIXTRAL:
+        max_doc_size = classifier.config["max_document_size_mb"] - classifier.config["slack_size_mb"]
         image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
-        fallback = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
-
-        classifier = PixtralPDFClassifier(
-            config=pixtral_config,
-            aws_config=aws_config,
-            fallback_classifier=fallback
-        )
 
         fallback_args = {
             "page": page,
@@ -78,16 +67,28 @@ def classify_page(
             image_bytes=image_bytes,
             fallback_args=fallback_args
         )
-    else:
-        classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
+
+    elif classifier.type == ClassifierTypes.BASELINE:
         page_class = classifier.determine_class(page, context, matching_params)
+
+    else:
+        raise ValueError(f"Unsupported classifier type: {classifier.type}")
 
     analysis.set_class(page_class)
 
     return analysis
 
-def classify_pdf(file_path: Path, classifier: str, matching_params: dict) -> dict:
-    """Processes a pdf File, classifies each page"""
+def classify_pdf(file_path: Path, classifier, matching_params: dict) -> dict:
+    """
+    Classify each page of a PDF file.
+
+    Args:
+        file_path: Path to the PDF file.
+        classifier: Classifier object with a `determine_class` method.
+        matching_params: dictionary holding including and excluding expressions for page classes in supported languages
+    Returns:
+        dict: Classification results per page.
+    """
 
     if not file_path.is_file() or file_path.suffix.lower() != ".pdf":
         logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")
@@ -103,7 +104,7 @@ def classify_pdf(file_path: Path, classifier: str, matching_params: dict) -> dic
                 logging.warning(f"Language '{language}' not supported. Using default german language.")
                 language = "de"
 
-            page_classification = classify_page(page, page_number, matching_params, language, classifier)
+            page_classification = classify_page(page, page_number, classifier, language, matching_params)
 
             classification.append(page_classification.to_classification_dict())
     return {"filename": file_path.name, "classification": classification}

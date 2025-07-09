@@ -1,21 +1,22 @@
 import logging
 import boto3
-
 from botocore.exceptions import ClientError
 
+from src.classifiers.classifier_type import ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class
 from src.page_classes import PageClasses
-from src.classifiers.config_loader import load_prompt
+from src.utils import load_prompt
 
 logger = logging.getLogger(__name__)
 
-class PixtralPDFClassifier:
+class PixtralClassifier:
     def __init__(
             self,
             config: dict,
             aws_config: dict,
             fallback_classifier=None,
     ):
+        self.type = ClassifierTypes.PIXTRAL
         self.config = config
         self.prompt_text = load_prompt(config["prompt_path"])
         self.client = boto3.client("bedrock-runtime", region_name=aws_config["region"])

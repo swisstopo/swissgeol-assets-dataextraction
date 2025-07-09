@@ -3,13 +3,14 @@ import math
 import numpy as np
 import pymupdf
 
-from identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
-from identifiers.map import identify_map
-from identifiers.text import identify_text
-from identifiers.title_page import identify_title_page
-from line_detection import extract_geometric_lines
-from page_classes import PageClasses
-from page_structure import PageContext
+from src.classifiers.classifier_type import ClassifierTypes
+from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
+from src.identifiers.map import identify_map
+from src.identifiers.text import identify_text
+from src.identifiers.title_page import identify_title_page
+from src.line_detection import extract_geometric_lines
+from src.page_classes import PageClasses
+from src.page_structure import PageContext
 
 
 class PageClassifier:
@@ -91,3 +92,15 @@ class DigitalPageClassifier(PageClassifier):
         if not (context.image_rects or context.drawings):
             return False
         return super()._detect_map(page, context, matching_params)
+
+
+class BaselineClassifier(PageClassifier):
+    def __init__(self):
+        self.type = ClassifierTypes.BASELINE
+        self.scanned = ScannedPageClassifier()
+        self.digital = DigitalPageClassifier()
+
+    def determine_class(self, page, context, matching_params):
+        if context.is_digital:
+            return self.digital.determine_class(page, context, matching_params)
+        return self.scanned.determine_class(page, context, matching_params)
