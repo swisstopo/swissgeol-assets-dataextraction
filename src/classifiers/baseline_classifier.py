@@ -95,6 +95,15 @@ class DigitalPageClassifier(PageClassifier):
 
 
 class BaselineClassifier(PageClassifier):
+    """
+        Rule-based page classifier that delegates to digital or scanned classifiers
+        based on the page type.
+
+        Attributes:
+            type (ClassifierTypes): Identifier for the classifier type (BASELINE).
+            scanned (ScannedPageClassifier): Classifier for scanned pages.
+            digital (DigitalPageClassifier): Classifier for digital pages.
+    """
     def __init__(self):
         self.type = ClassifierTypes.BASELINE
         self.scanned = ScannedPageClassifier()

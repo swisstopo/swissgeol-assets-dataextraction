@@ -6,6 +6,16 @@ from src.utils import read_params, get_aws_config
 CONFIG_FILE_PATH = "config.yml"
 
 def create_classifier(classifier_type: ClassifierTypes):
+    """
+        Create and return a classifier instance based on the given type.
+
+        Args:
+            classifier_type (ClassifierTypes): The type of classifier to initialize
+                (e.g., BASELINE, PIXTRAL, RF).
+
+        Returns:
+            A classifier instance matching the specified type.
+        """
     if classifier_type == ClassifierTypes.BASELINE:
         return BaselineClassifier()
 
