@@ -6,7 +6,7 @@ import pymupdf
 from src.classifiers.classifier_types import ClassifierTypes
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
-from src.page_graphics import extract_page_graphics, get_page_image_bytes
+from src.page_graphics import extract_page_graphics
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
 from src.utils import is_digitally_born
@@ -15,15 +15,15 @@ logger = logging.getLogger(__name__)
 
 
 def classify_page(
-    page: pymupdf.Page, page_number: int, classifier, language: str, matching_params: dict
+    page: pymupdf.Page, page_number: int, classifier, language: str,
 ) -> PageAnalysis:
     """classifies single pages into Text-, Boreprofile-, Map-, Title- or Unknown Page.
     Args:
         page: page that get classified
         page_number: page number in report
-        matching_params: dictionary holding including and excluding expressions for page classes in supported languages
-        language: language of page content
         classifier: classifier used for classification
+        language: language of page content
+
     Returns:
         PageAnalysis object with classification and features,
     """
@@ -51,27 +51,7 @@ def classify_page(
         image_rects=image_rects,
     )
 
-    if classifier.type == ClassifierTypes.PIXTRAL:
-        max_doc_size = classifier.config["max_document_size_mb"] - classifier.config["slack_size_mb"]
-        image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
-
-        fallback_args = {
-            "page": page,
-            "context": context
-        }
-
-        page_class = classifier.determine_class(
-            image_bytes=image_bytes,
-            fallback_args=fallback_args
-        )
-    elif classifier.type == ClassifierTypes.LAYOUTLMV3:
-        page_class = classifier.determine_class(page)
-
-    elif classifier.type == ClassifierTypes.BASELINE:
-        page_class = classifier.determine_class(page, context)
-
-    else:
-        raise ValueError(f"Unsupported classifier type: {classifier.type}")
+    page_class = classifier.determine_class(page=page, context=context, page_number=page_number)
 
     analysis.set_class(page_class)
 
@@ -99,7 +79,7 @@ def classify_pdf(file_path: Path, classifier, matching_params: dict) -> dict:
         for page_number, page in enumerate(doc, start=1):
             language = detect_language_of_page(page)
 
-            page_classification = classify_page(page, page_number, classifier, language, matching_params)
+            page_classification = classify_page(page, page_number, classifier, language)
 
             classification.append(page_classification.to_classification_dict())
     return {"filename": file_path.name, "classification": classification}

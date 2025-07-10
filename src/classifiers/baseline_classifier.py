@@ -24,7 +24,7 @@ class RuleBasedClassifier(Classifier):
         self.matching_params = matching_params
         self.type = ClassifierTypes.BASELINE
 
-    def determine_class(self, page: pymupdf.Page, context: PageContext) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, context: PageContext, **kwargs) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content."""
         if self._detect_text(page, context):
             return PageClasses.TEXT
@@ -112,7 +112,7 @@ class BaselineClassifier(Classifier):
         self.scanned = ScannedRuleBasedClassifier(matching_params)
         self.digital = DigitalRuleBasedClassifier(matching_params)
 
-    def determine_class(self, page, context):
+    def determine_class(self, page:pymupdf.Page, context: PageContext, **kwargs) -> PageClasses:
         if context.is_digital:
             return self.digital.determine_class(page, context)
         return self.scanned.determine_class(page, context)

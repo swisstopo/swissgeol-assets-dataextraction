@@ -1,7 +1,10 @@
 import logging
 import boto3
+import pymupdf
 from botocore.exceptions import ClientError
 
+from page_graphics import get_page_image_bytes
+from page_structure import PageContext
 from src.classifiers.utils import clean_label, map_string_to_page_class
 from src.page_classes import PageClasses
 from src.utils import load_prompt
@@ -24,18 +27,26 @@ class PixtralClassifier(Classifier):
         self.model_id = aws_config["model_id"]
 
     def determine_class(self,
-                        image_bytes: bytes,
-                        fallback_args: dict = None) -> PageClasses:
+                        page: pymupdf.Page,
+                        context: PageContext,
+                        page_number: int,
+                        **kwargs) -> PageClasses:
         """
         Determines the class of a document page using the Pixtral model.
         Falls back to baseline classifier if output is malformed or ClientError.
         Args:
-            image_bytes (bytes): The image content of the page as a byte string.
-            fallback_args (dict, optional): Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
+            page: The page of th document that should be classified
+            context:: Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
+            page_number: the Page number of the page that should be classified
 
         Returns:
             PageClasses: The predicted page class.
         """
+        max_doc_size = self.config["max_document_size_mb"] - self.config["slack_size_mb"]
+        image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
+
+        fallback_args = {"page": page, "context": context}
+
         conversation = self._build_conversation(image_bytes=image_bytes)
 
         try:

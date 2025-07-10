@@ -1,5 +1,4 @@
 import logging
-from abc import ABC, abstractmethod
 
 from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.classifiers.baseline_classifier import BaselineClassifier

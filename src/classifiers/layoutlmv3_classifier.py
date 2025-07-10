@@ -42,7 +42,7 @@ class LayoutLMv3Classifier(Classifier):
         dataloader = DataLoader(processed_data, batch_size, collate_fn=default_data_collator)
         return dataloader
 
-    def determine_class(self, page: pymupdf.Page) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, **kwargs) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
 
         Args:
