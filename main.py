@@ -109,12 +109,12 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str=None, c
 
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type, model_path)
+    classifier = create_classifier(classifier_type, model_path, matching_params)
 
     logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
-    results = process_pdfs(pdf_files, classifier, **matching_params)
+    results = process_pdfs(pdf_files, classifier)
 
     if not results:
         logger.warning("No data to save.")

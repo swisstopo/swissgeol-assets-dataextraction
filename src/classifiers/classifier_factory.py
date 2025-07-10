@@ -12,7 +12,9 @@ logger = logging.getLogger(__name__)
 PIXTRAL_CONFIG_FILE_PATH = "config/pixtral_config.yml"
 
 
-def create_classifier(classifier_type: ClassifierTypes, model_path: str= None) -> Classifier:
+def create_classifier(classifier_type: ClassifierTypes,
+                      model_path: str= None,
+                      matching_params: dict= None) -> Classifier:
     """
         Create and return a classifier instance based on the given type.
 
@@ -20,13 +22,12 @@ def create_classifier(classifier_type: ClassifierTypes, model_path: str= None) -
             classifier_type (ClassifierTypes): The type of classifier to initialize
                 (e.g., BASELINE, PIXTRAL, LAYOUTLMV3).
             model_path: path to pretrained model if LayoutLMv3 is used.
-
+            matching_params: Expressions used for identifying page classes in baseline classifiers.
         Returns:
             A classifier instance matching the specified type.
     """
     if classifier_type == ClassifierTypes.BASELINE:
-        return BaselineClassifier()
-
+        return BaselineClassifier(matching_params)
 
     elif classifier_type == ClassifierTypes.LAYOUTLMV3:
         return LayoutLMv3Classifier(model_path= model_path)
@@ -37,7 +38,7 @@ def create_classifier(classifier_type: ClassifierTypes, model_path: str= None) -
         if not pixtral_config:
             raise ValueError("Missing pixtral in pixtral_config.yml")
         aws_config = get_aws_config()
-        fallback = BaselineClassifier()
+        fallback = BaselineClassifier(matching_params)
 
         return PixtralClassifier(
             config=pixtral_config,

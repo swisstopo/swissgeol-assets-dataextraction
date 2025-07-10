@@ -57,8 +57,7 @@ def classify_page(
 
         fallback_args = {
             "page": page,
-            "context": context,
-            "matching_params": matching_params,
+            "context": context
         }
 
         page_class = classifier.determine_class(
@@ -69,7 +68,7 @@ def classify_page(
         page_class = classifier.determine_class(page)
 
     elif classifier.type == ClassifierTypes.BASELINE:
-        page_class = classifier.determine_class(page, context, matching_params)
+        page_class = classifier.determine_class(page, context)
 
     else:
         raise ValueError(f"Unsupported classifier type: {classifier.type}")
