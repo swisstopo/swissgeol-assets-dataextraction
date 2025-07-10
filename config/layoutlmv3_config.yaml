@@ -1,0 +1,28 @@
+model_path: "microsoft/layoutlmv3-base"
+
+# Data parameters
+train_folder_path: "data/single_pages_splits/train"
+val_folder_path: "data/single_pages_splits/val"
+ground_truth_file_path: "data/gt_single_pages.json"
+
+# Training hyperparameters
+batch_size: 16
+num_epochs: 48
+learning_rate: 1e-4 #1e-3
+weight_decay: 0.001
+warmup_ratio: 0.1
+#lr_scheduler_type: "cosine"
+lr_scheduler_type: "cosine_with_restarts"
+max_grad_norm: 5.0
+
+# should try with smaller lr: classifier + rel_pos_encoder with 3e-4, then add layer_11 with 3e-5
+# might consider unfreezer layer_10
+
+#custom parameters
+unfreeze_layers:
+  - "classifier"
+  - "rel_pos_encoder"
+  - "layer_11"
+
+# Inference parameters
+inference_batch_size: 16

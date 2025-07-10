@@ -18,3 +18,7 @@ dotenv >= 0.9.9
 scikit-image == 0.25.2
 pre-commit==3.6.2
 shapely==2.1.1
+transformers==4.53.0
+torch==2.7.1
+datasets==3.6.0
+accelerate==1.8.1

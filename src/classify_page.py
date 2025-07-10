@@ -50,8 +50,6 @@ def classify_page(
         drawings=drawings,
         image_rects=image_rects,
     )
-    print(id(classifier.type))
-    print(id(ClassifierTypes.PIXTRAL))
 
     if classifier.type == ClassifierTypes.PIXTRAL:
         max_doc_size = classifier.config["max_document_size_mb"] - classifier.config["slack_size_mb"]
@@ -67,6 +65,10 @@ def classify_page(
             image_bytes=image_bytes,
             fallback_args=fallback_args
         )
+    elif classifier.type == ClassifierTypes.LAYOUTLMV3:
+        # for now, we need to hardcode the path to the model. This can be changed to be
+        # passed as a parameter if we chose to continue with this model.
+        page_class = classifier.determine_class(page)
 
     elif classifier.type == ClassifierTypes.BASELINE:
         page_class = classifier.determine_class(page, context, matching_params)
