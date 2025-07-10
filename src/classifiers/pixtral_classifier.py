@@ -36,7 +36,7 @@ class PixtralClassifier(Classifier):
         Falls back to baseline classifier if output is malformed or ClientError.
         Args:
             page: The page of th document that should be classified
-            context:: Arguments passed to a fallback classifier in case the Pixtral output is invalid or missing.
+            context: Preprocessed page context (e.g., text blocks, lines).
             page_number: the Page number of the page that should be classified
 
         Returns:

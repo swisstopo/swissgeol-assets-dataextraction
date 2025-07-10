@@ -33,10 +33,9 @@ class Classifier(ABC):
         Determine the class of a page.
 
         Keyword Args:
-            image_bytes (bytes): For models like Pixtral.
-            page: Page object (used by BaselineClassifier and LayoutLMv3Classifier).
+            page: Page object.
             context: Preprocessed page context (e.g., text blocks, lines).
-            matching_params (dict): Optional params for fallback rules.
+            matching_params (dict): Optional params for baseline classifier.
 
         Returns:
             PageClasses: Predicted class for the page.
