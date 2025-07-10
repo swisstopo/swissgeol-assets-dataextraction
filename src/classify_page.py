@@ -100,10 +100,6 @@ def classify_pdf(file_path: Path, classifier, matching_params: dict) -> dict:
         for page_number, page in enumerate(doc, start=1):
             language = detect_language_of_page(page)
 
-            if language not in matching_params["material_description"]:
-                logging.warning(f"Language '{language}' not supported. Using default german language.")
-                language = "de"
-
             page_classification = classify_page(page, page_number, classifier, language, matching_params)
 
             classification.append(page_classification.to_classification_dict())
