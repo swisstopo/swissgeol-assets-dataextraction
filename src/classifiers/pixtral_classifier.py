@@ -2,14 +2,14 @@ import logging
 import boto3
 from botocore.exceptions import ClientError
 
-from src.classifiers.classifier_type import ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class
 from src.page_classes import PageClasses
 from src.utils import load_prompt
+from src.classifiers.classifier_types import ClassifierTypes, Classifier
 
 logger = logging.getLogger(__name__)
 
-class PixtralClassifier:
+class PixtralClassifier(Classifier):
     def __init__(
             self,
             config: dict,

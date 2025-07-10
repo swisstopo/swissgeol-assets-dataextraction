@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pymupdf
 
-from src.classifiers.classifier_type import ClassifierTypes
+from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
 from src.identifiers.map import identify_map
 from src.identifiers.text import identify_text
@@ -13,7 +13,7 @@ from src.page_classes import PageClasses
 from src.page_structure import PageContext
 
 
-class PageClassifier:
+class RuleBasedClassifier(Classifier):
     """
     Baseline classifier for single document pages based on layout, content, and geometric features.
 
@@ -64,11 +64,11 @@ class PageClassifier:
         return identify_map(context, matching_params)
 
 
-class ScannedPageClassifier(PageClassifier):
+class ScannedRuleBasedClassifier(RuleBasedClassifier):
     pass
 
 
-class DigitalPageClassifier(PageClassifier):
+class DigitalRuleBasedClassifier(RuleBasedClassifier):
     """
     Baseline classifier for digitally born documents.
 
@@ -94,7 +94,7 @@ class DigitalPageClassifier(PageClassifier):
         return super()._detect_map(page, context, matching_params)
 
 
-class BaselineClassifier(PageClassifier):
+class BaselineClassifier(Classifier):
     """
         Rule-based page classifier that delegates to digital or scanned classifiers
         based on the page type.
@@ -106,8 +106,8 @@ class BaselineClassifier(PageClassifier):
     """
     def __init__(self):
         self.type = ClassifierTypes.BASELINE
-        self.scanned = ScannedPageClassifier()
-        self.digital = DigitalPageClassifier()
+        self.scanned = ScannedRuleBasedClassifier()
+        self.digital = DigitalRuleBasedClassifier()
 
     def determine_class(self, page, context, matching_params):
         if context.is_digital:

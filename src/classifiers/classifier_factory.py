@@ -1,35 +1,47 @@
-from src.classifiers.classifier_type import ClassifierTypes
+import logging
+from abc import ABC, abstractmethod
+
+from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.pixtral_classifier import PixtralClassifier
+from src.classifiers.layoutlmv3_classifier import LayoutLMv3Classifier
 from src.utils import read_params, get_aws_config
 
-CONFIG_FILE_PATH = "config.yml"
+logger = logging.getLogger(__name__)
 
-def create_classifier(classifier_type: ClassifierTypes):
+PIXTRAL_CONFIG_FILE_PATH = "config/pixtral_config.yml"
+
+
+def create_classifier(classifier_type: ClassifierTypes, model_path: str= None) -> Classifier:
     """
         Create and return a classifier instance based on the given type.
 
         Args:
             classifier_type (ClassifierTypes): The type of classifier to initialize
-                (e.g., BASELINE, PIXTRAL, RF).
+                (e.g., BASELINE, PIXTRAL, LAYOUTLMV3).
+            model_path: path to pretrained model if LayoutLMv3 is used.
 
         Returns:
             A classifier instance matching the specified type.
-        """
+    """
     if classifier_type == ClassifierTypes.BASELINE:
         return BaselineClassifier()
 
+
+    elif classifier_type == ClassifierTypes.LAYOUTLMV3:
+        return LayoutLMv3Classifier(model_path= model_path)
+
     elif classifier_type == ClassifierTypes.PIXTRAL:
-        full_config = read_params(CONFIG_FILE_PATH)
-        pixtral_config = full_config.get("pixtral")
+        pixtral_config = read_params(PIXTRAL_CONFIG_FILE_PATH)
+
         if not pixtral_config:
-            raise ValueError("Missing pixtral in config.yml")
+            raise ValueError("Missing pixtral in pixtral_config.yml")
         aws_config = get_aws_config()
         fallback = BaselineClassifier()
 
         return PixtralClassifier(
             config=pixtral_config,
-            aws_config= aws_config,
+            aws_config=aws_config,
             fallback_classifier=fallback)
 
     else:

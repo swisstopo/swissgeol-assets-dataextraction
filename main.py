@@ -7,8 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from src.classifiers.classifier_type import ClassifierTypes
-from src.classifiers.classifier_creation import create_classifier
+from src.classifiers.classifier_factory import create_classifier, ClassifierTypes
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
 from src.utils import read_params
@@ -82,13 +81,14 @@ def process_pdfs(pdf_files: list[Path], classifier, **matching_params) -> list[d
     return results
 
 
-def main(input_path: str, ground_truth_path: str = None, classifier_name: str = "baseline"):
+def main(input_path: str, ground_truth_path: str = None, model_path: str=None, classifier_name: str = "baseline"):
     """
     Run the page classification pipeline on input documents.
 
     Args:
         input_path (str): Path to directory with PDF pages or documents.
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
+        model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
 
     Raises:
@@ -107,11 +107,11 @@ def main(input_path: str, ground_truth_path: str = None, classifier_name: str = 
     if mlflow_tracking:
         setup_mlflow(input_path, ground_truth_path, matching_params)
 
-    logger.info(f"Start classifying {len(pdf_files)} PDF files")
-
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type)
+    classifier = create_classifier(classifier_type, model_path)
+
+    logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
     results = process_pdfs(pdf_files, classifier, **matching_params)
@@ -152,6 +152,13 @@ if __name__ == "__main__":
         help="(Optional) Path to the ground truth JSON file for evaluation.",
     )
     parser.add_argument(
+        "-p",
+        "--model_path",
+        type=str,
+        required=False,
+        help="Path to pretrained LayoutLMv3 model for classification."
+    )
+    parser.add_argument(
         "-c",
         "--classifier",
         type=str,
@@ -160,4 +167,4 @@ if __name__ == "__main__":
         help="Specify which classifier to use for classification. Default set to baseline.",
     )
     args = parser.parse_args()
-    main(args.input_path, args.ground_truth_path, args.classifier)
+    main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)

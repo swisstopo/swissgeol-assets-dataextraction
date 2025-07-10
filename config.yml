@@ -1,6 +1,0 @@
-pixtral:
-  prompt_path: prompts/layout_classification_prompt.txt
-  max_document_size_mb: 4.5
-  slack_size_mb: 0.2
-  max_tokens: 200
-  temperature: 0.2

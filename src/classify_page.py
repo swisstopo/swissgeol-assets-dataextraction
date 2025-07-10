@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pymupdf
 
-from src.classifiers.classifier_type import ClassifierTypes
+from src.classifiers.classifier_types import ClassifierTypes
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
 from src.page_graphics import extract_page_graphics, get_page_image_bytes
@@ -66,8 +66,6 @@ def classify_page(
             fallback_args=fallback_args
         )
     elif classifier.type == ClassifierTypes.LAYOUTLMV3:
-        # for now, we need to hardcode the path to the model. This can be changed to be
-        # passed as a parameter if we chose to continue with this model.
         page_class = classifier.determine_class(page)
 
     elif classifier.type == ClassifierTypes.BASELINE:
