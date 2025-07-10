@@ -93,7 +93,7 @@ def main(input_path: str, ground_truth_path: str = None, classifier: str = "base
         logger.error("No valid PDFs found.")
         return
 
-    matching_params = read_params("matching_params.yml")
+    matching_params = read_params("config/matching_params.yml")
 
     # Start MLFlow tracking
     if mlflow_tracking:

@@ -4,6 +4,7 @@ from pathlib import Path
 import pymupdf
 
 from classifiers.baseline_classifier import DigitalPageClassifier, ScannedPageClassifier
+from classifiers.layoutlmv3_classifier import LayoutLMv3PageClassifier
 from classifiers.pixtral_classifier import PixtralPDFClassifier
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
@@ -67,6 +68,14 @@ def classify_page(
         page_class = classifier.determine_class(
             page_bytes, page_name=f"page_{page_number}", fallback_args=fallback_args
         )
+    elif classifier_name.lower() == "layoutlmv3":
+        # for now, we need to hardcode the path to the model. This can be changed to be
+        # passed as a parameter if we chose to continue with this model.
+        model_path = "models/"
+        classifier = LayoutLMv3PageClassifier(model_path)
+
+        page_class = classifier.determine_class(page)
+
     else:
         classifier = DigitalPageClassifier() if is_digital else ScannedPageClassifier()
         page_class = classifier.determine_class(page, context, matching_params)

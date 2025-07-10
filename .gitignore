@@ -4,12 +4,11 @@
 /evaluation/
 /mlruns/
 /mlartifacts/
+/models/
 
 # Jupyter notebook checkpoints
 .ipynb_checkpoints/
 
-# VsCode settings
-.vscode/
 
 # Python cache
 __pycache__/
@@ -28,3 +27,5 @@ env/
 # Environment files
 .env
 !*.env.template
+
+.DS_Store
