@@ -82,7 +82,7 @@ def build_lazy_dataset(
     preprocess_fn: Callable,
     ground_truth_map: dict | None = None,
 ) -> IterableDataset:
-    """Builds a iterable dataset from a list of PDF files.
+    """Builds an iterable dataset from a list of PDF files.
 
     This function processes each PDF file, extracts the necessary data from each page, normalizes the bounding boxes,
     and applies a preprocessing function to each page's data. The use of a generator allows for lazy loading of the
