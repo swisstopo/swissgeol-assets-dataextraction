@@ -36,7 +36,7 @@ def get_pdf_files(input_path: Path) -> list[Path]:
     return []
 
 
-def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dict):
+def setup_mlflow(input_path: Path, ground_truth_path: Path,model_path:str, matching_params: dict, classifier_name:str):
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
@@ -44,6 +44,10 @@ def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dic
 
     if ground_truth_path:
         mlflow.set_tag("ground_truth_path", str(ground_truth_path))
+    if model_path:
+        mlflow.set_tag("model_path",str(model_path))
+    if classifier_name:
+        mlflow.set_tag("classifier_name", str(classifier_name))
 
     mlflow.log_params(flatten_dict(matching_params))
 
@@ -68,12 +72,12 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def process_pdfs(pdf_files: list[Path], classifier, **matching_params) -> list[dict]:
+def process_pdfs(pdf_files: list[Path], classifier) -> list[dict]:
     results = []
     with tqdm(total=len(pdf_files)) as pbar:
         for pdf in pdf_files:
             pbar.set_description(f"Processing {pdf.name}")
-            classification_data = classify_pdf(pdf, classifier, matching_params)
+            classification_data = classify_pdf(pdf, classifier)
             if classification_data:
                 results.append(classification_data)
             pbar.update(1)
@@ -105,7 +109,7 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str=None, c
 
     # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, ground_truth_path, matching_params)
+        setup_mlflow(input_path, ground_truth_path,model_path, matching_params, classifier_name)
 
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)

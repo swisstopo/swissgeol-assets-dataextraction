@@ -1,5 +1,6 @@
 import logging
 
+from classifiers.randomforest_classifier import RandomForestClassifier
 from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.pixtral_classifier import PixtralClassifier
@@ -27,6 +28,10 @@ def create_classifier(classifier_type: ClassifierTypes,
     """
     if classifier_type == ClassifierTypes.BASELINE:
         return BaselineClassifier(matching_params)
+
+    elif classifier_type == ClassifierTypes.RANDOMFOREST:
+        return RandomForestClassifier(matching_params= matching_params,
+                                      model_path=model_path)
 
     elif classifier_type == ClassifierTypes.LAYOUTLMV3:
         return LayoutLMv3Classifier(model_path= model_path)

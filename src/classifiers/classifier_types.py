@@ -8,6 +8,7 @@ class ClassifierTypes(Enum):
     BASELINE = "baseline"
     PIXTRAL = "pixtral"
     LAYOUTLMV3 = "layoutlmv3"
+    RANDOMFOREST = "randomforest"
 
     @classmethod
     def infer_type(cls, classifier_str: str) -> "ClassifierTypes":

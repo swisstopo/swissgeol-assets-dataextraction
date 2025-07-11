@@ -22,7 +22,7 @@ from transformers.trainer_utils import TrainOutput
 from classifiers.pdf_dataset_builder import (
     build_lazy_dataset,
 )
-from models.model import LayoutLMv3
+from src.models.layoutlmv3.model import LayoutLMv3
 
 if __name__ == "__main__":
     # Only configure logging if this script is run directly (e.g. training pipeline entrypoint)
