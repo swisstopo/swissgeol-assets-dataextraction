@@ -3,12 +3,12 @@ import pymupdf
 from torch.utils.data import DataLoader
 from transformers import default_data_collator
 
+from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.classifiers.pdf_dataset_builder import build_dataset_from_page_list
 from src.models.model import LayoutLMv3
 from src.page_classes import PageClasses
 
-
-class LayoutLMv3PageClassifier:
+class LayoutLMv3Classifier(Classifier):
     """
     Transformer-based page classifier using LayoutLMv3.
     """
@@ -20,6 +20,7 @@ class LayoutLMv3PageClassifier:
             model_path (str): Path to the pre-trained LayoutLMv3 model. A valid model path is required.
                 If None, it raises a ValueError.
         """
+        self.type = ClassifierTypes.LAYOUTLMV3
         if model_path is None:
             raise ValueError("Model path should specify the path to a trained model.")
         self.model = LayoutLMv3(model_name_or_path=model_path, device="cpu")
@@ -41,7 +42,7 @@ class LayoutLMv3PageClassifier:
         dataloader = DataLoader(processed_data, batch_size, collate_fn=default_data_collator)
         return dataloader
 
-    def determine_class(self, page: pymupdf.Page) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, **kwargs) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
 
         Args:

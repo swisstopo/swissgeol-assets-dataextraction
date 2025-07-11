@@ -4,12 +4,13 @@ import logging
 import os
 from pathlib import Path
 
-import yaml
 from dotenv import load_dotenv
 from tqdm import tqdm
 
+from src.classifiers.classifier_factory import create_classifier, ClassifierTypes
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
+from src.utils import read_params
 
 # Load .env and check MLFlow
 load_dotenv()
@@ -33,11 +34,6 @@ def get_pdf_files(input_path: Path) -> list[Path]:
 
     logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
     return []
-
-
-def read_params(params_name: str) -> dict:
-    with open(params_name) as f:
-        return yaml.safe_load(f)
 
 
 def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dict):
@@ -72,7 +68,7 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def process_pdfs(pdf_files: list[Path], classifier: str, **matching_params) -> list[dict]:
+def process_pdfs(pdf_files: list[Path], classifier, **matching_params) -> list[dict]:
     results = []
     with tqdm(total=len(pdf_files)) as pbar:
         for pdf in pdf_files:
@@ -85,7 +81,19 @@ def process_pdfs(pdf_files: list[Path], classifier: str, **matching_params) -> l
     return results
 
 
-def main(input_path: str, ground_truth_path: str = None, classifier: str = "baseline"):
+def main(input_path: str, ground_truth_path: str = None, model_path: str=None, classifier_name: str = "baseline"):
+    """
+    Run the page classification pipeline on input documents.
+
+    Args:
+        input_path (str): Path to directory with PDF pages or documents.
+        ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
+        model_path (str, optional): Path to pretrained LayoutLMv3 model.
+        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+
+    Raises:
+        ValueError: If an unsupported classifier is specified.
+    """
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
     pdf_files = get_pdf_files(input_path)
@@ -99,10 +107,14 @@ def main(input_path: str, ground_truth_path: str = None, classifier: str = "base
     if mlflow_tracking:
         setup_mlflow(input_path, ground_truth_path, matching_params)
 
-    logger.info(f"Start classifying {len(pdf_files)} PDF files")
+    # Set up classifier
+    classifier_type = ClassifierTypes.infer_type(classifier_name)
+    classifier = create_classifier(classifier_type, model_path, matching_params)
+
+    logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
-    results = process_pdfs(pdf_files, classifier, **matching_params)
+    results = process_pdfs(pdf_files, classifier)
 
     if not results:
         logger.warning("No data to save.")
@@ -140,6 +152,13 @@ if __name__ == "__main__":
         help="(Optional) Path to the ground truth JSON file for evaluation.",
     )
     parser.add_argument(
+        "-p",
+        "--model_path",
+        type=str,
+        required=False,
+        help="Path to pretrained LayoutLMv3 model for classification."
+    )
+    parser.add_argument(
         "-c",
         "--classifier",
         type=str,
@@ -148,4 +167,4 @@ if __name__ == "__main__":
         help="Specify which classifier to use for classification. Default set to baseline.",
     )
     args = parser.parse_args()
-    main(args.input_path, args.ground_truth_path, args.classifier)
+    main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)

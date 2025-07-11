@@ -1,4 +1,9 @@
 import pymupdf
+from dotenv import load_dotenv
+import os
+import yaml
+
+load_dotenv()
 
 from src.text_objects import TextLine
 
@@ -18,3 +23,17 @@ def is_description(line: TextLine, matching_params: dict):
     return any(line_text.find(word) > -1 for word in matching_params["including_expressions"]) and not any(
         line_text.find(word) > -1 for word in matching_params["excluding_expressions"]
     )
+
+def read_params(params_name: str) -> dict:
+    with open(params_name) as f:
+        return yaml.safe_load(f)
+
+def load_prompt(prompt_path: str) -> str:
+    with open(prompt_path, "r") as f:
+        return f.read()
+
+def get_aws_config() -> dict:
+    return {
+        "region": os.environ.get("AWS_MODEL_REGION"),
+        "model_id": os.environ.get("AWS_MODEL_ID"),
+    }

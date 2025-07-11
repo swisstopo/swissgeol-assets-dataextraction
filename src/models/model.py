@@ -43,6 +43,7 @@ class LayoutLMv3:
         if Path(model_name_or_path).exists():
             self.processor = LayoutLMv3Processor.from_pretrained(model_name_or_path)
         else:
+            logger.info("Model path: {model_path} does not exist. Switching to Hugging Face model '[microsoft/layoutlmv3-base](https://huggingface.co/microsoft/layoutlmv3-base)'")
             self.processor = LayoutLMv3Processor.from_pretrained(model_name_or_path, apply_ocr=False)
 
         self.hf_model = LayoutLMv3ForSequenceClassification.from_pretrained(
