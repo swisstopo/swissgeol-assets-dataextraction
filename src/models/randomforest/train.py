@@ -13,28 +13,20 @@ from main import get_pdf_files
 from src.models.feature_engineering import get_features
 from src.page_classes import PageClasses
 from src.utils import read_params
+from src.page_classes import (
+    id2label,
+    enum2id
+)
 
-# === Paths and Constants ===
+# === Paths ===
 DATAPATH = Path("/home/lillemor/PycharmProjects/swissgeol-assets-dataextraction/data")
 GROUND_TRUTH_FILE = DATAPATH / "gt_single_pages.json"
 TRAIN_FOLDER = DATAPATH / "train"
 VAL_FOLDER = DATAPATH / "val"
 MODEL_PATH = "/home/lillemor/PycharmProjects/swissgeol-assets-dataextraction/models/random_forest/model.joblib"
-MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
 MATCHING_PARAMS_PATH = "/home/lillemor/PycharmProjects/swissgeol-assets-dataextraction/config/matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
 
-label2id = {"Boreprofile": 0, "Maps": 1, "Text": 2, "Title_Page": 3, "Unknown": 4}
-id2label = {v: k for k, v in label2id.items()}
-num_labels = len(label2id)
-enum2id = {
-    PageClasses.BOREPROFILE: 0,
-    PageClasses.MAP: 1,
-    PageClasses.TEXT: 2,
-    PageClasses.TITLE_PAGE: 3,
-    PageClasses.UNKNOWN: 4,
-}
-id2enum = {v: k for k, v in enum2id.items()}
 class_names = [label for _, label in sorted(id2label.items())]
 
 # Feature names (must match get_features() output order)
@@ -93,12 +85,12 @@ def load_data_and_labels(folder_path: Path, label_map: dict[str, int]):
 
 
 # === Load data ===
-print("Building label lookup from ground truth...")
+print("Building label lookup from ground truth")
 label_lookup = build_filename_to_label_map(GROUND_TRUTH_FILE)
 
-print("Loading training data...")
+print("Loading training data")
 X_train, y_train = load_data_and_labels(TRAIN_FOLDER, label_lookup)
-print("Loading validation data...")
+print("Loading validation data")
 X_val, y_val = load_data_and_labels(VAL_FOLDER, label_lookup)
 
 X_train = np.array(X_train)
@@ -107,12 +99,12 @@ X_val = np.array(X_val)
 y_val = np.array(y_val)
 
 # === Train model ===
-print("🌲 Training Random Forest model...")
+print("Training Random Forest model...")
 clf = RandomForestClassifier(n_estimators=100, random_state=42)
 clf.fit(X_train, y_train)
 
 # === Evaluate ===
-print("\n✅ Evaluation on validation set:")
+print("Evaluation on validation set:")
 y_pred = clf.predict(X_val)
 print("\nConfusion Matrix:")
 print(confusion_matrix(y_val, y_pred))

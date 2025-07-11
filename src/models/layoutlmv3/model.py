@@ -7,8 +7,13 @@ from transformers import (
     LayoutLMv3ForSequenceClassification,
     LayoutLMv3Processor,
 )
-from src.page_classes import PageClasses
-
+from src.page_classes import (
+    label2id,
+    id2label,
+    enum2id,
+    id2enum,
+    num_labels,
+)
 logger = logging.getLogger(__name__)
 
 class LayoutLMv3:
@@ -18,18 +23,6 @@ class LayoutLMv3:
     prediction, and training. It supports freezing and unfreezing layers for fine-tuning.
     """
 
-    label2id = {"Boreprofile": 0, "Maps": 1, "Text": 2, "Title_Page": 3, "Unknown": 4}
-    id2label = {v: k for k, v in label2id.items()}
-    num_labels = len(label2id)
-    enum2id = {
-        PageClasses.BOREPROFILE: 0,
-        PageClasses.MAP: 1,
-        PageClasses.TEXT: 2,
-        PageClasses.TITLE_PAGE: 3,
-        PageClasses.UNKNOWN: 4,
-    }
-    id2enum = {v: k for k, v in enum2id.items()}
-
     def __init__(self, model_name_or_path: str = "microsoft/layoutlmv3-base", device: str = None):
         """Initializes the LayoutLMv3 model.
         Args:
@@ -38,6 +31,12 @@ class LayoutLMv3:
             device (str): Device to run the model on, e.g., "cuda" or "cpu". If None, it defaults to "cuda" if available,
                 otherwise "cpu".
         """
+        self.label2id = label2id
+        self.id2label = id2label
+        self.enum2id = enum2id
+        self.id2enum = id2enum
+        self.num_labels = num_labels
+
         self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
         # Only use `apply_ocr=False` if using a base model name (not a saved checkpoint)
         if Path(model_name_or_path).exists():

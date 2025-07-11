@@ -1,6 +1,8 @@
 import pymupdf
 import numpy as np
 import re
+
+from page_structure import PageContext
 from text_objects import create_text_blocks, create_text_lines
 
 from src.detect_language import detect_language_of_page
@@ -10,9 +12,6 @@ from line_detection import extract_geometric_lines
 from material_description import detect_material_description
 from scipy.stats import entropy
 from utils import is_description
-
-from src.utils import read_params
-
 
 
 def compute_text_features_chat(lines, text_blocks):
@@ -59,7 +58,6 @@ def compute_text_features_chat(lines, text_blocks):
 
     # Calculate word density as the ratio of word area to total area
     word_density = word_area / tot_area if tot_area > 0 else 0
-    # density = word_count / len(text_blocks) if text_blocks else 0
     mean_left = np.mean(lefts)
     mean_right = np.mean(rights)
     text_width = np.mean([r - l for r, l in zip(rights, lefts)])
@@ -136,15 +134,20 @@ def get_features(paths, matching_params):
 
             page_number = 1
             page = doc[page_number - 1]
-            feat = get_features_from_page(page, page_number, matching_params)
+            lines = create_text_lines(page, page_number)
+            language = detect_language_of_page(page)
+            geometric_lines = extract_geometric_lines(page)
+            text_blocks = create_text_blocks(lines)
+            feat = compute_text_features_chat(lines, text_blocks)
+            feat.extend(extract_more_features(lines, geometric_lines, language, matching_params))
             all_features.append(feat)
     return all_features
 
-def get_features_from_page(page,page_number, matching_params):
-    lines = create_text_lines(page, page_number)
-    language = detect_language_of_page(page)
-    geometric_lines = extract_geometric_lines(page)
-    text_blocks = create_text_blocks(lines)
-    features = compute_text_features_chat(lines, text_blocks)
-    features.extend(extract_more_features(lines, geometric_lines, language, matching_params))
+
+def get_features_from_page(page:pymupdf, ctx:PageContext, matching_params:dict):
+    features = compute_text_features_chat(ctx.lines, ctx.text_blocks)
+    ctx.geometric_lines = extract_geometric_lines(page)
+
+    features.extend(extract_more_features(ctx.lines, ctx.geometric_lines, ctx.language, matching_params))
+
     return features

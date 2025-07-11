@@ -4,6 +4,7 @@ from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.models.randomforest.model import RandomForest
 from src.page_classes import PageClasses
 from src.models.feature_engineering import get_features_from_page
+from src.page_structure import PageContext
 
 
 class RandomForestClassifier(Classifier):
@@ -25,17 +26,18 @@ class RandomForestClassifier(Classifier):
         self.model = RandomForest(model_path=model_path)
 
 
-    def determine_class(self, page: pymupdf.Page, page_number:int, **kwargs) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page,context:PageContext, page_number:int, **kwargs) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
 
         Args:
             page (pymupdf.Page): The page to classify.
             page_number: Page number of page
+            context: PageContext
         Returns:
             PageClasses: The predicted class of the page.
         """
 
-        features = get_features_from_page(page= page, page_number= page_number,matching_params= self.matching_params)
+        features = get_features_from_page(page= page, ctx=context ,matching_params= self.matching_params)
 
         predictions = self.model.predict([features])
 
