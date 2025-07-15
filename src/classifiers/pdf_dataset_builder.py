@@ -7,7 +7,7 @@ import pymupdf
 from datasets import Dataset, IterableDataset
 from PIL import Image
 
-from page_classes import PageClasses, enum2id
+from src.page_classes import PageClasses, enum2id
 
 logger = logging.getLogger(__name__)
 
