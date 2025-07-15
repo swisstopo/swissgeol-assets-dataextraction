@@ -40,6 +40,3 @@ class RandomForest:
 
     def load_model(self, model_path: str):
         self.model = joblib.load(Path(model_path))
-
-    def save_model(self, model_path: str):
-        joblib.dump(self.model, Path(model_path))

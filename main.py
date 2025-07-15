@@ -10,7 +10,7 @@ from tqdm import tqdm
 from src.classifiers.classifier_factory import create_classifier, ClassifierTypes
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
-from src.utils import read_params
+from src.utils import read_params, get_pdf_files
 
 # Load .env and check MLFlow
 load_dotenv()
@@ -25,15 +25,7 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
-def get_pdf_files(input_path: Path) -> list[Path]:
-    """Returns a list of PDF files from a directory or a single file."""
-    if input_path.is_dir():
-        return [f for f in input_path.rglob("*.pdf")]
-    elif input_path.is_file() and input_path.suffix.lower() == ".pdf":
-        return [input_path]
 
-    logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
-    return []
 
 
 def setup_mlflow(input_path: Path, ground_truth_path: Path,model_path:str, matching_params: dict, classifier_name:str):

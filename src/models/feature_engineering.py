@@ -2,33 +2,27 @@ import pymupdf
 import numpy as np
 import re
 
-from page_structure import PageContext
-from text_objects import create_text_blocks, create_text_lines
+from src.page_structure import PageContext
+from src.text_objects import create_text_blocks, create_text_lines
 
 from src.detect_language import detect_language_of_page
-from identifiers.boreprofile import create_sidebars
-from identifiers.map import find_map_scales, split_lines_by_orientation
-from line_detection import extract_geometric_lines
-from material_description import detect_material_description
-from scipy.stats import entropy
-from utils import is_description
+from src.identifiers.boreprofile import create_sidebars
+from src.identifiers.map import find_map_scales, split_lines_by_orientation,compute_angle_entropy
+from src.line_detection import extract_geometric_lines
+from src.material_description import detect_material_description
+from src.utils import is_description
 
 
-def compute_text_features_chat(lines, text_blocks):
+def compute_text_features(lines, text_blocks, language, geometric_lines, matching_params):
     if not lines:
-        return [0.0] * 10  # Handle empty pages
+        return [0.0] * 17  # Handle empty pages
 
-    lefts = []
-    rights = []
-    line_lengths = []
-    punct_count = 0
-    total_chars = 0
-    capital_chars = 0
-    word_count = 0
+    lefts, rights, line_lengths = [], [], []
+    punct_count = capital_chars = total_chars = word_count = 0
+
 
     for line in lines:
-        x0 = line.rect.x0
-        x1 = line.rect.x1
+        x0, x1 = line.rect.x0, line.rect.x1
         words = line.words
         word_count += len(words)
         text = " ".join(word.text for word in words)
@@ -66,6 +60,35 @@ def compute_text_features_chat(lines, text_blocks):
     punct_density = punct_count / line_count if line_count else 0
     capital_ratio = capital_chars / total_chars if total_chars else 0
 
+    words = [word for line in lines for word in line.words]
+
+    keywords = matching_params["material_description"].get(language, {})
+    if keywords:
+        descriptions = detect_material_description(lines, words, keywords)
+    else:
+        descriptions = []
+    num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
+
+    sidebars = create_sidebars(words)
+    has_sidebar = int(bool(sidebars))
+
+    keyword_set = matching_params["boreprofile"].get(language, {})
+    has_bh_keyword = int(any(keyword in word.text.lower() for word in words for keyword in keyword_set))
+
+    keywords = matching_params["map_terms"].get(language, {})
+    if keywords:
+        num_map_keyword_lines = len(
+            [line for line in lines if is_description(line, keywords) or find_map_scales(line)]
+        )
+    else:
+        num_map_keyword_lines = 0
+
+    angles = [line.line_angle for line in geometric_lines]
+    grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
+    grid_length_sum = sum(grid_lengths)
+    non_grid_length_sum = sum(non_grid_lengths)
+    angle_entropy = compute_angle_entropy(angles)
+
     return [
         float(n)
         for n in [
@@ -79,48 +102,14 @@ def compute_text_features_chat(lines, text_blocks):
             indent_std,
             punct_density,
             capital_ratio,
+            has_sidebar,
+            has_bh_keyword,
+            num_valid_descriptions,
+            num_map_keyword_lines,
+            float(grid_length_sum),
+            float(non_grid_length_sum),
+            float(angle_entropy),
         ]
-    ]
-
-def extract_more_features(lines, geometric_lines, language, matching_params):
-    words = [word for line in lines for word in line.words]
-
-    keywords = matching_params["material_description"].get(language, [])
-    if keywords:
-        descriptions = detect_material_description(lines, words, keywords)
-    else:
-        descriptions = []
-    num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
-
-    sidebars = create_sidebars(words)
-    has_sidebar = int(bool(sidebars))
-
-    keyword_set = matching_params["boreprofile"].get(language, [])
-    has_bh_keyword = int(any(keyword in word.text.lower() for word in words for keyword in keyword_set))
-
-    keywords = matching_params["map_terms"].get(language, [])
-    if keywords:
-        num_map_keyword_lines = len(
-            [line for line in lines if is_description(line, keywords) or find_map_scales(line)]
-        )
-    else:
-        num_map_keyword_lines = 0
-
-    angles = [line.line_angle for line in geometric_lines]
-    grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
-    grid_length_sum = sum(grid_lengths)
-    non_grid_length_sum = sum(non_grid_lengths)
-    angle_hist = np.histogram(angles, bins=36, range=(0, 180))[0]
-    angle_entropy = entropy(angle_hist) / np.log2(36)
-
-    return [
-        has_sidebar,
-        has_bh_keyword,
-        num_valid_descriptions,
-        num_map_keyword_lines,
-        float(grid_length_sum),
-        float(non_grid_length_sum),
-        float(angle_entropy),
     ]
 
 
@@ -138,16 +127,15 @@ def get_features(paths, matching_params):
             language = detect_language_of_page(page)
             geometric_lines = extract_geometric_lines(page)
             text_blocks = create_text_blocks(lines)
-            feat = compute_text_features_chat(lines, text_blocks)
-            feat.extend(extract_more_features(lines, geometric_lines, language, matching_params))
-            all_features.append(feat)
+
+            features = compute_text_features(lines, text_blocks,language, geometric_lines, matching_params)
+            all_features.append(features)
     return all_features
 
 
 def get_features_from_page(page:pymupdf, ctx:PageContext, matching_params:dict):
-    features = compute_text_features_chat(ctx.lines, ctx.text_blocks)
-    ctx.geometric_lines = extract_geometric_lines(page)
+    features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
 
-    features.extend(extract_more_features(ctx.lines, ctx.geometric_lines, ctx.language, matching_params))
+    ctx.geometric_lines = extract_geometric_lines(page)
 
     return features

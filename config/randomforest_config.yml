@@ -1,0 +1,34 @@
+# === rf_config.yaml ===
+model_type: random_forest
+output_dir: models/random_forest
+
+# Data parameters
+train_folder_path: "data/single_pages_splits/train"
+val_folder_path: "data/single_pages_splits/val"
+ground_truth_file_path: "data/gt_single_pages.json"
+
+# Feature names to track
+feature_names:
+  - Words Per Line
+  - Text zone Density
+  - Mean Left
+  - Mean Right
+  - Text Width
+  - Line Count
+  - Line Length Variance
+  - Indent Std Dev
+  - Punctuation Density
+  - Capitalization Ratio
+  - has_sidebar
+  - has_bh_keyword
+  - num_valid_descriptions
+  - num_map_keyword_lines
+  - grid_length_sum
+  - non_grid_length_sum
+  - angle_entropy
+
+# Model hyperparameters
+hyperparameters:
+  n_estimators: 200
+  max_depth: 15
+  random_state: 42
