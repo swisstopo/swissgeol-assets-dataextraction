@@ -1,6 +1,6 @@
 import logging
 
-from classifiers.randomforest_classifier import RandomForestClassifier
+from src.classifiers.randomforest_classifier import RandomForestClassifier
 from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.pixtral_classifier import PixtralClassifier

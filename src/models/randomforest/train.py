@@ -12,7 +12,6 @@ from pathlib import Path
 import mlflow
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
-from src.page_classes import id2label
 from src.models.basetrainer import BaseTrainer
 from src.models.feature_engineering import get_features
 from src.utils import read_params, get_pdf_files
@@ -103,7 +102,7 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
     return all_features, labels
 
 
-def main(config_path: str, out_directory:str, tuning:bool = True):
+def main(config_path: str, out_directory: str, tuning: bool = False):
 
     config = read_params(config_path)
     train_folder = Path(config["train_folder_path"])
@@ -127,11 +126,7 @@ def main(config_path: str, out_directory:str, tuning:bool = True):
     else:
         raise ValueError(f"Unsupported trainer: {trainer_name}")
 
-    ## create trainer
-    trainer.load_data(X_train, y_train, X_val, y_val)
-
     with mlflow.start_run(run_name=trainer_name):
-
         if tuning:
             search_params = config["tuning"]["param_grid"]
             n_iter = config["tuning"].get("n_iter", 20)
@@ -149,12 +144,11 @@ def main(config_path: str, out_directory:str, tuning:bool = True):
 
             mlflow.log_params(best_params)
             mlflow.log_metric("best_cv_score", best_score)
+        else:
+            trainer.prepare_model()
 
-        ## train model
-        trainer.prepare_model()
+        trainer.load_data(X_train, y_train, X_val, y_val)
         trainer.train()
-
-        ##save model
         trainer.save_model()
 
         y_pred = trainer.model.predict(X_val)

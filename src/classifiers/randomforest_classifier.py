@@ -26,7 +26,7 @@ class RandomForestClassifier(Classifier):
         self.model = RandomForest(model_path=model_path)
 
 
-    def determine_class(self, page: pymupdf.Page,context:PageContext, page_number:int, **kwargs) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
 
         Args:

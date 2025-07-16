@@ -124,7 +124,7 @@ def get_features(page, page_number, matching_params):
     return features
 
 
-def get_features_from_page(page:pymupdf, ctx:PageContext, matching_params:dict):
+def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params: dict):
     ctx.geometric_lines = extract_geometric_lines(page)
     features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
 

@@ -63,7 +63,7 @@ class BaseTrainer(abc.ABC):
         plt.xticks(range(len(importances)), sorted_names, rotation=45, ha="right")
         plt.ylabel("Importance")
         plt.tight_layout()
-        fig_path = self.model_dir  / "feature_importance.png"
+        fig_path = self.model_dir / "feature_importance.png"
         plt.savefig(fig_path)
         plt.close()
         mlflow.log_artifact(str(fig_path))
@@ -73,7 +73,7 @@ class BaseTrainer(abc.ABC):
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=id2label)
         disp.plot(xticks_rotation="vertical")
         plt.tight_layout()
-        fig_path = self.model_dir  / "confusion_matrix.png"
+        fig_path = self.model_dir / "confusion_matrix.png"
         plt.savefig(fig_path)
         plt.close()
         mlflow.log_artifact(str(fig_path))
