@@ -113,29 +113,19 @@ def compute_text_features(lines, text_blocks, language, geometric_lines, matchin
     ]
 
 
-def get_features(paths, matching_params):
-    all_features = []
-    for file_path in paths:
-        with pymupdf.Document(file_path) as doc:
-            print(f"Processing {file_path}", end="\r")
-            if len(doc) > 1:
-                raise ValueError(f"Expected single-page PDF, but found {len(doc)} pages in {file_path}")
+def get_features(page, page_number, matching_params):
 
-            page_number = 1
-            page = doc[page_number - 1]
-            lines = create_text_lines(page, page_number)
-            language = detect_language_of_page(page)
-            geometric_lines = extract_geometric_lines(page)
-            text_blocks = create_text_blocks(lines)
+    lines = create_text_lines(page, page_number)
+    language = detect_language_of_page(page)
+    geometric_lines = extract_geometric_lines(page)
+    text_blocks = create_text_blocks(lines)
 
-            features = compute_text_features(lines, text_blocks,language, geometric_lines, matching_params)
-            all_features.append(features)
-    return all_features
+    features = compute_text_features(lines, text_blocks,language, geometric_lines, matching_params)
+    return features
 
 
 def get_features_from_page(page:pymupdf, ctx:PageContext, matching_params:dict):
-    features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
-
     ctx.geometric_lines = extract_geometric_lines(page)
+    features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
 
     return features

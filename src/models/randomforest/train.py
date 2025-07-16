@@ -2,19 +2,20 @@ import os
 import time
 import argparse
 import logging
-from pathlib import Path
+import pymupdf
 from dotenv import load_dotenv
 
-import mlflow
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBClassifier
+from pathlib import Path
+import mlflow
 
+from classifiers.pdf_dataset_builder import build_filename_to_label_map
+from src.page_classes import id2label
 from src.models.basetrainer import BaseTrainer
 from src.models.feature_engineering import get_features
 from src.utils import read_params, get_pdf_files
-from src.page_classes import id2label
-from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
 
 logger = logging.getLogger(__name__)
 
@@ -23,8 +24,6 @@ mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 
 MATCHING_PARAMS_PATH = "config/matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
-
-class_names = [label for _, label in sorted(id2label.items())]
 
 class RandomForestTrainer(BaseTrainer):
     def prepare_model(self):
@@ -57,14 +56,14 @@ class XGBoostTrainer(BaseTrainer):
         hyperparams = self.config.get("hyperparameters", {})
         self.model = XGBClassifier(
             objective='multi:softprob',
-            num_class=len(class_names),
+            num_class=len(self.num_labels),
             **hyperparams
         )
 
     def tune_hyperparameters(self, param_dist, n_iter=20, scoring="f1_micro", cv=3):
         model = XGBClassifier(
             objective="multi:softprob",
-            num_class=len(class_names),
+            num_class=len(self.num_labels),
             eval_metric="mlogloss"
         )
         search = RandomizedSearchCV(
@@ -80,17 +79,29 @@ class XGBoostTrainer(BaseTrainer):
         search.fit(self.X_train, self.y_train)
         return search.best_params_, search.best_score_
 
-def load_data_and_labels(folder_path: Path, label_map: dict[str, int]):
+def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int]):
     """Extract features and labels for all PDF pages in a folder."""
     file_paths = get_pdf_files(folder_path)
-    features = get_features(file_paths, matching_params)
+    all_features = []
     labels = []
-    for f in file_paths:
-        filename = os.path.basename(f)
-        if filename not in label_map:
-            raise ValueError(f"Missing label for file: {filename}")
-        labels.append(label_map[filename])
-    return features, labels
+
+    for file_path in file_paths:
+        filename = os.path.basename(file_path)
+
+        with pymupdf.Document(file_path) as doc:
+            print(f"Processing {filename}", end="\r")
+
+            for page_number, page in enumerate(doc, start = 1):
+                features = get_features(page,page_number,matching_params)
+                all_features.append(features)
+
+                key = (filename, page_number)
+                if key not in label_map:
+                    raise ValueError(f"Missing label for file: {key}")
+                labels.append(label_map[key])
+
+    return all_features, labels
+
 
 def main(config_path: str, out_directory:str, tuning:bool = True):
 
@@ -159,7 +170,7 @@ def main(config_path: str, out_directory:str, tuning:bool = True):
             trainer.plot_and_log_feature_importance()
 
         # Log confusion matrix and classification report
-        trainer.plot_and_log_confusion_matrix(y_pred, class_names=class_names)
+        trainer.plot_and_log_confusion_matrix(y_pred)
 
 
 if __name__ == "__main__":

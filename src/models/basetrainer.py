@@ -6,10 +6,22 @@ from pathlib import Path
 from sklearn.metrics import precision_recall_fscore_support, confusion_matrix, classification_report, ConfusionMatrixDisplay
 import json
 import mlflow
-
+from src.page_classes import (
+    label2id,
+    id2label,
+    enum2id,
+    id2enum,
+    num_labels,
+)
 
 class BaseTrainer(abc.ABC):
     def __init__(self, config: dict, output_path: Path):
+        self.label2id = label2id
+        self.id2label = id2label
+        self.enum2id = enum2id
+        self.id2enum = id2enum
+        self.num_labels = num_labels
+
         self.config = config
         self.model = None
         self.feature_names = config.get("feature_names")
@@ -56,9 +68,9 @@ class BaseTrainer(abc.ABC):
         plt.close()
         mlflow.log_artifact(str(fig_path))
 
-    def plot_and_log_confusion_matrix(self, y_pred, class_names):
+    def plot_and_log_confusion_matrix(self, y_pred):
         cm = confusion_matrix(self.y_val, y_pred)
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=id2label)
         disp.plot(xticks_rotation="vertical")
         plt.tight_layout()
         fig_path = self.model_dir  / "confusion_matrix.png"
@@ -67,7 +79,7 @@ class BaseTrainer(abc.ABC):
         mlflow.log_artifact(str(fig_path))
 
         # Also log classification report as JSON
-        report_dict = classification_report(self.y_val, y_pred, target_names=class_names, output_dict=True)
+        report_dict = classification_report(self.y_val, y_pred, target_names=id2label, output_dict=True)
         report_path = self.model_dir / "classification_report.json"
         with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=2)

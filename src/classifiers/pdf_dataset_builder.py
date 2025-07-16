@@ -7,7 +7,7 @@ import pymupdf
 from datasets import Dataset, IterableDataset
 from PIL import Image
 
-from src.page_classes import PageClasses, enum2id
+from src.page_classes import label2id
 
 logger = logging.getLogger(__name__)
 
@@ -158,7 +158,7 @@ def build_dataset_from_page_list(page_list: list[pymupdf.Page], ground_truth_map
     return Dataset.from_list(all_samples)
 
 
-def build_filename_to_label_map(gt_json_path: Path) -> dict[str, int]:
+def build_filename_to_label_map( gt_json_path: Path) -> dict[tuple[str, int], int]:
     """Build a map from filename to class ID based on the ground truth JSON."""
     with open(gt_json_path, "r") as f:
         gt_data = json.load(f)
@@ -167,12 +167,12 @@ def build_filename_to_label_map(gt_json_path: Path) -> dict[str, int]:
     for entry in gt_data:
         filename = entry["filename"]
         for classification in entry["classification"]:
+            page = classification["Page"]
             for label_name, value in classification.items():
                 if label_name != "Page" and value == 1:
                     try:
-                        label_enum = next(p for p in PageClasses if p.value == label_name)
-                        label_id = enum2id[label_enum]
-                        label_lookup[filename] = label_id
+                        label_id= label2id[label_name]
+                        label_lookup[(filename, page)] = label_id
                     except KeyError:
                         raise ValueError(f"Unknown label: {label_name}")
     return label_lookup
