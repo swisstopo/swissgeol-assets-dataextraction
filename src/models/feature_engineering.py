@@ -3,7 +3,7 @@ import numpy as np
 import re
 
 from src.page_structure import PageContext
-from src.text_objects import create_text_blocks, create_text_lines
+from src.text_objects import create_text_blocks, create_text_lines, TextBlock, TextLine
 
 from src.detect_language import detect_language_of_page
 from src.identifiers.boreprofile import create_sidebars
@@ -11,9 +11,80 @@ from src.identifiers.map import find_map_scales, split_lines_by_orientation,comp
 from src.line_detection import extract_geometric_lines
 from src.material_description import detect_material_description
 from src.utils import is_description
+from src.geometric_objects import Line
 
 
-def compute_text_features(lines, text_blocks, language, geometric_lines, matching_params):
+def get_features(page: pymupdf.Page, page_number: int, matching_params: dict) -> list[float]:
+    """
+    Extracts numerical features from a  PDF page for training a classifier.
+    This function is used during training, where language, text lines,
+    text blocks, and geometric lines are all extracted from the page.
+
+    Args:
+        page (pymupdf.Page): The PDF page object.
+        page_number (int): The page number within the document (starting form 1).
+        matching_params (dict): Parameters for keyword matching.
+
+    Returns:
+        list[float]: A list of 17 computed features used for training tree-based classifiers.
+    """
+    lines = create_text_lines(page, page_number)
+    language = detect_language_of_page(page)
+    geometric_lines = extract_geometric_lines(page)
+    text_blocks = create_text_blocks(lines)
+
+    features = compute_text_features(lines, text_blocks,language, geometric_lines, matching_params)
+    return features
+
+
+def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params: dict) -> list[float]:
+    """
+        Computes features for an already processed page using its PageContext.
+        It is used during page classification, where preprocessing has already been performed and stored in the PageContext.
+
+        Args:
+            page (pymupdf.Page): The PDF page object.
+            ctx (PageContext): A pre-populated PageContext object containing lines, language, text blocks, etc.
+            matching_params (dict): Parameters for keyword matching.
+
+        Returns:
+            list[float]: A list of 17 computed features used for classification.
+        """
+
+    ctx.geometric_lines = extract_geometric_lines(page)
+    features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
+
+    return features
+
+
+def compute_text_features(
+        lines: list[TextLine],
+        text_blocks: list[TextBlock],
+        language: str,
+        geometric_lines:list[Line],
+        matching_params: dict
+) -> list[float]:
+    """
+   Computes 17 numerical features used for tree-based page classification models
+   (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
+
+   The features are derived from:
+   - Text lines (e.g., line length, punctuation, capitalization)
+   - Text block geometry (e.g., density, indentation)
+   - Language-specific heuristics
+   - Geometric lines on the page
+   - Domain-specific keyword and structure matching
+
+   Args:
+       lines: List of detected text lines on the page.
+       text_blocks: Grouped lines forming text blocks.
+       language: Detected language of the text (e.g., "de", "fr", "it").
+       geometric_lines: Detected graphical line elements on the page.
+       matching_params: Configuration dictionary for keyword and pattern matching.
+
+   Returns:
+       list: A list of 17 computed feature values for the page. If no text lines are found, returns a zero vector.
+   """
     if not lines:
         return [0.0] * 17  # Handle empty pages
 
@@ -111,21 +182,3 @@ def compute_text_features(lines, text_blocks, language, geometric_lines, matchin
             float(angle_entropy),
         ]
     ]
-
-
-def get_features(page, page_number, matching_params):
-
-    lines = create_text_lines(page, page_number)
-    language = detect_language_of_page(page)
-    geometric_lines = extract_geometric_lines(page)
-    text_blocks = create_text_blocks(lines)
-
-    features = compute_text_features(lines, text_blocks,language, geometric_lines, matching_params)
-    return features
-
-
-def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params: dict):
-    ctx.geometric_lines = extract_geometric_lines(page)
-    features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
-
-    return features

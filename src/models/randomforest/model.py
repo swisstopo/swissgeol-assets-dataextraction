@@ -12,11 +12,13 @@ from src.page_classes import (
 )
 logger = logging.getLogger(__name__)
 
-class RandomForest:
-    """Random Forest model for page classification.
-
-        This class wraps the Random Forest model and provides methods for preprocessing,
-        prediction, and training.
+class TreeBasedModel:
+    """Tree-based model for page classification.
+    This class includes loading the model from a file and making predictions based on input features.
+    Attributes:
+        model: The trained model used for predictions.
+    Args:
+        model_path (str): Path to the trained model file. If None, the model is not loaded.
     """
 
     def __init__(self, model_path: str = None):
@@ -31,7 +33,7 @@ class RandomForest:
         if model_path and Path(model_path).exists():
             self.load_model(model_path)
         else:
-            logger.warning(f"Failed to load Random Forest model from {model_path}.")
+            logger.warning(f"Failed to load Tree-based model from {model_path}.")
 
     def predict(self, x):
         if self.model is None:
