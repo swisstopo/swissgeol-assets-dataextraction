@@ -147,13 +147,7 @@ if __name__ == "__main__":
         required=False,
         help="(Optional) Path to the ground truth JSON file for evaluation.",
     )
-    parser.add_argument(
-        "-p",
-        "--model_path",
-        type=str,
-        required=False,
-        help="Path to pretrained LayoutLMv3 model for classification."
-    )
+    
     parser.add_argument(
         "-c",
         "--classifier",
@@ -162,5 +156,19 @@ if __name__ == "__main__":
         default="baseline",
         help="Specify which classifier to use for classification. Default set to baseline.",
     )
+    
+    parser.add_argument(
+        "-p",
+        "--model_path",
+        type=str,
+        required=False,
+        help="Path to pretrained LayoutLMv3 or Tree Based model for classification."
+    )
+    
     args = parser.parse_args()
+    
+    # Check if model_path is required based on classifier
+    if args.classifier.lower() in ['layoutlmv3', 'treebased'] and not args.model_path:
+        parser.error(f"--model_path is required when using classifier '{args.classifier}'")
+    
     main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)
