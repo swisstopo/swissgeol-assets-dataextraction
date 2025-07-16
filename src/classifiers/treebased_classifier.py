@@ -1,7 +1,7 @@
 import pymupdf
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
-from src.models.randomforest.model import TreeBasedModel
+from src.models.treebased.model import TreeBasedModel
 from src.page_classes import PageClasses
 from src.models.feature_engineering import get_features_from_page
 from src.page_structure import PageContext
