@@ -96,17 +96,35 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
 
 def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> None:
     """Calculates and logs F1, precision and recall to MLflow."""
+
+    precisions = []
+    recalls = []
+    f1_scores = []
     for label, s in stats.items():
         tp, fn, fp = s["true_positives"], s["false_negatives"], s["false_positives"]
         precision = tp / (tp + fp) if (tp + fp) else 0.0
         recall = tp / (tp + fn) if (tp + fn) else 0.0
         f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0
 
+        precisions.append(precision)
+        recalls.append(recall)
+        f1_scores.append(f1)
+
         mlflow.log_metric(f"F1 {label}", f1)
         mlflow.log_metric(f"{label}_precision", precision)
         mlflow.log_metric(f"{label}_recall", recall)
 
         logger.info(f"{label}: F1={f1:.2%}, Precision={precision:.2%}, Recall={recall:.2%}")
+
+    macro_precision = sum(precisions) / len(precisions) if precisions else 0.0
+    macro_recall = sum(recalls) / len(recalls) if recalls else 0.0
+    macro_f1 = sum(f1_scores) / len(f1_scores) if f1_scores else 0.0
+
+    mlflow.log_metric("Macro Avg Precision", macro_precision)
+    mlflow.log_metric("Macro Avg Recall", macro_recall)
+    mlflow.log_metric("Macro Avg F1", macro_f1)
+
+    logger.info(f"Macro Avg: F1={macro_f1:.2%}, Precision={macro_precision:.2%}, Recall={macro_recall:.2%}")
 
     mlflow.log_metric("total_pages", total_pages)
     mlflow.log_metric("total_files", total_files)

@@ -7,7 +7,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from src.classifiers.classifier_factory import create_classifier, ClassifierTypes
+from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
 from src.utils import read_params
@@ -81,7 +81,7 @@ def process_pdfs(pdf_files: list[Path], classifier, **matching_params) -> list[d
     return results
 
 
-def main(input_path: str, ground_truth_path: str = None, model_path: str=None, classifier_name: str = "baseline"):
+def main(input_path: str, ground_truth_path: str = None, model_path: str = None, classifier_name: str = "baseline"):
     """
     Run the page classification pipeline on input documents.
 
@@ -126,6 +126,13 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str=None, c
     with output_file.open("w") as json_file:
         json.dump(results, json_file, indent=4)
 
+    # log raw outputs
+    csv_path = "data/labels.csv"
+    if mlflow_tracking:
+        mlflow.log_artifact(csv_path)
+    if os.path.exists(csv_path):
+        os.remove(csv_path)
+
     if ground_truth_path:
         evaluate_results(results, ground_truth_path)
 
@@ -152,11 +159,7 @@ if __name__ == "__main__":
         help="(Optional) Path to the ground truth JSON file for evaluation.",
     )
     parser.add_argument(
-        "-p",
-        "--model_path",
-        type=str,
-        required=False,
-        help="Path to pretrained LayoutLMv3 model for classification."
+        "-p", "--model_path", type=str, required=False, help="Path to pretrained LayoutLMv3 model for classification."
     )
     parser.add_argument(
         "-c",
