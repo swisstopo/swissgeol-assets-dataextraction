@@ -33,15 +33,6 @@ class TreeBasedTrainer(abc.ABC):
         model (object): The machine learning model to be trained.
         feature_names (list): List of feature names used in the model.
         model_dir (Path): Directory where the trained model will be saved.
-    Methods:
-        __init__(config, output_path): Initializes the trainer with configuration and output path.
-        prepare_model(): Prepares the model for training (to be implemented by subclasses).
-        load_data(X_train, y_train, X_val, y_val): Loads training and validation data into numpy arrays.
-        train(): Trains the model using the loaded training data.
-        evaluate(y_pred): Evaluates the model's performance on the validation set.
-        save_model(filename): Saves the trained model to the specified file.
-        plot_and_log_feature_importance(): Plots and logs the feature importance of the trained model.
-        plot_and_log_confusion_matrix(y_pred): Plots and logs the confusion matrix for validation set predictions.
     """
     def __init__(self, config: dict, output_path: Path):
         """Initializes the BaseTrainer with configuration and output path.
@@ -130,8 +121,9 @@ class TreeBasedTrainer(abc.ABC):
         Args:
             y_pred (list): Predicted labels for the validation set.
         """
+        class_names = [self.id2label[i] for i in sorted(self.id2label)]
         cm = confusion_matrix(self.y_val, y_pred)
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=id2label)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
         disp.plot(xticks_rotation="vertical")
         plt.tight_layout()
         fig_path = self.model_dir / "confusion_matrix.png"
@@ -140,7 +132,7 @@ class TreeBasedTrainer(abc.ABC):
         mlflow.log_artifact(str(fig_path))
 
         # Also log classification report as JSON
-        report_dict = classification_report(self.y_val, y_pred, target_names=id2label, output_dict=True)
+        report_dict = classification_report(self.y_val, y_pred, target_names=class_names, output_dict=True)
         report_path = self.model_dir / "classification_report.json"
         with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=2)
