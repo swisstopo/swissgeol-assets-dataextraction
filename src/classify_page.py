@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pymupdf
 
-from src.classifiers.classifier_types import ClassifierTypes
+from src.classifiers.classifier_types import Classifier
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.detect_language import detect_language_of_page
 from src.page_graphics import extract_page_graphics
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 def classify_page(
-    page: pymupdf.Page, page_number: int, classifier, language: str,
+    page: pymupdf.Page, page_number: int, classifier: Classifier, language: str,
 ) -> PageAnalysis:
     """classifies single pages into Text-, Boreprofile-, Map-, Title- or Unknown Page.
     Args:
@@ -25,7 +25,7 @@ def classify_page(
         language: language of page content
 
     Returns:
-        PageAnalysis object with classification and features,
+        PageAnalysis object with page classification.
     """
     analysis = PageAnalysis(page_number)
 
@@ -57,14 +57,13 @@ def classify_page(
 
     return analysis
 
-def classify_pdf(file_path: Path, classifier, matching_params: dict) -> dict:
+def classify_pdf(file_path: Path, classifier: Classifier) -> dict:
     """
     Classify each page of a PDF file.
 
     Args:
         file_path: Path to the PDF file.
         classifier: Classifier object with a `determine_class` method.
-        matching_params: dictionary holding including and excluding expressions for page classes in supported languages
     Returns:
         dict: Classification results per page.
     """

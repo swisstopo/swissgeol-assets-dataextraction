@@ -45,20 +45,22 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 
 ## Repository Structure
 
+- `config/`: YAML configuration files for models and keyword matching
 - `data/`
     - `single_pages/`: Input data split by class
+    - `single_pages_split/`raining/validation split created by `split_data.py`
     -  `prediction.json`: Output predictions
     - `gt_*.json`: Ground truth files
-    - `test/`: Output visualization from notebooks
-- `evaluation/`: Evaluation results and metrics
-- `src/`: Utility scripts and core logic
-- `tests/`: Unit tests
+- `evaluation/`: Evaluation outputs, metrics and visualization
 - `language-detection`: Language detection module
-
+- `models/`: Trained model folders (e.g. LayoutLMv3, TreeBased)
+- `prompts/`: Prompt templates for pixtral classification
+- `src/`: Utility scripts and core logic 
+- `tests/`: Unit tests
 - `main.py`: Entry point for classification
-- `matching_params.yml`: Keywords for classification/matching
 - `requirements.txt`
 - `setup.py`
+- `.env.template`: Template for .env file
 - `README.md`
 
 ## How to run Classifier
@@ -77,22 +79,74 @@ pip install -r requirements.txt
 ```bash
 mlflow ui
 ```
-4. Run the classification:
+4. (optional) If you choose to use a model:
+- Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
+- Option B: Train your own model as described in [Train your Model](#train-your-model).
+5. Run the classification:
 ```bash
-python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name>
+python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
 ```
 If no classifier is specified, the baseline classifier is used by default.
+If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified to locate the trained model.
 
 | Classifier Name | Description                                                                   |
 |------------------|-------------------------------------------------------------------------------|
 | `baseline`       | Default. Rule-based classifier using layout, keyword matching, and heuristics |
 | `pixtral`        | Uses the Pixtral Large via Amazon Bedrock to classify PDF pages               |
+| `layoutlmv3`     | Transformer model (pretrained or fine-tuned LayoutLMv3) |
+|`treebased` | Feature-based model (RandomForest or XGBoost)|
 
 **Example**
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
 
+## Train your Model
+To train your own model, first split your dataset into training and validation:
+```bash
+python scripts/split_data.py
+```
+This will create:
+```bash
+data/single_pages_split/train/
+data/single_pages_split/val/
+```
+You can then train either:
+- `layoutlmv3`: Fine tuning the layoulmv3 model
+- `treebased`: Train a RandomForest or XGBoost model
+
+Training logs and metrics will be tracked via MLflow.
+
+### Train LayoutLMv3
+
+To train a LayoutLMv3 model, run the training script directly:
+```bash
+python src.models.layoutlmv3.train.py
+    --config_file_path config/layoutlmv3_config.yml
+    --out_directory models/layoutlmv3_output 
+    [--model_checkpoint models/layoutlmv3_pretrained_checkpoint]
+```
+**Arguments**:
+- config_file_path: Path to the YAML configuration file with model parameters and dataset paths.
+- out_directory: Directory where the trained model will be saved.
+- model_checkpoint (optional): Path to a pre-trained model checkpoint. If not provided, the model will be initialized from the Hugging Face hub based on the config.
+
+This training script supports freezing/unfreezing specific layers and uses the Hugging Face Trainer API under the hood.
+
+### Train TreeBased Models (RandomForest or XGBoost)
+To train a RandomForest or XGBoost classifier, use:
+```bash
+python src.models.treebased.train.py \
+    --config_file_path config/xgboost_config.yml \
+    --out_directory models/xgboost_model
+```
+- config_file_path: Path to the YAML config specifying hyperparameters and feature extraction settings.
+- out_directory: Output path for the trained model.
+
+If you're training an XGBoost model on macOS, you may encounter issues related to OpenMP. To resolve this, install the OpenMP library using Homebrew:
+```bash
+brew install libomp
+```
 ## Pre-Commit
 We use pre-commit hooks to format our code in a unified way.
 

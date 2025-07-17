@@ -1,0 +1,44 @@
+model_type: xgboost
+
+train_folder_path: "data/single_pages_splits/train"
+val_folder_path: "data/single_pages_splits/val"
+ground_truth_file_path: "data/gt_single_pages.json"
+
+# Feature names to track
+feature_names:
+  - Words Per Line
+  - Text zone Density
+  - Mean Left
+  - Mean Right
+  - Text Width
+  - Line Count
+  - Line Length Variance
+  - Indent Std Dev
+  - Punctuation Density
+  - Capitalization Ratio
+  - Has Sidebar
+  - Has Borehole Keyword
+  - Num Valid Material Descriptions
+  - Num Map Keyword Lines
+  - Grid Line Length Sum
+  - Non Grid Line Length Sum
+  - Line Angle Entropy
+
+hyperparameters:
+  n_estimators: 100
+  max_depth: 6
+  learning_rate: 0.1
+  subsample: 0.8
+  colsample_bytree: 0.8
+  eval_metric: mlogloss
+
+tuning:
+  param_grid:
+    n_estimators: [100, 200, 300, 400]
+    max_depth: [3, 5, 7, 10]
+    learning_rate: [0.01, 0.05, 0.1, 0.3]
+    subsample: [0.6, 0.8, 1.0]
+    colsample_bytree: [0.6, 0.8, 1.0]
+    gamma: [0, 1, 5]
+    reg_alpha: [0, 0.1, 0.5]
+    reg_lambda: [1, 1.5, 2.0]

@@ -10,7 +10,7 @@ from tqdm import tqdm
 from src.classifiers.classifier_factory import create_classifier, ClassifierTypes
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
-from src.utils import read_params
+from src.utils import read_params, get_pdf_files
 
 # Load .env and check MLFlow
 load_dotenv()
@@ -25,18 +25,10 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
-def get_pdf_files(input_path: Path) -> list[Path]:
-    """Returns a list of PDF files from a directory or a single file."""
-    if input_path.is_dir():
-        return [f for f in input_path.rglob("*.pdf")]
-    elif input_path.is_file() and input_path.suffix.lower() == ".pdf":
-        return [input_path]
-
-    logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
-    return []
 
 
-def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dict):
+
+def setup_mlflow(input_path: Path, ground_truth_path: Path,model_path:str, matching_params: dict, classifier_name:str):
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
@@ -44,6 +36,10 @@ def setup_mlflow(input_path: Path, ground_truth_path: Path, matching_params: dic
 
     if ground_truth_path:
         mlflow.set_tag("ground_truth_path", str(ground_truth_path))
+    if model_path:
+        mlflow.set_tag("model_path",str(model_path))
+    if classifier_name:
+        mlflow.set_tag("classifier_name", str(classifier_name))
 
     mlflow.log_params(flatten_dict(matching_params))
 
@@ -68,12 +64,12 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def process_pdfs(pdf_files: list[Path], classifier, **matching_params) -> list[dict]:
+def process_pdfs(pdf_files: list[Path], classifier) -> list[dict]:
     results = []
     with tqdm(total=len(pdf_files)) as pbar:
         for pdf in pdf_files:
             pbar.set_description(f"Processing {pdf.name}")
-            classification_data = classify_pdf(pdf, classifier, matching_params)
+            classification_data = classify_pdf(pdf, classifier)
             if classification_data:
                 results.append(classification_data)
             pbar.update(1)
@@ -105,7 +101,7 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str=None, c
 
     # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, ground_truth_path, matching_params)
+        setup_mlflow(input_path, ground_truth_path,model_path, matching_params, classifier_name)
 
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
@@ -151,13 +147,7 @@ if __name__ == "__main__":
         required=False,
         help="(Optional) Path to the ground truth JSON file for evaluation.",
     )
-    parser.add_argument(
-        "-p",
-        "--model_path",
-        type=str,
-        required=False,
-        help="Path to pretrained LayoutLMv3 model for classification."
-    )
+    
     parser.add_argument(
         "-c",
         "--classifier",
@@ -166,5 +156,19 @@ if __name__ == "__main__":
         default="baseline",
         help="Specify which classifier to use for classification. Default set to baseline.",
     )
+    
+    parser.add_argument(
+        "-p",
+        "--model_path",
+        type=str,
+        required=False,
+        help="Path to pretrained LayoutLMv3 or Tree Based model for classification."
+    )
+    
     args = parser.parse_args()
+    
+    # Check if model_path is required based on classifier
+    if args.classifier.lower() in ['layoutlmv3', 'treebased'] and not args.model_path:
+        parser.error(f"--model_path is required when using classifier '{args.classifier}'")
+    
     main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)
