@@ -12,7 +12,7 @@ from pathlib import Path
 import mlflow
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
-from src.models.basetrainer import TreeBasedTrainer
+from models.treebased.basetrainer import TreeBasedTrainer
 from src.models.feature_engineering import get_features
 from src.utils import read_params, get_pdf_files
 
@@ -35,12 +35,14 @@ class RandomForestTrainer(TreeBasedTrainer):
         hyperparams = self.config.get("hyperparameters", {})
         self.model = RandomForestClassifier(**hyperparams)
 
-    def tune_hyperparameters(self,
-                             param_dist: dict,
-                             n_iter: int = 20,
-                             cv: int = 3,
-                             scoring: str = "f1_micro",
-                             random_state: int = 42):
+    def tune_hyperparameters(
+            self,
+            param_dist: dict,
+            n_iter: int = 20,
+            cv: int = 3,
+            scoring: str = "f1_micro",
+            random_state: int = 42
+    ) -> tuple[dict, float]:
         """Runs RandomizedSearchCV to tune hyperparameters. 
         Args:
             param_dist (dict): Dictionary with parameters to search.
@@ -82,17 +84,23 @@ class XGBoostTrainer(TreeBasedTrainer):
             **hyperparams
         )
 
-    def tune_hyperparameters(self, param_dist, n_iter=20, scoring="f1_micro", cv=3):
+    def tune_hyperparameters(
+            self,
+            param_dist: dict,
+            n_iter: int = 20,
+            scoring: str = "f1_micro",
+            cv: int = 3
+    ) -> tuple[dict, float]:
         """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
         Args:
-            param_dist (dict): Dictionary with parameters to search.
-            n_iter (int): Number of parameter settings that are sampled.
-            scoring (str): Scoring method to use for evaluation.
-            cv (int): Number of folds in cross-validation.
+            param_dist: Dictionary with parameters to search.
+            n_iter: Number of parameter settings that are sampled.
+            scoring: Scoring method to use for evaluation.
+            cv: Number of folds in cross-validation.
             
             Returns:
-                best_params (dict): Best hyperparameters found during tuning.
-                best_score (float): Best score achieved during tuning.
+                best_params: Best hyperparameters found during tuning.
+                best_score: Best score achieved during tuning.
         """
         # Initialize XGBoost model with default parameters
         model = XGBClassifier(
@@ -164,7 +172,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
     model_out_directory = Path(out_directory) / time.strftime("%Y%m%d-%H%M%S")
 
-    ## create dataset
+    # Create dataset
     label_lookup = build_filename_to_label_map(ground_truth_path)
     X_train, y_train = load_data_and_labels(train_folder, label_lookup)
     X_val, y_val = load_data_and_labels(val_folder, label_lookup)
@@ -206,7 +214,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
         y_pred = trainer.model.predict(X_val)
         metrics = trainer.evaluate(y_pred)
 
-        ##logg to mlflow
+        # Log to mlflow
         mlflow.log_params(trainer.config.get("hyperparameters", {}))
         mlflow.log_metrics(metrics)
         mlflow.log_artifact(str(model_out_directory))

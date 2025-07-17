@@ -19,13 +19,13 @@ feature_names:
   - Indent Std Dev
   - Punctuation Density
   - Capitalization Ratio
-  - has_sidebar
-  - has_bh_keyword
-  - num_valid_descriptions
-  - num_map_keyword_lines
-  - grid_length_sum
-  - non_grid_length_sum
-  - angle_entropy
+  - Has Sidebar
+  - Has Borehole Keyword
+  - Num Valid Material Descriptions
+  - Num Map Keyword Lines
+  - Grid Line Length Sum
+  - Non Grid Line Length Sum
+  - Line Angle Entropy
 
 # Model hyperparameters
 hyperparameters:

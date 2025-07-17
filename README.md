@@ -79,9 +79,7 @@ pip install -r requirements.txt
 ```bash
 mlflow ui
 ```
-4. (optional)
-If you decide to use a model, either download the pretrained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects), or train it yourself as described in [Train your Model](## Train your Model)
-If you choose to use a model:
+4. (optional) If you choose to use a model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
 - Option B: Train your own model as described in [Train your Model](#train-your-model).
 5. Run the classification:
@@ -109,7 +107,7 @@ To train your own model, first split your dataset into training and validation:
 python scripts/split_data.py
 ```
 This will create:
-```kotlin
+```bash
 data/single_pages_split/train/
 data/single_pages_split/val/
 ```
@@ -122,7 +120,7 @@ Training logs and metrics will be tracked via MLflow.
 ### Train LayoutLMv3
 
 To train a LayoutLMv3 model, run the training script directly:
-```bashh
+```bash
 python src.models.layoutlmv3.train.py
     --config_file_path config/layoutlmv3_config.yml
     --out_directory models/layoutlmv3_output 
@@ -136,7 +134,6 @@ python src.models.layoutlmv3.train.py
 This training script supports freezing/unfreezing specific layers and uses the Hugging Face Trainer API under the hood.
 
 ### Train TreeBased Models (RandomForest or XGBoost)
-
 To train a RandomForest or XGBoost classifier, use:
 ```bash
 python src.models.treebased.train.py \
@@ -146,6 +143,10 @@ python src.models.treebased.train.py \
 - config_file_path: Path to the YAML config specifying hyperparameters and feature extraction settings.
 - out_directory: Output path for the trained model.
 
+If you're training an XGBoost model on macOS, you may encounter issues related to OpenMP. To resolve this, install the OpenMP library using Homebrew:
+```bash
+brew install libomp
+```
 ## Pre-Commit
 We use pre-commit hooks to format our code in a unified way.
 

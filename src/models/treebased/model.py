@@ -35,10 +35,20 @@ class TreeBasedModel:
         else:
             logger.warning(f"Failed to load Tree-based model from {model_path}.")
 
-    def predict(self, x):
+    def predict(self, x: list[float]) -> list[int]:
+        """Predict the class labels for the input features.
+        
+        Args:
+            x: Input features for prediction.
+        """
         if self.model is None:
             raise ValueError("Model not loaded.")
         return self.model.predict(x)
 
     def load_model(self, model_path: str):
+        """Load the model from the specified path.
+        
+        Args:
+            model_path (str): Path to the model file.
+        """
         self.model = joblib.load(Path(model_path))

@@ -20,7 +20,7 @@ from transformers import (
 from transformers.trainer_utils import TrainOutput
 
 from classifiers.pdf_dataset_builder import (
-    build_lazy_dataset,
+    build_lazy_dataset, build_filename_to_label_map,
 )
 from src.models.layoutlmv3.model import LayoutLMv3
 
@@ -135,7 +135,7 @@ class LayoutLMv3Trainer:
                 - num_pages: The total number of pages in the training dataset.
         """
         ground_truth_file_path = Path(model_config["ground_truth_file_path"])
-        ground_truth_map = self.build_ground_truth_map(ground_truth_file_path)
+        ground_truth_map = build_filename_to_label_map(ground_truth_file_path)
 
         training_data_path = Path(model_config["train_folder_path"])
         train_files = [p for p in training_data_path.iterdir() if p.name.lower().endswith(".pdf")]
@@ -146,30 +146,6 @@ class LayoutLMv3Trainer:
         val_files = [p for p in val_data_path.iterdir() if p.name.lower().endswith(".pdf")]
         val_dataset = build_lazy_dataset(val_files, self.model.preprocess, ground_truth_map)
         return train_dataset, val_dataset, num_pages
-
-    def build_ground_truth_map(self, ground_truth_file_path: Path) -> dict[tuple[str, int], int]:
-        """Build a ground truth map from the JSON file.
-
-        Args:
-            ground_truth_file_path (Path): Path to the ground truth JSON file.
-        Returns:
-            dict[tuple[str, int], int]: A dictionary mapping (filename, page number) to label IDs.
-                The keys are tuples of (filename, page number) and the values are label IDs inferred from the
-                    ground truth data.
-        """
-        with open(ground_truth_file_path, "r") as f:
-            gt_data = json.load(f)
-
-        label_lookup = {}
-        for entry in gt_data:
-            filename = entry["filename"]
-            for classification in entry["classification"]:  # I think all data curently only have one classification
-                page = classification["Page"]
-                for label_name, value in classification.items():
-                    if label_name != "Page" and value == 1:
-                        label_id = self.model.label2id[label_name]
-                        label_lookup[(filename, page)] = label_id
-        return label_lookup
 
     def count_pdf_pages(self, pdf_files: list[Path]) -> int:
         """Count the total number of pages in a list of PDF files.

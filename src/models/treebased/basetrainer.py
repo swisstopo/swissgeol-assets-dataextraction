@@ -115,7 +115,7 @@ class TreeBasedTrainer(abc.ABC):
         plt.close()
         mlflow.log_artifact(str(fig_path))
 
-    def plot_and_log_confusion_matrix(self, y_pred):
+    def plot_and_log_confusion_matrix(self, y_pred: list):
         """Plots and logs the confusion matrix for the validation set predictions.
         
         Args:
