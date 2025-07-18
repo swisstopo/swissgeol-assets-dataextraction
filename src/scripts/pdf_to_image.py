@@ -2,7 +2,7 @@ from pathlib import Path
 import pymupdf
 
 
-def convert_with_pymupdf(pdf_path, output_dir, dpi=300, page_range=None):
+def convert_to_image(pdf_path, output_dir, dpi=300, page_range=None):
     """Convert PDF to PNG using PyMuPDF (fitz) - Fastest option"""
 
     with pymupdf.open(pdf_path) as pdf_document:
@@ -32,4 +32,4 @@ def convert_with_pymupdf(pdf_path, output_dir, dpi=300, page_range=None):
     return True
 
 
-convert_with_pymupdf("examples/example_map_1252_2.pdf", "examples")
+convert_to_image("examples/example_map_1252_2.pdf", "examples")

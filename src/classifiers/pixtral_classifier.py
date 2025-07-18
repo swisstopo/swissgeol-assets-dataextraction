@@ -1,17 +1,13 @@
-import csv
-import io
 import logging
-import os
 
 import boto3
-import PIL
 import pymupdf
 from botocore.exceptions import ClientError
 
 from page_graphics import get_page_image_bytes
 from page_structure import PageContext
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
-from src.classifiers.utils import clean_label, map_string_to_page_class
+from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
 from src.page_classes import PageClasses
 from src.utils import read_params
 
@@ -70,8 +66,6 @@ class PixtralClassifier(Classifier):
             response = self._send_conversation(conversation)
             raw_label = response["output"]["message"]["content"][0]["text"]
 
-            self.append_label_to_csv(page, raw_label)
-
             label = clean_label(raw_label)
             category = map_string_to_page_class(label)
 
@@ -97,23 +91,11 @@ class PixtralClassifier(Classifier):
                 return self.fallback_classifier.determine_class(**fallback_args)
             return PageClasses.UNKNOWN
 
-    def append_label_to_csv(self, page, raw_label):
-        csv_path = "data/labels.csv"
-        if not os.path.exists(csv_path):
-            with open(csv_path, "w", newline="", encoding="utf-8") as f:
-                writer = csv.writer(f)
-                writer.writerow(["parent", "page_number", "label"])  # header
-
-            # Append row
-        with open(csv_path, "a", newline="", encoding="utf-8") as f:
-            writer = csv.writer(f)
-            writer.writerow([page.parent.name, page.number, raw_label])
-
-    def _build_conversation(self, image_bytes: bytes):
+    def _build_conversation(self, image_bytes: bytes) -> list[dict]:
         self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
         content = [
             {"image": {"format": "jpeg", "source": {"bytes": self.examples_bytes[text.strip("@")]}}}
-            if text.startswith("@")
+            if text.startswith("@")  # @category encodes the image of the category and adds it to the content
             else {"text": text}
             for text in self.prompts_dict.get("examples_prompt", [])
         ]
@@ -135,41 +117,3 @@ class PixtralClassifier(Classifier):
                 "temperature": self.config.get("temperature", 0.2),
             },
         )
-
-
-def read_image_bytes(image_path, compress=True):
-    """Read image file as bytes"""
-    if compress:
-        return compress_image(image_path)
-    else:
-        with open(image_path, "rb") as f:
-            return f.read()
-
-
-def compress_image(image_path, max_size_kb=500, quality=85):
-    """
-    Compress image to reduce size while maintaining readability
-    """
-    with PIL.Image.open(image_path) as img:
-        # Convert to RGB if needed
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGB")
-
-        # Resize if too large (max dimension 1024px)
-        max_dimension = 1024
-        if max(img.size) > max_dimension:
-            img.thumbnail((max_dimension, max_dimension), PIL.Image.Resampling.LANCZOS)
-
-        # Save with compression
-        output = io.BytesIO()
-        img.save(output, format="JPEG", quality=quality, optimize=True)
-        compressed_bytes = output.getvalue()
-
-        # Check size and reduce quality if needed
-        while len(compressed_bytes) > max_size_kb * 1024 and quality > 30:
-            quality -= 10
-            output = io.BytesIO()
-            img.save(output, format="JPEG", quality=quality, optimize=True)
-            compressed_bytes = output.getvalue()
-
-        return compressed_bytes

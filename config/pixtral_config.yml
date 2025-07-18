@@ -1,6 +1,6 @@
 # Config file for Pixtral Large model
 prompt_path: prompts/classification_prompts.yml
-prompt_version: v5
+prompt_version: v5 # current best is v5
 max_document_size_mb: 4.5
 slack_size_mb: 0.2
 max_tokens: 200

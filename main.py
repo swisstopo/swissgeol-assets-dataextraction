@@ -121,13 +121,6 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str = None,
     with output_file.open("w") as json_file:
         json.dump(results, json_file, indent=4)
 
-    # log raw outputs
-    csv_path = "data/labels.csv"
-    if mlflow_tracking:
-        mlflow.log_artifact(csv_path)
-    if os.path.exists(csv_path):
-        os.remove(csv_path)
-
     if ground_truth_path:
         evaluate_results(results, ground_truth_path)
 
