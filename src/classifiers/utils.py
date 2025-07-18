@@ -2,7 +2,7 @@ import io
 import logging
 import re
 
-import PIL
+from PIL import Image
 
 from src.page_classes import PageClasses
 
@@ -34,7 +34,7 @@ def map_string_to_page_class(label: str) -> PageClasses:
             return PageClasses.TITLE_PAGE
         case _:
             if label != "unknown":
-                logger.warning(f"Unknown label: {label}, mapping it to unknown.")
+                logger.warning(f"Unexpected label: {label}, mapping it to unknown.")
             return PageClasses.UNKNOWN
 
 
@@ -51,7 +51,7 @@ def compress_image(image_path: str, max_size_kb: int = 500, quality: int = 85) -
     """
     Compress image to reduce size while maintaining readability
     """
-    with PIL.Image.open(image_path) as img:
+    with Image.open(image_path) as img:
         # Convert to RGB if needed
         if img.mode in ("RGBA", "P"):
             img = img.convert("RGB")
@@ -59,7 +59,7 @@ def compress_image(image_path: str, max_size_kb: int = 500, quality: int = 85) -
         # Resize if too large (max dimension 1024px)
         max_dimension = 1024
         if max(img.size) > max_dimension:
-            img.thumbnail((max_dimension, max_dimension), PIL.Image.Resampling.LANCZOS)
+            img.thumbnail((max_dimension, max_dimension), Image.Resampling.LANCZOS)
 
         # Save with compression
         output = io.BytesIO()

@@ -102,9 +102,7 @@ class PixtralClassifier(Classifier):
         content.append({"text": self.prompts_dict["user_prompt"]})
         content.append({"image": {"format": "jpeg", "source": {"bytes": image_bytes}}})
 
-        messages = [{"role": "user", "content": content}]
-
-        return messages
+        return [{"role": "user", "content": content}]
 
     def _send_conversation(self, conversation: list) -> dict:
         """Sends the conversation to Bedrock and returns the raw response."""
