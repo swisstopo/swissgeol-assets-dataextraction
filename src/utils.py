@@ -1,4 +1,6 @@
+import logging
 import os
+from pathlib import Path
 
 import pymupdf
 import yaml
@@ -36,3 +38,14 @@ def get_aws_config() -> dict:
         "region": os.environ.get("AWS_MODEL_REGION"),
         "model_id": os.environ.get("AWS_MODEL_ID"),
     }
+
+
+def get_pdf_files(input_path: Path) -> list[Path]:
+    """Returns a list of PDF files from a directory or a single file."""
+    if input_path.is_dir():
+        return [f for f in input_path.rglob("*.pdf")]
+    elif input_path.is_file() and input_path.suffix.lower() == ".pdf":
+        return [input_path]
+
+    logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
+    return []

@@ -5,7 +5,7 @@ from transformers import default_data_collator
 
 from src.classifiers.classifier_types import ClassifierTypes, Classifier
 from src.classifiers.pdf_dataset_builder import build_dataset_from_page_list
-from src.models.model import LayoutLMv3
+from src.models.layoutlmv3.model import LayoutLMv3
 from src.page_classes import PageClasses
 
 class LayoutLMv3Classifier(Classifier):

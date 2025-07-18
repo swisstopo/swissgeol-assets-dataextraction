@@ -3,6 +3,7 @@ import os
 
 import mlflow
 
+from classifiers.treebased_classifier import TreeBasedClassifier
 from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.layoutlmv3_classifier import LayoutLMv3Classifier
@@ -30,6 +31,9 @@ def create_classifier(
     """
     if classifier_type == ClassifierTypes.BASELINE:
         return BaselineClassifier(matching_params)
+
+    elif classifier_type == ClassifierTypes.TREEBASED:
+        return TreeBasedClassifier(matching_params=matching_params, model_path=model_path)
 
     elif classifier_type == ClassifierTypes.LAYOUTLMV3:
         return LayoutLMv3Classifier(model_path=model_path)
