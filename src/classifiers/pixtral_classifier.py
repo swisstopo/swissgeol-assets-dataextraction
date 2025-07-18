@@ -30,11 +30,12 @@ class PixtralClassifier(Classifier):
         self.fallback_classifier = fallback_classifier
         self.model_id = aws_config["model_id"]
 
-        borehole_bytes = read_image_bytes("examples/example_borehole_2155_4.png")
-        text_bytes = read_image_bytes("examples/example_text_1630_600.png")
-        maps_bytes = read_image_bytes("examples/example_map_1252_2.png")
-        title_bytes = read_image_bytes("examples/example_title_1630_240.png")
-        unknown_bytes = read_image_bytes("examples/example_unknown_250_3.png")
+        self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
+        borehole_bytes = read_image_bytes(config["borehole_img_path"])
+        text_bytes = read_image_bytes(config["text_img_path"])
+        maps_bytes = read_image_bytes(config["maps_img_path"])
+        title_bytes = read_image_bytes(config["title_img_path"])
+        unknown_bytes = read_image_bytes(config["unknown_img_path"])
         self.examples_bytes = {
             "borehole": borehole_bytes,
             "text": text_bytes,
@@ -92,7 +93,6 @@ class PixtralClassifier(Classifier):
             return PageClasses.UNKNOWN
 
     def _build_conversation(self, image_bytes: bytes) -> list[dict]:
-        self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
         content = [
             {"image": {"format": "jpeg", "source": {"bytes": self.examples_bytes[text.strip("@")]}}}
             if text.startswith("@")  # @category encodes the image of the category and adds it to the content
