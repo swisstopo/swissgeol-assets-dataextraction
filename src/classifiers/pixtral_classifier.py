@@ -71,10 +71,7 @@ class PixtralClassifier(Classifier):
             category = map_string_to_page_class(label)
 
             if category == PageClasses.UNKNOWN and label not in ("unknown", ""):
-                logger.warning(
-                    f"Pixtral returned malformed category: '{label}' —  Fallback to baseline classification."
-                )
-
+                logger.warning("Falling back to baseline classification, due to malformed category.")
                 if self.fallback_classifier and fallback_args:
                     return self.fallback_classifier.determine_class(**fallback_args)
 
