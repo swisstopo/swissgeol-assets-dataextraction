@@ -1,5 +1,11 @@
 # Config file for Pixtral Large model
-prompt_path: prompts/layout_classification_prompt.txt
+prompt_path: prompts/classification_prompts.yml
+borehole_img_path: "examples/example_borehole_2155_4.png"
+text_img_path: "examples/example_text_1630_600.png"
+maps_img_path: "examples/example_map_1252_2.png"
+title_img_path: "examples/example_title_1630_240.png"
+unknown_img_path: "examples/example_unknown_250_3.png"
+prompt_version: v1 # current best is v1
 max_document_size_mb: 4.5
 slack_size_mb: 0.2
 max_tokens: 200
