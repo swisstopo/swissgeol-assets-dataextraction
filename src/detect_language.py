@@ -9,6 +9,8 @@ logger = logging.getLogger(__name__)
 
 SUPPORTED_LANGUAGES = ["de", "fr", "it", "en"]
 DEFAULT_LANGUAGE = "de"
+METADATA_THRESHOLD = 0.7
+CLASSIFICATION_THRESHOLD = 0.4
 
 
 def extract_text_from_page(page: pymupdf.Page) -> tuple[str, int]:
@@ -26,32 +28,37 @@ def extract_text_from_page(page: pymupdf.Page) -> tuple[str, int]:
     raw_text = page.get_text()
     word_count_not_short = len(re.findall(r"[^\W\d_]{5,}", raw_text))
 
-    # Keep lines that contain at least 5 alphabetic characters.
     lines = [line for line in raw_text.split("\n") if sum(char.isalpha() for char in line) > 4]
     text = " ".join(lines)
 
-    # Clean up Tokens
     tokens = re.split(r"\s+", text)
-    tokens = [
+    clean_tokens = [
         token
         for token in tokens
         if len(token) > 1  # skip single-char words
         and not re.search(r"(^|\s)\S*[0-9]\S*(?=\s|$)", token)  # skip tokens with digits
         and not re.search(r"(^|\s)[^a-zA-Zéàèöäüç]+(?=\s|$)", token)  # must contain regular letters.
     ]
-    text_for_detection = " ".join(tokens)
+    text_for_detection = " ".join(clean_tokens)
 
     return text_for_detection, word_count_not_short
 
 
-def detect_language_of_page(page: pymupdf.Page, supported_languages=None, default_language=DEFAULT_LANGUAGE) -> str:
-    """Detects the language of a PDF page using FastText.
+def detect_language(
+    page: pymupdf.Page, supported_languages=None, default_language=DEFAULT_LANGUAGE
+) -> tuple[str, str | None]:
+    """
+    Detects the language of a PDF page using FastText.
+    - Returns a classification language (even on low confidence),
+    - and a metadata language only if confidence > 0.7.
+
     Args:
-        page (pymupdf.Page): The PDF page from which to detect the language.
-        supported_languages (list, optional): A list of language codes that are supported. Defaults to SUPPORTED_LANGUAGES.
-        default_language (str, optional): The default language code to return if detection fails. Defaults to DEFAULT_LANGUAGE.
+        page: The PDF page to analyze.
+        supported_languages: Allowed language codes. Defaults to SUPPORTED_LANGUAGES.
+        default_language: Fallback language.
+
     Returns:
-        str: The detected language code or the default language code if detection fails.
+        (classification_language, metadata_language or None)
     """
 
     if supported_languages is None:
@@ -59,29 +66,33 @@ def detect_language_of_page(page: pymupdf.Page, supported_languages=None, defaul
 
     text, word_count = extract_text_from_page(page)
 
-    if word_count < 4:
-        logger.info(
-            f"Too few words detected for language detection. Falling back to default language: {default_language}."
-        )
-        return default_language
-
-    # The Fasttext language identification model does not work well with all-uppercase text
-    labels, scores = detector.predict(text.lower(), k=5)
+    if word_count < 4 or not text.strip():
+        logger.info(f"Insufficient text for language detection. Using default: {default_language} for classification.")
+        return default_language, None
 
     try:
-        if len(labels) and len(scores):
-            language_code = labels[0].replace("__label__", "")
-            logger.info(language_code)
-            if language_code not in supported_languages:
-                logger.info(f"Unsupported language detected. Falling back to default language: {default_language}.")
-                return default_language
-            else:
-                return language_code
+        labels, scores = detector.predict(text.lower(), k=5)
+        if not labels or not scores:
+            logger.info(f"Empty prediction result. Using default: {default_language} for classification.")
+            return default_language, None
+
+        score = scores[0]
+        language_code = labels[0].replace("__label__", "")
+
+        if language_code in supported_languages and score >= CLASSIFICATION_THRESHOLD:
+            classification_language = language_code
         else:
-            logger.info(f"Failed to detect language, Falling back to default language: {default_language}.")
-            return default_language
+            logger.info(
+                f"Language: '{language_code}' too low confidence or not supported. Falling back to: '{default_language}' for classification"
+            )
+            classification_language = default_language
+
+        metadata_language = language_code if score >= METADATA_THRESHOLD else None
+
+        return classification_language, metadata_language
+
     except Exception as e:
         logger.error(
-            f"Error occurred during language detection: {e}. Falling back to default language: {default_language}"
+            f"Error occurred during language detection: {e}. Falling back to default language: {default_language} for classification,"
         )
-        return default_language
+        return default_language, None
