@@ -58,7 +58,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `src/`: Utility scripts and core logic 
 - `tests/`: Unit tests
 - `main.py`: Entry point for classification
-- `requirements.txt`
+- `pyproject.toml`
 - `setup.py`
 - `.env.template`: Template for .env file
 - `README.md`
@@ -73,7 +73,7 @@ source venv/bin/activate
 
 2. Install dependencies
 ```bash
-pip install -r requirements.txt
+pip install .
 ```
 3. Configure environment variables (create a file called `.env` with the variables inside `.env.template`)and start Mlflow logging (optional)
 ```bash
