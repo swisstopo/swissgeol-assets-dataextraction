@@ -7,10 +7,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from src.classifiers.classifier_factory import create_classifier, ClassifierTypes
+from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.classify_page import classify_pdf
 from src.evaluation import evaluate_results
-from src.utils import read_params, get_pdf_files
+from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
