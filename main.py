@@ -25,10 +25,9 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
-
-
-
-def setup_mlflow(input_path: Path, ground_truth_path: Path,model_path:str, matching_params: dict, classifier_name:str):
+def setup_mlflow(
+    input_path: Path, ground_truth_path: Path, model_path: str, matching_params: dict, classifier_name: str
+):
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
@@ -37,7 +36,7 @@ def setup_mlflow(input_path: Path, ground_truth_path: Path,model_path:str, match
     if ground_truth_path:
         mlflow.set_tag("ground_truth_path", str(ground_truth_path))
     if model_path:
-        mlflow.set_tag("model_path",str(model_path))
+        mlflow.set_tag("model_path", str(model_path))
     if classifier_name:
         mlflow.set_tag("classifier_name", str(classifier_name))
 
@@ -77,7 +76,7 @@ def process_pdfs(pdf_files: list[Path], classifier) -> list[dict]:
     return results
 
 
-def main(input_path: str, ground_truth_path: str = None, model_path: str=None, classifier_name: str = "baseline"):
+def main(input_path: str, ground_truth_path: str = None, model_path: str = None, classifier_name: str = "baseline"):
     """
     Run the page classification pipeline on input documents.
 
@@ -101,7 +100,7 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str=None, c
 
     # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, ground_truth_path,model_path, matching_params, classifier_name)
+        setup_mlflow(input_path, ground_truth_path, model_path, matching_params, classifier_name)
 
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
@@ -147,7 +146,7 @@ if __name__ == "__main__":
         required=False,
         help="(Optional) Path to the ground truth JSON file for evaluation.",
     )
-    
+
     parser.add_argument(
         "-c",
         "--classifier",
@@ -156,19 +155,19 @@ if __name__ == "__main__":
         default="baseline",
         help="Specify which classifier to use for classification. Default set to baseline.",
     )
-    
+
     parser.add_argument(
         "-p",
         "--model_path",
         type=str,
         required=False,
-        help="Path to pretrained LayoutLMv3 or Tree Based model for classification."
+        help="Path to pretrained LayoutLMv3 or Tree Based model for classification.",
     )
-    
+
     args = parser.parse_args()
-    
+
     # Check if model_path is required based on classifier
-    if args.classifier.lower() in ['layoutlmv3', 'treebased'] and not args.model_path:
+    if args.classifier.lower() in ["layoutlmv3", "treebased"] and not args.model_path:
         parser.error(f"--model_path is required when using classifier '{args.classifier}'")
-    
+
     main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)

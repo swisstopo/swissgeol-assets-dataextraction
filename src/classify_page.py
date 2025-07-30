@@ -5,7 +5,7 @@ import pymupdf
 
 from src.classifiers.classifier_types import Classifier
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
-from src.detect_language import detect_language
+from language_detection.detect_language import detect_language
 from src.page_graphics import extract_page_graphics
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
@@ -76,12 +76,20 @@ def classify_pdf(file_path: Path, classifier: Classifier) -> dict:
         logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")
         return {}
 
-    classification = []
+    pages = []
 
     with pymupdf.Document(file_path) as doc:
         for page_number, page in enumerate(doc, start=1):
             classification_language, metadata_language = detect_language(page)
-            page_classification = classify_page(page, page_number, classifier, classification_language)
+            classification = classify_page(page, page_number, classifier, classification_language)
 
-            classification.append(page_classification.to_classification_dict())
-    return {"filename": file_path.name, "classification": classification}
+            pages.append(
+                {
+                    "page": page_number,
+                    "classification": classification.to_classification_dict(),
+                    "metadata": {"language": metadata_language},
+                }
+            )
+
+    overall_language = []
+    return {"filename": file_path.name, "metadata": {"languages": overall_language}, "pages": pages}

@@ -2,8 +2,10 @@ import pymupdf
 import logging
 import re
 from fasttext.FastText import _FastText
+import os
 
-detector = _FastText("models/FastText/lid.176.bin")
+model_path = os.getenv("FASTTEXT_MODEL_PATH")
+detector = _FastText(model_path)
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +90,6 @@ def detect_language(
             classification_language = default_language
 
         metadata_language = language_code if score >= METADATA_THRESHOLD else None
-
         return classification_language, metadata_language
 
     except Exception as e:

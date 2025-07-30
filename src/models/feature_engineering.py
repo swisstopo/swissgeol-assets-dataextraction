@@ -5,7 +5,7 @@ import re
 from src.page_structure import PageContext
 from src.text_objects import create_text_blocks, create_text_lines, TextBlock, TextLine
 
-from src.detect_language import detect_language
+from language_detection.detect_language import detect_language
 from src.identifiers.boreprofile import create_sidebars
 from src.identifiers.map import find_map_scales, split_lines_by_orientation, compute_angle_entropy
 from src.line_detection import extract_geometric_lines

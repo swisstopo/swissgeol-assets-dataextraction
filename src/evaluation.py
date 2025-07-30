@@ -181,16 +181,18 @@ def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
 
 
 def evaluate_results(
-    predictions: dict, ground_truth_path: Path, output_dir: Path = Path("evaluation")
+    predictions: list[dict], ground_truth_path: Path, output_dir: Path = Path("evaluation")
 ) -> Optional[dict]:
-    """Main entry point for evaluating predictions against ground truth."""
+    """Main entry point for evaluating classification predictions against ground truth."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     gt_dict = load_ground_truth(ground_truth_path)
     if gt_dict is None:
         return None
 
-    class_dict = {entry["filename"]: entry["classification"] for entry in predictions}
+    class_dict = {
+        entry["filename"]: page_entry["classification"] for entry in predictions for page_entry in entry["pages"]
+    }
 
     stats, total_files, total_pages = compute_confusion_stats(class_dict, gt_dict)
     stats_path = save_confusion_stats(stats, output_dir)
