@@ -106,12 +106,12 @@ title_page_substrings = {
 }
 
 
-def title_page_type(text: str) -> str | None:
-    return next(
-        (type_id for type_id, substrings in title_page_substrings.items() if is_title_page(text, substrings)), None
-    )
+def is_belegblatt(text: str) -> str | None:
+    """Check if the text matches any of the Belegblatt patterns."""
+    return any(contains_substrings(text, substrings) for substrings in title_page_substrings.values())
 
 
-def is_title_page(text: str, substrings: list[list[str]]) -> bool:
+def contains_substrings(text: str, substrings: list[list[str]]) -> bool:
+    """Check if the text contains at least 70% of the substrings."""
     evaluations = [any(substring in text for substring in substring_list) for substring_list in substrings]
     return len([evaluation for evaluation in evaluations if evaluation]) / len(evaluations) >= 0.7

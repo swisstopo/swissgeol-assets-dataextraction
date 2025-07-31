@@ -15,7 +15,7 @@ METADATA_THRESHOLD = 0.7
 CLASSIFICATION_THRESHOLD = 0.4
 
 
-def extract_text_from_page(page: pymupdf.Page) -> tuple[str, int]:
+def extract_cleaned_text(page: pymupdf.Page) -> tuple[str, int]:
     """
     Extracts text from a PDF page for language detection.
         - Filters out short lines and noisy tokens.
@@ -46,54 +46,57 @@ def extract_text_from_page(page: pymupdf.Page) -> tuple[str, int]:
     return text_for_detection, word_count_not_short
 
 
-def detect_language(
-    page: pymupdf.Page, supported_languages=None, default_language=DEFAULT_LANGUAGE
-) -> tuple[str, str | None]:
-    """
-    Detects the language of a PDF page using FastText.
-    - Returns a classification language (even on low confidence),
-    - and a metadata language only if confidence > 0.7.
-
-    Args:
-        page: The PDF page to analyze.
-        supported_languages: Allowed language codes. Defaults to SUPPORTED_LANGUAGES.
-        default_language: Fallback language.
-
-    Returns:
-        (classification_language, metadata_language or None)
-    """
-
-    if supported_languages is None:
-        supported_languages = SUPPORTED_LANGUAGES
-
-    text, word_count = extract_text_from_page(page)
-
-    if word_count < 4 or not text.strip():
-        logger.info(f"Insufficient text for language detection. Using default: {default_language} for classification.")
-        return default_language, None
+def predict_language(text: str) -> list[tuple[str, float]]:
+    """Returns list of (language_code, score) tuples from FastText."""
+    if not text.strip():
+        return []
 
     try:
         labels, scores = detector.predict(text.lower(), k=5)
-        if not labels or not scores:
-            logger.info(f"Empty prediction result. Using default: {default_language} for classification.")
-            return default_language, None
-
-        score = scores[0]
-        language_code = labels[0].replace("__label__", "")
-
-        if language_code in supported_languages and score >= CLASSIFICATION_THRESHOLD:
-            classification_language = language_code
-        else:
-            logger.info(
-                f"Language: '{language_code}' too low confidence or not supported. Falling back to: '{default_language}' for classification"
-            )
-            classification_language = default_language
-
-        metadata_language = language_code if score >= METADATA_THRESHOLD else None
-        return classification_language, metadata_language
-
+        return [(label.replace("__label__", ""), score) for label, score in zip(labels, scores)]
     except Exception as e:
-        logger.error(
-            f"Error occurred during language detection: {e}. Falling back to default language: {default_language} for classification,"
-        )
-        return default_language, None
+        logger.error(f"Language detection error: {e}")
+        return []
+
+
+def select_language(
+    predictions: list[tuple[str, float]],
+    word_count: int,
+    mode: str = "classification",
+    supported_languages: list[str] = None,
+) -> str | None:
+    """
+    Selects the best matching language for the given mode.
+
+    Modes:
+    - "classification": requires language to be supported; fallback if none pass
+    - "metadata": accepts any language if score >= threshold; returns None if none pass
+
+    Returns:
+        Language code (str) or fallback/None
+    """
+    if supported_languages is None:
+        supported_languages = SUPPORTED_LANGUAGES
+
+    if mode == "classification":
+        threshold = CLASSIFICATION_THRESHOLD
+        fallback = DEFAULT_LANGUAGE
+        require_supported = True
+    elif mode == "metadata":
+        threshold = METADATA_THRESHOLD
+        fallback = None
+        require_supported = False
+    else:
+        raise ValueError(f"Unknown mode: {mode}")
+
+    if word_count < 4:
+        logger.info(f"Too few words for detection. Returning fallback: {fallback}")
+        return fallback
+
+    for lang, score in predictions:
+        if score >= threshold:
+            if not require_supported or lang in supported_languages:
+                return lang
+
+    logger.info(f"No valid language found for mode='{mode}'. Returning fallback: {fallback}")
+    return fallback

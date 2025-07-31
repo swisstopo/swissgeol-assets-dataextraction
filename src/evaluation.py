@@ -208,9 +208,13 @@ def evaluate_results(
     if gt_dict is None:
         return None
 
-    class_dict = {
-        entry["filename"]: page_entry["classification"] for entry in predictions for page_entry in entry["pages"]
-    }
+    # Build dictionary mapping filename to list of page classifications
+    class_dict = {}
+    for entry in predictions:
+        if entry["filename"] not in class_dict:
+            class_dict[entry["filename"]] = []
+        for page_entry in entry["pages"]:
+            class_dict[entry["filename"]].append(page_entry["classification"])
 
     stats, total_files, total_pages = compute_confusion_stats(class_dict, gt_dict)
     stats_path = save_confusion_stats(stats, output_dir)
