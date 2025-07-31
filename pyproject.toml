@@ -49,3 +49,8 @@ ignore = ["D102", "D105", "D107"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+ignore = [
+    "D102",  # Missing docstring in a public method
+    "D105",  # Missing docstring in magic method
+    "D107",  # Missing docstring in `__init__`
+    ]
