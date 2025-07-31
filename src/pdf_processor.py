@@ -6,9 +6,9 @@ from pathlib import Path
 import pymupdf
 from tqdm import tqdm
 
-from src.language_detection.pages_to_ignore import is_belegblatt
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
-from src.language_detection.detect_language import select_language, extract_cleaned_text, predict_language
+from src.language_detection.detect_language import extract_cleaned_text, predict_language, select_language
+from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_graphics import extract_page_graphics
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
@@ -18,6 +18,15 @@ logger = logging.getLogger(__name__)
 
 
 class PDFProcessor:
+    """Class to process PDF files and classify their pages into PageClasses.
+
+    It uses a classifier to determine the class of each page based on its content and structure.
+    Extracts metadata such as language on file and page level.
+
+    Args:
+        classifier: An instance of a classifier that implements the `determine_class` method.
+    """
+
     def __init__(self, classifier):
         self.classifier = classifier
 
@@ -27,10 +36,12 @@ class PDFProcessor:
         page_number: int,
         language: str,
     ) -> PageAnalysis:
-        """classifies single pages into Text-, Boreprofile-, Map-, Title- or Unknown Page.
+        """Classifies single pages into available PageClasses
+        (Text, Boreprofile, Map, Title Page or Unknown)
+
         Args:
             page: page that get classified
-            page_number: page number in report
+            page_number: page number in report (starting with 1)
             language: language of page content
 
         Returns:
@@ -65,8 +76,13 @@ class PDFProcessor:
         return analysis
 
     def process(self, file_path: Path) -> dict:
-        """
-        Process each page of a PDF file, returning classification and metadata.
+        """Process each page of a PDF file, returning classification and metadata.
+
+        Args:
+            file_path: Path to the PDF file to be processed.
+
+        Returns:
+            A dictionary containing the filename, metadata, and a list of classified pages and their metadata.
         """
         if not file_path.is_file() or file_path.suffix.lower() != ".pdf":
             logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")
@@ -102,6 +118,7 @@ class PDFProcessor:
         return {"filename": file_path.name, "metadata": metadata, "pages": pages}
 
     def process_batch(self, pdf_files: list[Path]) -> list[dict]:
+        """Process a batch of PDF files and return their classifications and metadata."""
         results = []
         with tqdm(total=len(pdf_files)) as pbar:
             for pdf in pdf_files:
@@ -114,8 +131,11 @@ class PDFProcessor:
 
     @staticmethod
     def _update_language_score(
-        predictions, word_count, is_frontpage, page_number, scores: dict, long_counts: dict
+        predictions: dict, word_count: int, is_frontpage: bool, page_number: int, scores: dict, long_counts: dict
     ) -> str | None:
+        """Update language scores based on predictions and word count.
+        Returns the metadata language of current page.
+        """
         metadata_language = select_language(predictions, word_count, mode="metadata")
         if metadata_language and not is_frontpage:
             if word_count > 0:
@@ -126,6 +146,10 @@ class PDFProcessor:
 
     @staticmethod
     def _summarize_language_metadata(scores: dict[str, float], long_counts: dict[str, int], page_count: int) -> dict:
+        """Summarizes language metadata based on scores and long counts.
+
+        Returns a dictionary with the page count and a list of languages in the pdf.
+        """
         if scores:
             best = max(scores, key=scores.get)
             languages = [best] + [lang for lang, count in long_counts.items() if count >= 2 and lang != best]

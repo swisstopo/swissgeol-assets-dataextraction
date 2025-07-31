@@ -48,7 +48,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `config/`: YAML configuration files for models and keyword matching
 - `data/`
     - `single_pages/`: Input data split by class
-    - `single_pages_split/`raining/validation split created by `split_data.py`
+    - `single_pages_split/: `training/validation split created by `split_data.py`
     -  `prediction.json`: Output predictions
     - `gt_*.json`: Ground truth files
 - `evaluation/`: Evaluation outputs, metrics and visualization
