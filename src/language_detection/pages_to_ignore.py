@@ -106,7 +106,7 @@ title_page_substrings = {
 }
 
 
-def is_belegblatt(text: str) -> str | None:
+def is_belegblatt(text: str) -> bool:
     """Check if the text matches any of the Belegblatt patterns."""
     return any(contains_substrings(text, substrings) for substrings in title_page_substrings.values())
 

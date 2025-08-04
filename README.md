@@ -48,7 +48,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `config/`: YAML configuration files for models and keyword matching
 - `data/`
     - `single_pages/`: Input data split by class
-    - `single_pages_split/: `training/validation split created by `split_data.py`
+    - `single_pages_split/: `Training/validation split created by `split_data.py`
     -  `prediction.json`: Output predictions
     - `gt_*.json`: Ground truth files
 - `evaluation/`: Evaluation outputs, metrics and visualization
@@ -194,44 +194,62 @@ To run classification using the Pixtral Large Model, you must configure your AWS
 
 ## Output Format
 The script processes PDF pages and outputs predictions in `data/predictions.json`. 
-The output is structured as a list of classification results per page per report.
+The output is structured as a list of metadata and page predictions per file. 
+Page predications "pages" is a list of classification results per page and metadata per page (language) .
 #### Example Output
 ```json
 [
-  {
-    "filename": "1799_3.pdf",
-    "classification": [
-      {
-        "Page": 1,
-        "Text": 0,
-        "Boreprofile": 0,
-        "Maps": 1,
-        "Title_Page": 0,
-        "Unknown": 0
-      },
-      {
-        "Page": 2,
-        "Text": 1,
-        "Boreprofile": 0,
-        "Maps": 0,
-        "Title_Page": 0,
-        "Unknown": 0
-      }
-    ]
-  },
-  {
-    "filename": "1800_1.pdf",
-    "classification": [
-      {
-        "Page": 1,
-        "Text": 0,
-        "Boreprofile": 1,
-        "Maps": 0,
-        "Title_Page": 0,
-        "Unknown": 0
-      }
-    ]
-  }
+    {
+        "filename": "1858.pdf",
+        "metadata": {
+            "page_count": 3,
+            "languages": ["de", "fr"]
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Maps": 0,
+                    "Title_Page": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": "de",
+                    "is_frontpage": false
+                }
+            },
+            {
+                "page": 2,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Maps": 0,
+                    "Title_Page": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": "fr",
+                    "is_frontpage": false
+                }
+            },
+            {
+                "page": 3,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Maps": 0,
+                    "Title_Page": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": false
+                }
+            }
+        ]
+    }
 ]
 
 ```
