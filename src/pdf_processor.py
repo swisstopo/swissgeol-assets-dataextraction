@@ -36,8 +36,7 @@ class PDFProcessor:
         page_number: int,
         language: str,
     ) -> PageAnalysis:
-        """Classifies single pages into available PageClasses
-        (Text, Boreprofile, Map, Title Page or Unknown)
+        """Classifies single pages into available PageClasses (Text, Boreprofile, Map, Title Page or Unknown).
 
         Args:
             page: page that get classified
@@ -131,9 +130,15 @@ class PDFProcessor:
 
     @staticmethod
     def _update_language_score(
-        predictions: dict, word_count: int, is_frontpage: bool, page_number: int, scores: dict, long_counts: dict
+        predictions: list[tuple[str, float]],
+        word_count: int,
+        is_frontpage: bool,
+        page_number: int,
+        scores: dict,
+        long_counts: dict,
     ) -> str | None:
         """Update language scores based on predictions and word count.
+
         Returns the metadata language of current page.
         """
         metadata_language = select_language(predictions, word_count, mode="metadata")
