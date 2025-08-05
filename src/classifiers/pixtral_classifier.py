@@ -13,10 +13,10 @@ from src.utils import read_params
 
 logger = logging.getLogger(__name__)
 
-prompts = read_params("prompts/classification_prompts.yml")
-
 
 class PixtralClassifier(Classifier):
+    """Pixtral Classifier."""
+
     def __init__(
         self,
         config: dict,
@@ -45,13 +45,15 @@ class PixtralClassifier(Classifier):
         }
 
     def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
-        """
-        Determines the class of a document page using the Pixtral model.
+        """Determines the class of a document page using the Pixtral model.
+
         Falls back to baseline classifier if output is malformed or ClientError.
+
         Args:
             page: The page of th document that should be classified
             context: Preprocessed page context (e.g., text blocks, lines).
             page_number: the Page number of the page that should be classified
+            **kwargs: passed arguments
 
         Returns:
             PageClasses: The predicted page class.
