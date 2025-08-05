@@ -9,7 +9,10 @@ class PageClasses(Enum):
     TEXT = "Text"
     BOREPROFILE = "Boreprofile"
     MAP = "Maps"
+    GEO_PROFILE = "Geo_Profile"
     TITLE_PAGE = "Title_Page"
+    DIAGRAM = "Diagram"
+    TABLE = "Table"
     UNKNOWN = "Unknown"
 
 
@@ -19,8 +22,11 @@ label2id = {
     "Boreprofile": 0,
     "Maps": 1,
     "Text": 2,
-    "Title_Page": 3,
-    "Unknown": 4,
+    "Geo_Profile": 3,
+    "Title_Page": 4,
+    "Diagram": 5,
+    "Table": 6,
+    "Unknown": 7,
 }
 id2label = {v: k for k, v in label2id.items()}
 enum2id = {class_: label2id[class_.value] for class_ in PageClasses}

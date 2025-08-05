@@ -36,11 +36,18 @@ class PixtralClassifier(Classifier):
         maps_bytes = read_image_bytes(config["maps_img_path"])
         title_bytes = read_image_bytes(config["title_img_path"])
         unknown_bytes = read_image_bytes(config["unknown_img_path"])
+        geo_profile_bytes = read_image_bytes(config["geo_profile_img_path"])
+        table_bytes = read_image_bytes(config["table_img_path"])
+        diagram_bytes = read_image_bytes(config["diagram_img_path"])
+
         self.examples_bytes = {
             "borehole": borehole_bytes,
             "text": text_bytes,
             "maps": maps_bytes,
             "title": title_bytes,
+            "geo_profile": geo_profile_bytes,
+            "diagram": diagram_bytes,
+            "table": table_bytes,
             "unknown": unknown_bytes,
         }
 

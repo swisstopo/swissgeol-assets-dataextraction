@@ -10,9 +10,7 @@ logger = logging.getLogger(__name__)
 
 
 def clean_label(label: str) -> str:
-    """
-    Cleans a raw string returned by Pixtral and standardizes formatting.
-    """
+    """Cleans a raw string returned by Pixtral and standardizes formatting."""
     label = label.strip().lower()
     label = re.sub(r"[`\"']", "", label)  # remove backticks, quotes
     label = re.sub(r"[.:\s]+$", "", label)  # remove trailing punctuation/spaces
@@ -30,6 +28,12 @@ def map_string_to_page_class(label: str) -> PageClasses:
             return PageClasses.BOREPROFILE
         case "map" | "maps":
             return PageClasses.MAP
+        case "geo profile" | "geological profile" | "geo_profile":
+            return PageClasses.GEO_PROFILE
+        case "diagram" | "diagrams":
+            return PageClasses.DIAGRAM
+        case "table" | "tables":
+            return PageClasses.TABLE
         case "title page" | "title_page" | "title":
             return PageClasses.TITLE_PAGE
         case _:
@@ -39,7 +43,7 @@ def map_string_to_page_class(label: str) -> PageClasses:
 
 
 def read_image_bytes(image_path: str, compress: bool = True) -> bytes:
-    """Read image file as bytes"""
+    """Read image file as bytes."""
     if compress:
         return compress_image(image_path)
     else:
@@ -48,9 +52,7 @@ def read_image_bytes(image_path: str, compress: bool = True) -> bytes:
 
 
 def compress_image(image_path: str, max_size_kb: int = 500, quality: int = 85) -> bytes:
-    """
-    Compress image to reduce size while maintaining readability
-    """
+    """Compress image to reduce size while maintaining readability."""
     with Image.open(image_path) as img:
         # Convert to RGB if needed
         if img.mode in ("RGBA", "P"):
