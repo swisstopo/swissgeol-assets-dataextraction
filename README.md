@@ -75,13 +75,30 @@ source venv/bin/activate
 ```bash
 pip install .
 ```
-3. Configure environment variables (create a file called `.env` with the variables inside `.env.template`)and start Mlflow logging (optional)
+Make sure you have fasttext-predict installed instead of fasttext (see Language Detection Setup).
+3. Copy the provided environment variable template and specify your paths:
 ```bash
+cp .env.template .env
+```
+
+Start MLflow UI (optional, for experiment tracking):
+```
 mlflow ui
 ```
 4. (optional) If you choose to use a model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
 - Option B: Train your own model as described in [Train your Model](#train-your-model).
+
+5. Language Detection Setup
+
+This project uses FastText for language detection.
+Download the FastText language identification model:
+```
+mkdir -p models/FastText
+curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
+```
+In your .env file, set the FASTTEXT_MODEL_PATH variable to your model path
+
 5. Run the classification:
 ```bash
 python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 

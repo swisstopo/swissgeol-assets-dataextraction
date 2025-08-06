@@ -1,5 +1,4 @@
 import logging
-import math
 from collections import defaultdict
 from pathlib import Path
 
@@ -7,7 +6,13 @@ import pymupdf
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
-from src.language_detection.detect_language import extract_cleaned_text, predict_language, select_language
+from src.language_detection.detect_language import (
+    extract_cleaned_text,
+    predict_language,
+    select_classification_language,
+    select_metadata_language,
+    summarize_language_metadata,
+)
 from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_graphics import extract_page_graphics
 from src.page_structure import PageAnalysis, PageContext
@@ -97,11 +102,16 @@ class PDFProcessor:
                 is_frontpage = is_belegblatt(page.get_text())
                 language_prediction = predict_language(clean_text)
 
-                metadata_language = self._update_language_score(
-                    language_prediction, word_count, is_frontpage, page_number, language_scores, long_page_counts
+                metadata_language = select_metadata_language(
+                    predictions=language_prediction,
+                    word_count=word_count,
+                    is_frontpage=is_frontpage,
+                    page_number=page_number,
+                    scores=language_scores,
+                    long_counts=long_page_counts,
                 )
 
-                classification_language = select_language(language_prediction, word_count)
+                classification_language = select_classification_language(language_prediction, word_count)
                 classification = self.classify_page(page, page_number, classification_language)
 
                 pages.append(
@@ -112,7 +122,7 @@ class PDFProcessor:
                     }
                 )
 
-        metadata = self._summarize_language_metadata(language_scores, long_page_counts, len(pages))
+        metadata = summarize_language_metadata(language_scores, long_page_counts, len(pages))
 
         return {"filename": file_path.name, "metadata": metadata, "pages": pages}
 
@@ -127,38 +137,3 @@ class PDFProcessor:
                     results.append(result)
                 pbar.update(1)
         return results
-
-    @staticmethod
-    def _update_language_score(
-        predictions: list[tuple[str, float]],
-        word_count: int,
-        is_frontpage: bool,
-        page_number: int,
-        scores: dict,
-        long_counts: dict,
-    ) -> str | None:
-        """Update language scores based on predictions and word count.
-
-        Returns the metadata language of current page.
-        """
-        metadata_language = select_language(predictions, word_count, mode="metadata")
-        if metadata_language and not is_frontpage:
-            if word_count > 0:
-                scores[metadata_language] += math.log(word_count) / page_number
-            if word_count > 50:
-                long_counts[metadata_language] += 1
-        return metadata_language
-
-    @staticmethod
-    def _summarize_language_metadata(scores: dict[str, float], long_counts: dict[str, int], page_count: int) -> dict:
-        """Summarizes language metadata based on scores and long counts.
-
-        Returns a dictionary with the page count and a list of languages in the pdf.
-        """
-        if scores:
-            best = max(scores, key=scores.get)
-            languages = [best] + [lang for lang, count in long_counts.items() if count >= 2 and lang != best]
-        else:
-            languages = []
-
-        return {"page_count": page_count, "languages": languages}
