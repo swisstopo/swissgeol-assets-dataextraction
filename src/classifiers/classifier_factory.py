@@ -1,17 +1,21 @@
 import logging
 import os
 
-import mlflow
+from dotenv import load_dotenv
 
-from classifiers.treebased_classifier import TreeBasedClassifier
 from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.layoutlmv3_classifier import LayoutLMv3Classifier
 from src.classifiers.pixtral_classifier import PixtralClassifier
+from src.classifiers.treebased_classifier import TreeBasedClassifier
 from src.utils import get_aws_config, read_params
 
 logger = logging.getLogger(__name__)
+load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+
+if mlflow_tracking:
+    import mlflow
 
 PIXTRAL_CONFIG_FILE_PATH = "config/pixtral_config.yml"
 
@@ -26,6 +30,7 @@ def create_classifier(
             (e.g., BASELINE, PIXTRAL, LAYOUTLMV3).
         model_path: path to pretrained model if LayoutLMv3 is used.
         matching_params: Expressions used for identifying page classes in baseline classifiers.
+
     Returns:
         A classifier instance matching the specified type.
     """

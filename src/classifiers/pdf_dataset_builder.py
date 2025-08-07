@@ -1,15 +1,18 @@
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+from typing import TYPE_CHECKING
 
 import pymupdf
-from datasets import Dataset, IterableDataset
 from PIL import Image
 
 from src.page_classes import label2id
 
 logger = logging.getLogger(__name__)
+
+if TYPE_CHECKING:
+    from datasets import Dataset, IterableDataset
 
 
 def extract_layoutlm_data_from_pdf(doc: pymupdf.Document) -> list:
@@ -84,7 +87,7 @@ def build_lazy_dataset(
     pdf_list: list[Path],
     preprocess_fn: Callable,
     ground_truth_map: dict | None = None,
-) -> IterableDataset:
+) -> "IterableDataset":
     """Builds an iterable dataset from a list of PDF files.
 
     This function processes each PDF file, extracts the necessary data from each page, normalizes the bounding boxes,
@@ -100,6 +103,13 @@ def build_lazy_dataset(
     Returns:
         IterableDataset: An iterable dataset that yields preprocessed page data.
     """
+    try:
+        from datasets import IterableDataset
+    except ImportError as e:
+        raise ImportError(
+            "The 'datasets' package is required for training. "
+            "Please install with `pip install 'swissgeol-assets-dataextraction[deep-learning]'`"
+        ) from e
 
     # return LazyPDFDataset(pdf_list, preprocess_fn, ground_truth_map)
     def sample_generator():
@@ -126,7 +136,7 @@ def build_lazy_dataset(
     return IterableDataset.from_generator(sample_generator)
 
 
-def build_dataset_from_page_list(page_list: list[pymupdf.Page], ground_truth_map: dict | None = None) -> Dataset:
+def build_dataset_from_page_list(page_list: list[pymupdf.Page], ground_truth_map: dict | None = None) -> "Dataset":
     """Builds a dataset from a list of pymupdf.Page objects.
 
     This function processes each page, extracts the necessary data, normalizes the bounding boxes,
@@ -141,6 +151,14 @@ def build_dataset_from_page_list(page_list: list[pymupdf.Page], ground_truth_map
         Dataset: A dataset containing the processed page data, including words, bounding boxes, images,
                  and labels (if available).
     """
+    try:
+        from datasets import Dataset
+    except ImportError as e:
+        raise ImportError(
+            "The 'datasets' package is required for training. "
+            "Please install with `pip install 'swissgeol-assets-dataextraction[deep-learning]'`"
+        ) from e
+
     all_samples = []
 
     for page in page_list:
@@ -158,9 +176,9 @@ def build_dataset_from_page_list(page_list: list[pymupdf.Page], ground_truth_map
     return Dataset.from_list(all_samples)
 
 
-def build_filename_to_label_map( gt_json_path: Path) -> dict[tuple[str, int], int]:
+def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int]:
     """Build a map from filename to class ID based on the ground truth JSON."""
-    with open(gt_json_path, "r") as f:
+    with open(gt_json_path) as f:
         gt_data = json.load(f)
 
     label_lookup = {}
@@ -171,8 +189,8 @@ def build_filename_to_label_map( gt_json_path: Path) -> dict[tuple[str, int], in
             for label_name, value in classification.items():
                 if label_name != "Page" and value == 1:
                     try:
-                        label_id= label2id[label_name]
+                        label_id = label2id[label_name]
                         label_lookup[(filename, page)] = label_id
-                    except KeyError:
-                        raise ValueError(f"Unknown label: {label_name}")
+                    except KeyError as err:
+                        raise ValueError(f"Unknown label: {label_name}") from err
     return label_lookup

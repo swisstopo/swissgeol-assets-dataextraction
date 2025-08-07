@@ -4,18 +4,18 @@ import boto3
 import pymupdf
 from botocore.exceptions import ClientError
 
-from page_graphics import get_page_image_bytes
-from page_structure import PageContext
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
 from src.page_classes import PageClasses
+from src.page_graphics import get_page_image_bytes
+from src.page_structure import PageContext
 from src.utils import read_params
 
 logger = logging.getLogger(__name__)
 
 
 class PixtralClassifier(Classifier):
-    """Pixtral Classifier."""
+    """Page Classifier using Pixtral Large."""
 
     def __init__(
         self,
@@ -39,7 +39,6 @@ class PixtralClassifier(Classifier):
         geo_profile_bytes = read_image_bytes(config["geo_profile_img_path"])
         table_bytes = read_image_bytes(config["table_img_path"])
         diagram_bytes = read_image_bytes(config["diagram_img_path"])
-
         self.examples_bytes = {
             "borehole": borehole_bytes,
             "text": text_bytes,
@@ -60,7 +59,7 @@ class PixtralClassifier(Classifier):
             page: The page of th document that should be classified
             context: Preprocessed page context (e.g., text blocks, lines).
             page_number: the Page number of the page that should be classified
-            **kwargs: passed arguments
+            **kwargs: Additionally passed unused arguments
 
         Returns:
             PageClasses: The predicted page class.

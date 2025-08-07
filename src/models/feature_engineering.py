@@ -1,22 +1,26 @@
-import pymupdf
-import numpy as np
 import re
 
-from src.page_structure import PageContext
-from src.text_objects import create_text_blocks, create_text_lines, TextBlock, TextLine
+import numpy as np
+import pymupdf
 
-from src.language_detection.detect_language import select_language, predict_language, extract_cleaned_text
+from src.geometric_objects import Line
 from src.identifiers.boreprofile import create_sidebars
-from src.identifiers.map import find_map_scales, split_lines_by_orientation, compute_angle_entropy
+from src.identifiers.map import compute_angle_entropy, find_map_scales, split_lines_by_orientation
+from src.language_detection.detect_language import (
+    extract_cleaned_text,
+    predict_language,
+    select_classification_language,
+)
 from src.line_detection import extract_geometric_lines
 from src.material_description import detect_material_description
+from src.page_structure import PageContext
+from src.text_objects import TextBlock, TextLine, create_text_blocks, create_text_lines
 from src.utils import is_description
-from src.geometric_objects import Line
 
 
 def get_features(page: pymupdf.Page, page_number: int, matching_params: dict) -> list[float]:
-    """
-    Extracts numerical features from a  PDF page for training a classifier.
+    """Extracts numerical features from a  PDF page for training a classifier.
+
     This function is used during training, where language, text lines,
     text blocks, and geometric lines are all extracted from the page.
 
@@ -31,7 +35,7 @@ def get_features(page: pymupdf.Page, page_number: int, matching_params: dict) ->
     ## detect language
     clean_text, word_count = extract_cleaned_text(page)
     language_prediction = predict_language(clean_text)
-    language = select_language(language_prediction, word_count)
+    language = select_classification_language(language_prediction, word_count)
 
     ## construct text features
     lines = create_text_lines(page, page_number)
@@ -43,9 +47,10 @@ def get_features(page: pymupdf.Page, page_number: int, matching_params: dict) ->
 
 
 def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params: dict) -> list[float]:
-    """
-    Computes features for an already processed page using its PageContext.
-    It is used during page classification, where preprocessing has already been performed and stored in the PageContext.
+    """Computes features for an already processed page using its PageContext.
+
+    It is used during page classification,
+     where preprocessing has already been performed and stored in the PageContext.
 
     Args:
         page (pymupdf.Page): The PDF page object.
@@ -55,7 +60,6 @@ def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params
     Returns:
         list[float]: A list of 17 computed features used for classification.
     """
-
     ctx.geometric_lines = extract_geometric_lines(page)
     features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
 
@@ -69,8 +73,8 @@ def compute_text_features(
     geometric_lines: list[Line],
     matching_params: dict,
 ) -> list[float]:
-    """
-    Computes 17 numerical features used for tree-based page classification models
+    """Computes 17 numerical features used for tree-based page classification models.
+
     (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
 
     The features are derived from:
@@ -129,7 +133,7 @@ def compute_text_features(
     word_density = word_area / tot_area if tot_area > 0 else 0
     mean_left = np.mean(lefts)
     mean_right = np.mean(rights)
-    text_width = np.mean([r - left for r, left in zip(rights, lefts)])
+    text_width = np.mean([r - left for r, left in zip(rights, lefts, strict=False)])
     line_len_var = np.var(line_lengths)
     indent_std = np.std(lefts)
     punct_density = punct_count / line_count if line_count else 0
@@ -138,10 +142,7 @@ def compute_text_features(
     words = [word for line in lines for word in line.words]
 
     keywords = matching_params["material_description"].get(language, {})
-    if keywords:
-        descriptions = detect_material_description(lines, words, keywords)
-    else:
-        descriptions = []
+    descriptions = detect_material_description(lines, words, keywords) if keywords else []
     num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
 
     sidebars = create_sidebars(words)
