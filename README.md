@@ -48,7 +48,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `config/`: YAML configuration files for models and keyword matching
 - `data/`
     - `single_pages/`: Input data split by class
-    - `single_pages_split/: `Training/validation split created by `split_data.py`
+    - `single_pages_split/`: Training/validation split created by `split_data.py`
     -  `prediction.json`: Output predictions
     - `gt_*.json`: Ground truth files
 - `evaluation/`: Evaluation outputs, metrics and visualization
@@ -65,7 +65,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 
 ## How to run Classifier
 
-### 1. Create and activate a virtual environment**
+### 1. Create and activate a virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate
@@ -98,16 +98,16 @@ mlflow ui
 
 ### 6. Setup FastText Language Detection
 
-This project uses [fasttext-predict](https://github.com/searxng/fasttext-predict/),  a lightweight, dependency-free wrapper exposing only the predict method.
-We use this. because [FastText](https://github.com/facebookresearch/fastText) is archived.
-Download the FastText language identification model lid.176.bin form this [Website](https://fasttext.cc/docs/en/language-identification.html):
+This project uses [fasttext-predict](https://github.com/searxng/fasttext-predict/), a lightweight, dependency-free wrapper exposing only the predict method.
+We use this because [FastText](https://github.com/facebookresearch/fastText) is archived.
+Download the FastText language identification model lid.176.bin form [this website](https://fasttext.cc/docs/en/language-identification.html):
 ```
 mkdir -p models/FastText
 curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
 ```
 In your `.env` file, set  the `FASTTEXT_MODEL_PATH` variable to your model path
 
-8. Run the classification:
+### 7. Run the classification:
 ```bash
 python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
 ```
@@ -137,7 +137,7 @@ data/single_pages_split/train/
 data/single_pages_split/val/
 ```
 You can then train either:
-- `layoutlmv3`: Fine tuning the layoulmv3 model
+- `layoutlmv3`: Fine-tuning the layoulmv3 model
 - `treebased`: Train a RandomForest or XGBoost model
 
 Training logs and metrics will be tracked via MLflow.
@@ -292,9 +292,3 @@ Page predications "pages" is a list of classification results per page and metad
 - Output is returned as a standard Python list of dictionaries and can be serialized directly as JSON.
 - Input must be preprocessed: PDFs should already have OCR. 
 - Classification is currently multi-class with a single label per page. Future updates may support multiple-labels.
-
-## Language-Detection
-
-This module performs language detection on input documents.
-It is intended to be integrated into the classification pipline in a later stage.
-For execution details, please refer to [language-detection/README.md](README.md).
