@@ -65,41 +65,49 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 
 ## How to run Classifier
 
-1. Create and activate a virtual environment
+### 1. Create and activate a virtual environment**
 ```bash
 python -m venv venv
 source venv/bin/activate
 ```
 
-2. Install dependencies
+### 2. Install dependencies
 ```bash
 pip install .
 ```
-Make sure you have fasttext-predict installed instead of fasttext (see Language Detection Setup).
-3. Copy the provided environment variable template and specify your paths:
+For development, install optional tools with:
+```bash
+pip install '.[deep-learning,test,lint,experiment-tracking]'
+```
+Make sure you have `fasttext-predict` installed instead of `fasttext` (see 6. Setup FastText Language Detection).
+
+### 3. Copy the provided environment variable template and specify your paths:
 ```bash
 cp .env.template .env
 ```
+For development and if you want to track your experiments, set `MLFLOW_TRACKING=True` in `.env` file.
+### 4. (Optional) Start the MLflow UI
 
-Start MLflow UI (optional, for experiment tracking):
+For development: Start MLflow UI (optional, for experiment tracking):
 ```
 mlflow ui
 ```
-4. (optional) If you choose to use a model:
+### 5. (Optional) Use a pre-trained model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
 - Option B: Train your own model as described in [Train your Model](#train-your-model).
 
-5. Language Detection Setup
+### 6. Setup FastText Language Detection
 
-This project uses FastText for language detection.
-Download the FastText language identification model:
+This project uses [fasttext-predict](https://github.com/searxng/fasttext-predict/),  a lightweight, dependency-free wrapper exposing only the predict method.
+We use this. because [FastText](https://github.com/facebookresearch/fastText) is archived.
+Download the FastText language identification model lid.176.bin form this [Website](https://fasttext.cc/docs/en/language-identification.html):
 ```
 mkdir -p models/FastText
 curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
 ```
-In your .env file, set the FASTTEXT_MODEL_PATH variable to your model path
+In your `.env` file, set  the `FASTTEXT_MODEL_PATH` variable to your model path
 
-5. Run the classification:
+8. Run the classification:
 ```bash
 python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
 ```
