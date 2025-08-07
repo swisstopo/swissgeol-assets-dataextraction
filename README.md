@@ -48,7 +48,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `config/`: YAML configuration files for models and keyword matching
 - `data/`
     - `single_pages/`: Input data split by class
-    - `single_pages_split/`raining/validation split created by `split_data.py`
+    - `single_pages_split/`: Training/validation split created by `split_data.py`
     -  `prediction.json`: Output predictions
     - `gt_*.json`: Ground truth files
 - `evaluation/`: Evaluation outputs, metrics and visualization
@@ -58,31 +58,56 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `src/`: Utility scripts and core logic 
 - `tests/`: Unit tests
 - `main.py`: Entry point for classification
-- `requirements.txt`
+- `pyproject.toml`
 - `setup.py`
 - `.env.template`: Template for .env file
 - `README.md`
 
 ## How to run Classifier
 
-1. Create and activate a virtual environment
+### 1. Create and activate a virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate
 ```
 
-2. Install dependencies
+### 2. Install dependencies
 ```bash
-pip install -r requirements.txt
+pip install .
 ```
-3. Configure environment variables (create a file called `.env` with the variables inside `.env.template`)and start Mlflow logging (optional)
+For development, install optional tools with:
 ```bash
+pip install '.[deep-learning,test,lint,experiment-tracking]'
+```
+Make sure you have `fasttext-predict` installed instead of `fasttext` (see 6. Setup FastText Language Detection).
+
+### 3. Copy the provided environment variable template and specify your paths:
+```bash
+cp .env.template .env
+```
+For development and if you want to track your experiments, set `MLFLOW_TRACKING=True` in `.env` file.
+### 4. (Optional) Start the MLflow UI
+
+For development: Start MLflow UI (optional, for experiment tracking):
+```
 mlflow ui
 ```
-4. (optional) If you choose to use a model:
+### 5. (Optional) Use a pre-trained model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
 - Option B: Train your own model as described in [Train your Model](#train-your-model).
-5. Run the classification:
+
+### 6. Setup FastText Language Detection
+
+This project uses [fasttext-predict](https://github.com/searxng/fasttext-predict/), a lightweight, dependency-free wrapper exposing only the predict method.
+We use this because [FastText](https://github.com/facebookresearch/fastText) is archived.
+Download the FastText language identification model lid.176.bin form [this website](https://fasttext.cc/docs/en/language-identification.html):
+```
+mkdir -p models/FastText
+curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
+```
+In your `.env` file, set  the `FASTTEXT_MODEL_PATH` variable to your model path
+
+### 7. Run the classification:
 ```bash
 python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
 ```
@@ -112,7 +137,7 @@ data/single_pages_split/train/
 data/single_pages_split/val/
 ```
 You can then train either:
-- `layoutlmv3`: Fine tuning the layoulmv3 model
+- `layoutlmv3`: Fine-tuning the layoulmv3 model
 - `treebased`: Train a RandomForest or XGBoost model
 
 Training logs and metrics will be tracked via MLflow.
@@ -194,44 +219,62 @@ To run classification using the Pixtral Large Model, you must configure your AWS
 
 ## Output Format
 The script processes PDF pages and outputs predictions in `data/predictions.json`. 
-The output is structured as a list of classification results per page per report.
+The output is structured as a list of metadata and page predictions per file. 
+Page predications "pages" is a list of classification results per page and metadata per page (language) .
 #### Example Output
 ```json
 [
-  {
-    "filename": "1799_3.pdf",
-    "classification": [
-      {
-        "Page": 1,
-        "Text": 0,
-        "Boreprofile": 0,
-        "Maps": 1,
-        "Title_Page": 0,
-        "Unknown": 0
-      },
-      {
-        "Page": 2,
-        "Text": 1,
-        "Boreprofile": 0,
-        "Maps": 0,
-        "Title_Page": 0,
-        "Unknown": 0
-      }
-    ]
-  },
-  {
-    "filename": "1800_1.pdf",
-    "classification": [
-      {
-        "Page": 1,
-        "Text": 0,
-        "Boreprofile": 1,
-        "Maps": 0,
-        "Title_Page": 0,
-        "Unknown": 0
-      }
-    ]
-  }
+    {
+        "filename": "1858.pdf",
+        "metadata": {
+            "page_count": 3,
+            "languages": ["de", "fr"]
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Maps": 0,
+                    "Title_Page": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": "de",
+                    "is_frontpage": false
+                }
+            },
+            {
+                "page": 2,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Maps": 0,
+                    "Title_Page": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": "fr",
+                    "is_frontpage": false
+                }
+            },
+            {
+                "page": 3,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Maps": 0,
+                    "Title_Page": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": false
+                }
+            }
+        ]
+    }
 ]
 
 ```
@@ -249,9 +292,3 @@ The output is structured as a list of classification results per page per report
 - Output is returned as a standard Python list of dictionaries and can be serialized directly as JSON.
 - Input must be preprocessed: PDFs should already have OCR. 
 - Classification is currently multi-class with a single label per page. Future updates may support multiple-labels.
-
-## Language-Detection
-
-This module performs language detection on input documents.
-It is intended to be integrated into the classification pipline in a later stage.
-For execution details, please refer to [language-detection/README.md](README.md).

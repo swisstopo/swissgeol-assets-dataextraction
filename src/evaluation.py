@@ -1,28 +1,37 @@
 import csv
 import json
 import logging
+import os
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any
 
-import mlflow
 import pandas as pd
+from dotenv import load_dotenv
 
 from src.page_classes import PageClasses
+
+load_dotenv()
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+
+if mlflow_tracking:
+    import mlflow
+
 
 logger = logging.getLogger(__name__)
 LABELS = [cls.value for cls in PageClasses]
 
 
-def load_ground_truth(ground_truth_path: Path) -> Optional[Dict[str, Any]]:
+def load_ground_truth(ground_truth_path: Path) -> dict[str, Any] | None:
+    """Loads ground truth data from a JSON file."""
     try:
-        with open(ground_truth_path, "r") as f:
+        with open(ground_truth_path) as f:
             return {entry["filename"]: entry["classification"] for entry in json.load(f)}
     except Exception as e:
         logger.error(f"Invalid ground truth path: {e}")
         return None
 
 
-def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str, Any]) -> tuple[dict, int, int]:
+def compute_confusion_stats(predictions: dict[str, Any], ground_truth: dict[str, Any]) -> tuple[dict, int, int]:
     """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
     stats = {
         label: {
@@ -49,7 +58,7 @@ def compute_confusion_stats(predictions: Dict[str, Any], ground_truth: Dict[str,
         total_files += 1
         total_pages += len(pred_pages)
 
-        for pred_page, gt_page in zip(pred_pages, gt_pages):
+        for pred_page, gt_page in zip(pred_pages, gt_pages, strict=False):
             for label in LABELS:
                 pred = pred_page.get(label, 0)
                 gt = gt_page.get(label, 0)
@@ -96,6 +105,8 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
 
 def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> None:
     """Calculates and logs F1, precision and recall to MLflow."""
+    if not mlflow_tracking:
+        return None
 
     precisions = []
     recalls = []
@@ -170,7 +181,8 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
                 writer.writerow(row)
                 rows.append(row)
 
-    mlflow.log_artifact(str(report_path))
+    if mlflow_tracking:
+        mlflow.log_artifact(str(report_path))
     logger.info(f"Logged page-by-page comparison to {report_path}")
     return pd.DataFrame(rows, columns=columns)
 
@@ -188,33 +200,44 @@ def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
 
     mis_path = output_dir / "misclassifications.csv"
     misclassified.to_csv(mis_path, index=False)
-    mlflow.log_artifact(str(mis_path))
+    if mlflow_tracking:
+        mlflow.log_artifact(str(mis_path))
 
     for true_class in LABELS:
-        class_mis = misclassified[misclassified["Ground_truth_labels"].apply(lambda labels: true_class in labels)]
+        class_mis = misclassified[
+            misclassified["Ground_truth_labels"].apply(lambda labels, cls=true_class: cls in labels)
+        ]
         if not class_mis.empty:
             path = output_dir / f"misclassified_{true_class}.csv"
             class_mis.to_csv(path, index=False)
-            mlflow.log_artifact(str(path))
+            if mlflow_tracking:
+                mlflow.log_artifact(str(path))
 
 
 def evaluate_results(
-    predictions: dict, ground_truth_path: Path, output_dir: Path = Path("evaluation")
-) -> Optional[dict]:
-    """Main entry point for evaluating predictions against ground truth."""
+    predictions: list[dict], ground_truth_path: Path, output_dir: Path = Path("evaluation")
+) -> dict | None:
+    """Main entry point for evaluating classification predictions against ground truth."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     gt_dict = load_ground_truth(ground_truth_path)
     if gt_dict is None:
         return None
 
-    class_dict = {entry["filename"]: entry["classification"] for entry in predictions}
+    # Build dictionary mapping filename to list of page classifications
+    class_dict = {}
+    for entry in predictions:
+        if entry["filename"] not in class_dict:
+            class_dict[entry["filename"]] = []
+        for page_entry in entry["pages"]:
+            class_dict[entry["filename"]].append(page_entry["classification"])
 
     stats, total_files, total_pages = compute_confusion_stats(class_dict, gt_dict)
     stats_path = save_confusion_stats(stats, output_dir)
 
-    log_metrics_to_mlflow(stats, total_files, total_pages)
-    mlflow.log_artifact(str(stats_path))
+    if mlflow_tracking:
+        log_metrics_to_mlflow(stats, total_files, total_pages)
+        mlflow.log_artifact(str(stats_path))
     comparison_data = create_page_comparison(class_dict, gt_dict, output_dir)
     save_misclassifications(comparison_data, output_dir)
 

@@ -4,11 +4,11 @@ import boto3
 import pymupdf
 from botocore.exceptions import ClientError
 
-from page_graphics import get_page_image_bytes
-from page_structure import PageContext
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
 from src.page_classes import PageClasses
+from src.page_graphics import get_page_image_bytes
+from src.page_structure import PageContext
 from src.utils import read_params
 
 logger = logging.getLogger(__name__)
@@ -17,6 +17,8 @@ prompts = read_params("prompts/classification_prompts.yml")
 
 
 class PixtralClassifier(Classifier):
+    """Page Classifier using Pixtral Large."""
+
     def __init__(
         self,
         config: dict,
@@ -45,13 +47,13 @@ class PixtralClassifier(Classifier):
         }
 
     def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
-        """
-        Determines the class of a document page using the Pixtral model.
-        Falls back to baseline classifier if output is malformed or ClientError.
+        """Determines the class of a document page using the Pixtral model with baseline classifier as fallback.
+
         Args:
             page: The page of th document that should be classified
             context: Preprocessed page context (e.g., text blocks, lines).
             page_number: the Page number of the page that should be classified
+            **kwargs: Additionally passed unused arguments
 
         Returns:
             PageClasses: The predicted page class.

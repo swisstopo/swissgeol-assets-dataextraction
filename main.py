@@ -5,10 +5,9 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from tqdm import tqdm
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
-from src.classify_page import classify_pdf
+from src.pdf_processor import PDFProcessor
 from src.evaluation import evaluate_results
 from src.utils import get_pdf_files, read_params
 
@@ -63,19 +62,6 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def process_pdfs(pdf_files: list[Path], classifier) -> list[dict]:
-    results = []
-    with tqdm(total=len(pdf_files)) as pbar:
-        for pdf in pdf_files:
-            pbar.set_description(f"Processing {pdf.name}")
-            classification_data = classify_pdf(pdf, classifier)
-            if classification_data:
-                results.append(classification_data)
-            pbar.update(1)
-
-    return results
-
-
 def main(input_path: str, ground_truth_path: str = None, model_path: str = None, classifier_name: str = "baseline"):
     """
     Run the page classification pipeline on input documents.
@@ -109,7 +95,8 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str = None,
     logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
-    results = process_pdfs(pdf_files, classifier)
+    processor = PDFProcessor(classifier)
+    results = processor.process_batch(pdf_files)
 
     if not results:
         logger.warning("No data to save.")
