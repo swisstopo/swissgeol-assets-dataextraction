@@ -3,16 +3,16 @@ import math
 import os
 import re
 
+import fasttext
 import pymupdf
 from dotenv import load_dotenv
-from fasttext.FastText import _FastText
 
 load_dotenv()
 
 model_path = os.getenv("FASTTEXT_MODEL_PATH")
 if not model_path or not os.path.isfile(model_path):
     raise FileNotFoundError(f"FASTTEXT model path is invalid or missing: {model_path}")
-detector = _FastText(model_path)
+detector = fasttext.load_model(model_path)
 
 logger = logging.getLogger(__name__)
 
