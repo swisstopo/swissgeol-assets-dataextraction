@@ -28,7 +28,7 @@ def map_string_to_page_class(label: str) -> PageClasses:
             return PageClasses.BOREPROFILE
         case "map" | "maps":
             return PageClasses.MAP
-        case "geo profile" | "geological profile" | "geo_profile":
+        case "geo profile" | "geological profile" | "geo_profile" | "geoprofile":
             return PageClasses.GEO_PROFILE
         case "diagram" | "diagrams":
             return PageClasses.DIAGRAM

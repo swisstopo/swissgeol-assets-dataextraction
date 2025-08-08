@@ -5,12 +5,13 @@ import random
 from pathlib import Path
 
 import boto3
-import pymupdf  # fitz
+import pymupdf
 from tqdm import tqdm
 
+from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.pixtral_classifier import PixtralClassifier
 from src.pdf_processor import PDFProcessor
-from src.utils import read_params
+from src.utils import get_aws_config, read_params
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -30,9 +31,48 @@ OUTPUT_DIR = DATA_DIR / "single_pages_new"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MATCHING_PARAMS = read_params(REPO_ROOT / "config" / "matching_params.yml")
+# download_from_s3.py
+PIXTRAL_CONFIG_FILE_PATH = REPO_ROOT / "config/pixtral_config.yml"
+PIXTRAL_CONFIG = read_params(PIXTRAL_CONFIG_FILE_PATH)
+
+
+def _resolve_pixtral_paths(cfg: dict, base: Path) -> dict:
+    def _abs(p):
+        p = Path(p)
+        return p if p.is_absolute() else (base / p)
+
+    # keys that contain file paths
+    for key in (
+        "prompt_path",
+        "borehole_img_path",
+        "text_img_path",
+        "maps_img_path",
+        "title_img_path",
+        "unknown_img_path",
+        "geo_profile_img_path",
+        "table_img_path",
+        "diagram_img_path",
+    ):
+        if key in cfg and cfg[key]:
+            cfg[key] = str(_abs(cfg[key]))
+    return cfg
+
+
+PIXTRAL_CONFIG = _resolve_pixtral_paths(PIXTRAL_CONFIG, REPO_ROOT)
+
+AWS_CONFIG = get_aws_config()
 
 # Max number of pages to save per class per report
-MAX_PER_CLASS = {"text": 1, "boreprofile": 2, "maps": 2, "title_page": 2, "unknown": 1}
+MAX_PER_CLASS = {
+    "text": 1,
+    "boreprofile": 2,
+    "map": 2,
+    "title_page": 2,
+    "unknown": 5,
+    "geo_profile": 5,
+    "table": 5,
+    "diagram": 5,
+}
 
 
 # --- Utility Functions ---
@@ -95,7 +135,12 @@ def create_data(sample_size: int = 1) -> None:
         return
 
     sampled_objs = random.sample(objs, min(sample_size, len(objs)))
-    processor = PDFProcessor(PixtralClassifier)
+
+    processor = PDFProcessor(
+        PixtralClassifier(
+            config=PIXTRAL_CONFIG, aws_config=AWS_CONFIG, fallback_classifier=BaselineClassifier(MATCHING_PARAMS)
+        )
+    )
 
     for obj in tqdm(sampled_objs, desc="Processing PDFs"):
         filename = key_to_filename(obj.key)
@@ -123,7 +168,7 @@ def create_data(sample_size: int = 1) -> None:
 
 def main():
     """Main function to create new data."""
-    create_data(sample_size=1)
+    create_data(sample_size=10)
 
 
 if __name__ == "__main__":

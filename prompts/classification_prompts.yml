@@ -91,11 +91,10 @@ v1.1:
     - **GEO_PROFILE**: Geological cross-sections or longitudinal profiles, e.g.:
         - Horizontal axis showing location markers or distances (e.g. kilometers)
         - Vertical profiles of stratigraphy or terrain layers across multiple sites
-        - Often shows **connected boreholes** or terrain profiles with labels like "Humus", "Sand", "Clay", or units in meters
+        - Often shows **connected boreholes** or terrain profiles with labels or units in meters
         - May contain measurement data aligned with map coordinates
-    - **DIAGRAM**: Scientific or engineering 2D graphs and schematics, such as:
+    - **DIAGRAM**: Scientific or engineering 2D graphs, such as:
         - Line plots, pie/bar charts, stress-strain diagrams, or block models
-        - Abstract or symbolic rather than geographic
         - Example: tectonic fracture pattern diagrams
     - **TABLE**: Clearly structured rows and columns of numerical or text data **not** showing borehole stratigraphy. For example:
         - Groundwater levels, survey measurements, or summary data
@@ -104,9 +103,10 @@ v1.1:
     - **UNKNOWN**: All other layouts not clearly matching the above, mixed content, or unclear structure.
 
     Classification Rules:
-    - If a diagram shows **connected underground layers over a horizontal axis**, it's a **GEO_PROFILE**.
+    - If a profile shows **connected underground layers over a horizontal axis**, it's a **GEO_PROFILE**.
+    - If it's showing a situation, location, either technical drawing or geological map, classify  it as **MAPS**
     - If it's a **vertical column of one borehole** with material types, it's a **BOREHOLE**.
-    - If you see **axes, symbols, and scientific plotting**, it's a **DIAGRAM**.
+    - If you see **axes, graphs and scientific plotting**, it's a **DIAGRAM**.
     - If the page has just text and no structure, use **TEXT**.
     - If the structure is ambiguous not matching the previous categories, return **UNKNOWN**.
 
@@ -119,11 +119,11 @@ v1.1:
     - "2. TEXT — Full paragraphs of narrative content"
     - "3. BOREHOLE — Vertical depth log with material types:"
     - "@borehole"
-    - "4. MAPS — Geographic or geological terrain maps:"
+    - "4. MAPS — Geographic or geological terrain maps or situations:"
     - "@maps"
     - "5. GEO_PROFILE — Longitudinal geological cross-sections:"
     - "@geo_profile"
-    - "6. DIAGRAM — Scientific graphs or schematic drawings:"
+    - "6. DIAGRAM — Scientific graphs or plots:"
     - "@diagram"
     - "7. TABLE — Tabular numeric/textual data (not boreholes)"
     - "8. UNKNOWN — Unclear, mixed, or noisy content:"

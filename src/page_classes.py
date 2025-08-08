@@ -8,7 +8,7 @@ class PageClasses(Enum):
 
     TEXT = "Text"
     BOREPROFILE = "Boreprofile"
-    MAP = "Maps"
+    MAP = "Map"
     GEO_PROFILE = "Geo_Profile"
     TITLE_PAGE = "Title_Page"
     DIAGRAM = "Diagram"
@@ -20,7 +20,7 @@ class PageClasses(Enum):
 
 label2id = {
     "Boreprofile": 0,
-    "Maps": 1,
+    "Map": 1,
     "Text": 2,
     "Geo_Profile": 3,
     "Title_Page": 4,

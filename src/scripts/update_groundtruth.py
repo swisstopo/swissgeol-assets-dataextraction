@@ -1,21 +1,27 @@
 import json
 from pathlib import Path
 
+from src.page_classes import PageClasses
+
 # --- Setup ---
-REPO_ROOT = Path(__file__).resolve().parents[1]
-INPUT_FOLDER = REPO_ROOT / "data" / "input" / "single_pages_new"
-OUTPUT_PATH = REPO_ROOT / "data" / "gt_single_pages_new.json"
+REPO_ROOT = Path(__file__).resolve().parents[2]
+INPUT_FOLDER = REPO_ROOT / "data" / "single_pages/"
+OUTPUT_PATH = REPO_ROOT / "data" / "gt_single_pages.json"
 
 # --- Class Mapping ---
-CLASSES = ["Text", "Boreprofile", "Maps", "Title_Page", "Unknown"]
+CLASSES = [cls.value for cls in PageClasses]
 
 FOLDER_TO_CLASS = {
     "text": "Text",
     "boreprofile": "Boreprofile",
-    "maps": "Maps",
+    "map": "Map",
+    "geo_profile": "Geo_Profile",
     "title_page": "Title_Page",
+    "diagram": "Diagram",
+    "table": "Table",
     "unknown": "Unknown",
 }
+
 
 # --- Ground Truth Construction ---
 ground_truth = []
