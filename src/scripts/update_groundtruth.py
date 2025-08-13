@@ -41,13 +41,16 @@ for class_folder in INPUT_FOLDER.iterdir():
         entry = {
             "filename": pdf_file.name,
             "metadata": {
-                "page_count": None,
+                "page_count": 1,
                 "languages": [],
             },
-            "pages": {
-                "classification": [{cls: int(cls == class_label) for cls in CLASSES}],
-                "metadata": {"language": None, "is_frontpage": None},
-            },
+            "pages": [
+                {
+                    "page": 1,
+                    "classification": {cls: int(cls == class_label) for cls in CLASSES},
+                    "metadata": {"language": None, "is_frontpage": None},
+                }
+            ],
         }
         ground_truth.append(entry)
 
