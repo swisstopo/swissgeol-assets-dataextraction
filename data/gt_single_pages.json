@@ -234,32 +234,6 @@
         ]
     },
     {
-        "filename": "19321_18.pdf",
-        "metadata": {
-            "page_count": 1,
-            "languages": []
-        },
-        "pages": [
-            {
-                "page": 1,
-                "classification": {
-                    "Text": 0,
-                    "Boreprofile": 0,
-                    "Map": 0,
-                    "Geo_Profile": 0,
-                    "Title_Page": 0,
-                    "Diagram": 1,
-                    "Table": 0,
-                    "Unknown": 0
-                },
-                "metadata": {
-                    "language": null,
-                    "is_frontpage": null
-                }
-            }
-        ]
-    },
-    {
         "filename": "1801_99.pdf",
         "metadata": {
             "page_count": 1,
@@ -14378,32 +14352,6 @@
         ]
     },
     {
-        "filename": "20655_2.pdf",
-        "metadata": {
-            "page_count": 1,
-            "languages": []
-        },
-        "pages": [
-            {
-                "page": 1,
-                "classification": {
-                    "Text": 0,
-                    "Boreprofile": 0,
-                    "Map": 0,
-                    "Geo_Profile": 0,
-                    "Title_Page": 1,
-                    "Diagram": 0,
-                    "Table": 0,
-                    "Unknown": 0
-                },
-                "metadata": {
-                    "language": null,
-                    "is_frontpage": null
-                }
-            }
-        ]
-    },
-    {
         "filename": "1630_1.pdf",
         "metadata": {
             "page_count": 1,
@@ -16953,32 +16901,6 @@
     },
     {
         "filename": "43283_52.pdf",
-        "metadata": {
-            "page_count": 1,
-            "languages": []
-        },
-        "pages": [
-            {
-                "page": 1,
-                "classification": {
-                    "Text": 0,
-                    "Boreprofile": 0,
-                    "Map": 0,
-                    "Geo_Profile": 1,
-                    "Title_Page": 0,
-                    "Diagram": 0,
-                    "Table": 0,
-                    "Unknown": 0
-                },
-                "metadata": {
-                    "language": null,
-                    "is_frontpage": null
-                }
-            }
-        ]
-    },
-    {
-        "filename": "19321_13.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
