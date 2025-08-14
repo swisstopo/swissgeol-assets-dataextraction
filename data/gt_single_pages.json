@@ -1066,6 +1066,32 @@
         ]
     },
     {
+        "filename": "27898_26.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "2765_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -1378,6 +1404,58 @@
         ]
     },
     {
+        "filename": "1748_6.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "a5735_5741_LDoc_1.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "1630_161.pdf",
         "metadata": {
             "page_count": 1,
@@ -1483,6 +1561,32 @@
     },
     {
         "filename": "ntb88-007_236.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "33914_6.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -2393,6 +2497,32 @@
     },
     {
         "filename": "3060_8.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 1,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "7066_4.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -5174,6 +5304,58 @@
         ]
     },
     {
+        "filename": "27898_16.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "39715_28.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "16617_22.pdf",
         "metadata": {
             "page_count": 1,
@@ -5278,6 +5460,32 @@
         ]
     },
     {
+        "filename": "31800_27.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44159_208.pdf",
         "metadata": {
             "page_count": 1,
@@ -5304,7 +5512,59 @@
         ]
     },
     {
+        "filename": "28941_9.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "Berichte_NAB_08-025_EWS_69.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "2293_7.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -5383,6 +5643,32 @@
     },
     {
         "filename": "38848_22.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "2293_18.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -5564,6 +5850,32 @@
         ]
     },
     {
+        "filename": "28941_7.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "Berichte_NAB_08-021_294.pdf",
         "metadata": {
             "page_count": 1,
@@ -5591,6 +5903,32 @@
     },
     {
         "filename": "10299_8.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "2293_9.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -5746,6 +6084,32 @@
         ]
     },
     {
+        "filename": "31800_22.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44179_41.pdf",
         "metadata": {
             "page_count": 1,
@@ -5798,6 +6162,32 @@
         ]
     },
     {
+        "filename": "2293_11.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44179_172.pdf",
         "metadata": {
             "page_count": 1,
@@ -5825,6 +6215,32 @@
     },
     {
         "filename": "2765_5.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "27898_22.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -6084,6 +6500,58 @@
         ]
     },
     {
+        "filename": "31139_13.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "2293_10.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "ntb88-007_278.pdf",
         "metadata": {
             "page_count": 1,
@@ -6110,7 +6578,59 @@
         ]
     },
     {
+        "filename": "2293_19.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44179_143.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 1,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "7066_6.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -6344,7 +6864,59 @@
         ]
     },
     {
+        "filename": "20655_6.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "43283_56.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "8739_3.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -6578,6 +7150,32 @@
         ]
     },
     {
+        "filename": "20655_30.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "43283_45.pdf",
         "metadata": {
             "page_count": 1,
@@ -6735,6 +7333,58 @@
     },
     {
         "filename": "1252_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "35995_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "20655_27.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -7462,6 +8112,58 @@
         ]
     },
     {
+        "filename": "20655_29.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "40636_28.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "742_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -7722,6 +8424,32 @@
         ]
     },
     {
+        "filename": "20655_55.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "3060_5.pdf",
         "metadata": {
             "page_count": 1,
@@ -7852,6 +8580,32 @@
         ]
     },
     {
+        "filename": "33914_7.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "19115_24.pdf",
         "metadata": {
             "page_count": 1,
@@ -7904,6 +8658,32 @@
         ]
     },
     {
+        "filename": "7066_11.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "1373_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -7931,6 +8711,32 @@
     },
     {
         "filename": "44179_113.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "20655_26.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -8165,6 +8971,32 @@
     },
     {
         "filename": "28777_9.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "31800_28.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -8580,6 +9412,32 @@
         ]
     },
     {
+        "filename": "15296_14.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44179_190.pdf",
         "metadata": {
             "page_count": 1,
@@ -8711,6 +9569,32 @@
     },
     {
         "filename": "31042_53.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "40636_14.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -8892,6 +9776,32 @@
         ]
     },
     {
+        "filename": "1748_5.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "18774_18.pdf",
         "metadata": {
             "page_count": 1,
@@ -8996,6 +9906,32 @@
         ]
     },
     {
+        "filename": "39715_56.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "43283_19.pdf",
         "metadata": {
             "page_count": 1,
@@ -9023,6 +9959,58 @@
     },
     {
         "filename": "4361_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "20655_57.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 1,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "31139_7.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -9672,6 +10660,32 @@
         ]
     },
     {
+        "filename": "33914_3.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "24911_1.pdf",
         "metadata": {
             "page_count": 1,
@@ -9828,6 +10842,32 @@
         ]
     },
     {
+        "filename": "27898_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "16617_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -9932,6 +10972,32 @@
         ]
     },
     {
+        "filename": "15296_8.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "11380_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -10010,6 +11076,32 @@
         ]
     },
     {
+        "filename": "8739_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "1305_1.pdf",
         "metadata": {
             "page_count": 1,
@@ -10063,6 +11155,32 @@
     },
     {
         "filename": "2001_7.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "15296_2.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -10374,6 +11492,32 @@
         ]
     },
     {
+        "filename": "31800_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "3060_7.pdf",
         "metadata": {
             "page_count": 1,
@@ -10427,6 +11571,32 @@
     },
     {
         "filename": "17415_17.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "20655_2.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -10946,6 +12116,32 @@
         ]
     },
     {
+        "filename": "20655_3.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "32526_40.pdf",
         "metadata": {
             "page_count": 1,
@@ -11336,6 +12532,110 @@
         ]
     },
     {
+        "filename": "15296_9.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "22325_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 1,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "31800_31.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "20655_40.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "38848_40.pdf",
         "metadata": {
             "page_count": 1,
@@ -11674,6 +12974,32 @@
         ]
     },
     {
+        "filename": "20655_39.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "4455_18.pdf",
         "metadata": {
             "page_count": 1,
@@ -11753,6 +13079,32 @@
     },
     {
         "filename": "11380_21.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "8739_5.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -11934,6 +13286,32 @@
         ]
     },
     {
+        "filename": "31800_29.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "19115_41.pdf",
         "metadata": {
             "page_count": 1,
@@ -12038,6 +13416,32 @@
         ]
     },
     {
+        "filename": "20655_42.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "24361_33.pdf",
         "metadata": {
             "page_count": 1,
@@ -12091,6 +13495,32 @@
     },
     {
         "filename": "1630_77.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "7066_16.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -12376,6 +13806,32 @@
         ]
     },
     {
+        "filename": "15296_12.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "2001_53.pdf",
         "metadata": {
             "page_count": 1,
@@ -12402,7 +13858,59 @@
         ]
     },
     {
+        "filename": "31800_30.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "2121_22.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "31800_32.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -12507,6 +14015,58 @@
     },
     {
         "filename": "35613_47.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "15296_11.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 1,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "8739_4.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -12975,6 +14535,32 @@
     },
     {
         "filename": "28777_1.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "35385_12.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -13520,6 +15106,32 @@
         ]
     },
     {
+        "filename": "39715_54.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44044_75.pdf",
         "metadata": {
             "page_count": 1,
@@ -13755,6 +15367,32 @@
     },
     {
         "filename": "24361_27.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "27898_13.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -14248,6 +15886,32 @@
         ]
     },
     {
+        "filename": "40636_24.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44159_162.pdf",
         "metadata": {
             "page_count": 1,
@@ -14664,6 +16328,32 @@
         ]
     },
     {
+        "filename": "20655_2.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "1801_59.pdf",
         "metadata": {
             "page_count": 1,
@@ -14924,6 +16614,32 @@
         ]
     },
     {
+        "filename": "39715_32.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "11613_10.pdf",
         "metadata": {
             "page_count": 1,
@@ -15029,6 +16745,32 @@
     },
     {
         "filename": "44179_151.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "35385_8.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -15600,6 +17342,32 @@
         ]
     },
     {
+        "filename": "31139_10.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "ntb88-007_191.pdf",
         "metadata": {
             "page_count": 1,
@@ -15730,6 +17498,32 @@
         ]
     },
     {
+        "filename": "35385_9.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "44179_94.pdf",
         "metadata": {
             "page_count": 1,
@@ -15809,6 +17603,32 @@
     },
     {
         "filename": "1630_179.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 0,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 1
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "27898_8.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -16146,6 +17966,32 @@
         ]
     },
     {
+        "filename": "31139_9.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "32526_20.pdf",
         "metadata": {
             "page_count": 1,
@@ -16432,6 +18278,32 @@
         ]
     },
     {
+        "filename": "7066_13.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "10567_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -16589,6 +18461,32 @@
     },
     {
         "filename": "2155_112.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "34389_4.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -17056,6 +18954,32 @@
         ]
     },
     {
+        "filename": "31800_19.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "4361_5.pdf",
         "metadata": {
             "page_count": 1,
@@ -17238,6 +19162,32 @@
         ]
     },
     {
+        "filename": "15296_15.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "21027_3.pdf",
         "metadata": {
             "page_count": 1,
@@ -17343,6 +19293,32 @@
     },
     {
         "filename": "19321_27.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "34389_3.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -17732,6 +19708,32 @@
         ]
     },
     {
+        "filename": "31800_20.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "21027_2.pdf",
         "metadata": {
             "page_count": 1,
@@ -17862,7 +19864,85 @@
         ]
     },
     {
+        "filename": "7066_14.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "6414_3.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "15296_16.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "22325_4.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
@@ -18200,6 +20280,32 @@
         ]
     },
     {
+        "filename": "33914_8.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
         "filename": "Berichte_NAB_08-021_21.pdf",
         "metadata": {
             "page_count": 1,
@@ -18331,6 +20437,32 @@
     },
     {
         "filename": "29192_237.pdf",
+        "metadata": {
+            "page_count": 1,
+            "languages": []
+        },
+        "pages": [
+            {
+                "page": 1,
+                "classification": {
+                    "Text": 0,
+                    "Boreprofile": 1,
+                    "Map": 0,
+                    "Geo_Profile": 0,
+                    "Title_Page": 0,
+                    "Diagram": 0,
+                    "Table": 0,
+                    "Unknown": 0
+                },
+                "metadata": {
+                    "language": null,
+                    "is_frontpage": null
+                }
+            }
+        ]
+    },
+    {
+        "filename": "30789_2.pdf",
         "metadata": {
             "page_count": 1,
             "languages": []
