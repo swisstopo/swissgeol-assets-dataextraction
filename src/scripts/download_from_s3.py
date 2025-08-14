@@ -31,7 +31,6 @@ OUTPUT_DIR = DATA_DIR / "single_pages_new"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MATCHING_PARAMS = read_params(REPO_ROOT / "config" / "matching_params.yml")
-# download_from_s3.py
 PIXTRAL_CONFIG_FILE_PATH = REPO_ROOT / "config/pixtral_config.yml"
 PIXTRAL_CONFIG = read_params(PIXTRAL_CONFIG_FILE_PATH)
 
