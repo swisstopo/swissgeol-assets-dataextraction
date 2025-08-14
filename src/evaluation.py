@@ -163,7 +163,7 @@ def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> No
 
 
 def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> pd.DataFrame:
-    """Create a per-page comparison CSV/DF for pages present in predictions only."""
+    """Create a per-page comparison CSV/DF for pages present in both predictions and ground truth (intersection)."""
     output_dir.mkdir(parents=True, exist_ok=True)
     report_path = output_dir / "per_page_comparison.csv"
 
