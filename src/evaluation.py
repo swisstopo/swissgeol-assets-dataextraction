@@ -56,10 +56,7 @@ def load_ground_truth(ground_truth_path: Path) -> dict | None:
 
 def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict, int, int]:
     """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
-    stats = {
-        label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0, "true_negatives": 0}
-        for label in LABELS
-    }
+    stats = {label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0} for label in LABELS}
 
     pred_keys = set(predictions.keys())
     gt_keys = set(ground_truth.keys())
@@ -90,8 +87,6 @@ def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict
                 stats[label]["false_negatives"] += 1
             elif gt == 0 and pred == 1:
                 stats[label]["false_positives"] += 1
-            else:
-                stats[label]["true_negatives"] += 1
 
     return stats, total_files, total_pages
 
@@ -182,31 +177,34 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
     keys = pred_keys & gt_keys
 
     rows = []
+    for filename, page_num in sorted(keys, key=lambda k: (k[0], k[1])):
+        pred_page = pred_dict[(filename, page_num)]
+        gt_page = gt_dict[(filename, page_num)]
+
+        preds = [int(pred_page.get(label, 0)) for label in LABELS]
+        gts = [int(gt_page.get(label, 0)) for label in LABELS]
+        matches = [int(p == g) for p, g in zip(preds, gts, strict=False)]
+        all_match = int(all(matches))
+
+        # Only keep misclassifications
+        if not all_match:
+            status = "mismatch"
+            row = [filename, page_num] + preds + gts + matches + [all_match, status]
+            rows.append(row)
+
+    df = pd.DataFrame(rows, columns=columns)
+
+    # Write to csv file
     with open(report_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(columns)
-
-        for filename, page_num in sorted(keys, key=lambda k: (k[0], k[1])):
-            pred_page = pred_dict[(filename, page_num)]
-            gt_page = gt_dict[(filename, page_num)]
-
-            preds = [int(pred_page.get(label, 0)) for label in LABELS]
-            gts = [int(gt_page.get(label, 0)) for label in LABELS]
-            matches = [int(p == g) for p, g in zip(preds, gts, strict=False)]
-            all_match = int(all(matches))
-
-            # Only keep misclassifications
-            if not all_match:
-                status = "mismatch"
-                row = [filename, page_num] + preds + gts + matches + [all_match, status]
-                writer.writerow(row)
-                rows.append(row)
+        writer.writerows(rows)
 
     if mlflow_tracking:
         mlflow.log_artifact(str(report_path))
     logger.info(f"Logged misclassifications to {report_path}")
 
-    return pd.DataFrame(rows, columns=columns)
+    return df
 
 
 def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
