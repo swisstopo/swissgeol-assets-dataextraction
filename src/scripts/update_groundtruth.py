@@ -11,17 +11,6 @@ OUTPUT_PATH = REPO_ROOT / "data" / "gt_single_pages.json"
 # --- Class Mapping ---
 CLASSES = [cls.value for cls in PageClasses]
 
-FOLDER_TO_CLASS = {
-    "text": "Text",
-    "boreprofile": "Boreprofile",
-    "map": "Map",
-    "geo_profile": "Geo_Profile",
-    "title_page": "Title_Page",
-    "diagram": "Diagram",
-    "table": "Table",
-    "unknown": "Unknown",
-}
-
 
 # --- Ground Truth Construction ---
 ground_truth = []
@@ -31,11 +20,11 @@ for class_folder in INPUT_FOLDER.iterdir():
         continue
 
     folder_name = class_folder.name.lower()
-    class_label = FOLDER_TO_CLASS.get(folder_name)
-
-    if not class_label:
-        print(f" Skipping unrecognized folder: {class_folder.name}")
+    if folder_name not in CLASSES:
+        print(f"Skipping unrecognized folder: {class_folder.name}")
         continue
+
+    class_label = folder_name
 
     for pdf_file in class_folder.glob("*.pdf"):
         entry = {

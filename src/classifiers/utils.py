@@ -4,7 +4,7 @@ import re
 
 from PIL import Image
 
-from src.page_classes import PageClasses
+from src.page_classes import ALIASES, PageClasses, label_mappings
 
 logger = logging.getLogger(__name__)
 
@@ -17,29 +17,22 @@ def clean_label(label: str) -> str:
     return label
 
 
+def normalize_label(label: str) -> str:
+    """Normalize to canonical enum value string (e.g. 'geo profile' → 'geo_profile')."""
+    label = clean_label(label)
+    return ALIASES.get(label, label)
+
+
 def map_string_to_page_class(label: str) -> PageClasses:
     """Maps a string label to a PageClasses enum member."""
-    label = label.strip().lower()
+    norm = normalize_label(label)
 
-    match label:
-        case "text":
-            return PageClasses.TEXT
-        case "boreprofile" | "borehole" | "boreholes":
-            return PageClasses.BOREPROFILE
-        case "map" | "maps":
-            return PageClasses.MAP
-        case "geo profile" | "geological profile" | "geo_profile" | "geoprofile":
-            return PageClasses.GEO_PROFILE
-        case "diagram" | "diagrams":
-            return PageClasses.DIAGRAM
-        case "table" | "tables":
-            return PageClasses.TABLE
-        case "title page" | "title_page" | "title":
-            return PageClasses.TITLE_PAGE
-        case _:
-            if label != "unknown":
-                logger.warning(f"Unexpected label: {label}, mapping it to unknown.")
-            return PageClasses.UNKNOWN
+    if norm in label_mappings:
+        return label_mappings[norm]
+
+    if norm != "unknown":
+        logger.warning(f"Unexpected label:  {label!r} (normalized: {norm}), mapping it to unknown.")
+    return PageClasses.UNKNOWN
 
 
 def read_image_bytes(image_path: str, compress: bool = True) -> bytes:

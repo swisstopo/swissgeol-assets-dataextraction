@@ -1,11 +1,13 @@
 """Script to retrieve files from the S3 bucket."""
 
 import logging
+import os
 import random
 from pathlib import Path
 
 import boto3
 import pymupdf
+from dotenv import load_dotenv
 from tqdm import tqdm
 
 from src.classifiers.baseline_classifier import BaselineClassifier
@@ -13,14 +15,16 @@ from src.classifiers.pixtral_classifier import PixtralClassifier
 from src.pdf_processor import PDFProcessor
 from src.utils import get_aws_config, read_params
 
-# Setup logging
+# --- Logging & Determinism ----
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+random.seed(100)
 
 # --- Config and Constants ---
-S3_PREFIX = "asset/asset_files_new_ocr/"
-S3_PROFILE = "779726271945_swissgeol-assets-ro"
-S3_BUCKET_NAME = "swissgeol-assets-swisstopo"
+load_dotenv()
+S3_BUCKET_NAME = os.getenv("ASSETS_S3_BUCKET", "swissgeol-assets-swisstopo")
+S3_PREFIX = os.getenv("ASSETS_S3_PREFIX", "asset/asset_files_new_ocr/")
+S3_PROFILE = os.getenv("ASSETS_S3_PROFILE", "779726271945_swissgeol-assets-ro")
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DATA_DIR = REPO_ROOT / "data"

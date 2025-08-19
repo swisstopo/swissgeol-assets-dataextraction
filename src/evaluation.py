@@ -103,7 +103,6 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
                 "True_Positives",
                 "False_Negatives",
                 "False_Positives",
-                "True_Negatives",
             ]
         )
         for label, s in stats.items():
@@ -113,7 +112,6 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
                     s["true_positives"],
                     s["false_negatives"],
                     s["false_positives"],
-                    s["true_negatives"],
                 ]
             )
     return csv_path
@@ -183,7 +181,7 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
 
         preds = [int(pred_page.get(label, 0)) for label in LABELS]
         gts = [int(gt_page.get(label, 0)) for label in LABELS]
-        matches = [int(p == g) for p, g in zip(preds, gts, strict=False)]
+        matches = [int(p == g) for p, g in zip(preds, gts, strict=True)]
         all_match = int(all(matches))
 
         # Only keep misclassifications
