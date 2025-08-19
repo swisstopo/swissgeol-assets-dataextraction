@@ -2,7 +2,7 @@
 prompt_path: prompts/classification_prompts.yml
 borehole_img_path: "examples/example_borehole_2155_4.png"
 text_img_path: "examples/example_text_1630_600.png"
-maps_img_path: "examples/example_map_1252_2.png"
+map_img_path: "examples/example_map_1252_2.png"
 title_img_path: "examples/example_title_1630_240.png"
 geo_profile_img_path: "examples/example_geo_profile_2001_6.png"
 diagram_img_path: "examples/example_diagram_250_3.png"

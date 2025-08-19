@@ -11,7 +11,7 @@ v0:
        - Tabular data showing depth ranges and soil/rock types
        - Schematic stratigraphy columns
        - Soil logs, lithological records, or subsurface layer descriptions
-    - **MAPS**: Pages showing topographic or geological maps with scales, coordinates, or terrain.
+    - **MAP**: Pages showing topographic or geological maps with scales, coordinates, or terrain.
     - **UNKNOWN**: Any other layout, including tables, mixed content, or unclear structure.
 
     Rules:
@@ -26,14 +26,14 @@ v0:
     - "@text"
     - "3. BOREHOLE — borehole or geotechnical diagrams:"
     - "@borehole"
-    - "4. MAPS — visual maps with terrain and coordinates:"
-    - "@maps"
+    - "4. MAP — visual maps with terrain and coordinates:"
+    - "@map"
     - "5. UNKNOWN — unclear layout, tables, or mixed elements:"
     - "@unknown"
 
   user_prompt: |
     Now classify the following page. Respond with ONE of:
-    BOREHOLE, TEXT, MAPS, TITLE, or UNKNOWN
+    BOREHOLE, TEXT, MAP, TITLE, or UNKNOWN
 
 # best perfoming !
 v1:
@@ -49,7 +49,7 @@ v1:
        - Tabular data showing depth ranges and soil/rock types
        - Schematic stratigraphy columns
        - Soil logs, lithological records, or subsurface layer descriptions
-    - **MAPS**: Pages showing topographic or geological maps with scales, coordinates, or terrain.
+    - **MAP**: Pages showing topographic or geological maps with scales, coordinates, or terrain.
     - **UNKNOWN**: Any other layout, including tables, mixed content, or unclear structure.
 
     Rules:
@@ -64,8 +64,8 @@ v1:
     - "@text"
     - "3. BOREHOLE — borehole or geotechnical diagrams:"
     - "@borehole"
-    - "4. MAPS — visual maps with terrain and coordinates:"
-    - "@maps"
+    - "4. MAP — visual maps with terrain and coordinates:"
+    - "@map"
     - "5. UNKNOWN — unclear layout, tables, or mixed elements:"
     - "@unknown"
 
@@ -87,7 +87,7 @@ v1.1:
         - Lithological descriptions
         - Tabular or column-style layouts often aligned vertically
         - Focus is on one borehole at a time
-    - **MAPS**: Pages showing topographic or geological maps with terrain, contours, legend, or coordinate grids. Often raster-style or hand-drawn maps with geographic reference.
+    - **MAP**: Pages showing topographic or geological maps with terrain, contours, legend, or coordinate grids. Often raster-style or hand-drawn maps with geographic reference.
     - **GEO_PROFILE**: Geological cross-sections or longitudinal profiles, e.g.:
         - Horizontal axis showing location markers or distances (e.g. kilometers)
         - Vertical profiles of stratigraphy or terrain layers across multiple sites
@@ -119,16 +119,16 @@ v1.1:
     - "2. TEXT — Full paragraphs of narrative content"
     - "3. BOREHOLE — Vertical depth log with material types:"
     - "@borehole"
-    - "4. MAPS — Geographic or geological terrain maps or situations:"
-    - "@maps"
+    - "4. MAP — Geographic or geological terrain maps or situations:"
+    - "@map"
     - "5. GEO_PROFILE — Longitudinal geological cross-sections:"
     - "@geo_profile"
     - "6. DIAGRAM — Scientific graphs or plots:"
     - "@diagram"
     - "7. TABLE — Tabular numeric/textual data (not boreholes)"
+    - "@table"
     - "8. UNKNOWN — Unclear, mixed, or noisy content:"
-    - "@unknown"
 
   user_prompt: |
     Now classify the following page. Respond with ONE of:
-    TITLE, TEXT, BOREHOLE, MAPS, GEO_PROFILE, DIAGRAM, TABLE, UNKNOWN
+    TITLE, TEXT, BOREHOLE, MAP, GEO_PROFILE, DIAGRAM, TABLE, UNKNOWN

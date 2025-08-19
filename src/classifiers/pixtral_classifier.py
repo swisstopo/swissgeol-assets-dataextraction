@@ -33,7 +33,7 @@ class PixtralClassifier(Classifier):
         self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
         borehole_bytes = read_image_bytes(config["borehole_img_path"])
         text_bytes = read_image_bytes(config["text_img_path"])
-        maps_bytes = read_image_bytes(config["maps_img_path"])
+        map_bytes = read_image_bytes(config["map_img_path"])
         title_bytes = read_image_bytes(config["title_img_path"])
         unknown_bytes = read_image_bytes(config["unknown_img_path"])
         geo_profile_bytes = read_image_bytes(config["geo_profile_img_path"])
@@ -42,7 +42,7 @@ class PixtralClassifier(Classifier):
         self.examples_bytes = {
             "borehole": borehole_bytes,
             "text": text_bytes,
-            "maps": maps_bytes,
+            "map": map_bytes,
             "title": title_bytes,
             "geo_profile": geo_profile_bytes,
             "diagram": diagram_bytes,
