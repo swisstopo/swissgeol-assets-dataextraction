@@ -38,7 +38,7 @@ ALIASES = {
 }
 
 # mapping aliases to PageClasses
-label_mappings = {k: PageClasses[v] for k, v in ALIASES.items()}
+label_mappings = {k: PageClasses(v) for k, v in ALIASES.items()}
 
 # Add canonical names (lowercased)
 for cls in PageClasses:
