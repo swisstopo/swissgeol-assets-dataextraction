@@ -62,7 +62,13 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def main(input_path: str, ground_truth_path: str = None, model_path: str = None, classifier_name: str = "baseline"):
+def main(
+        input_path: str,
+        ground_truth_path: str = None,
+        model_path: str = None,
+        classifier_name: str = "baseline",
+        write_result: bool = False
+):
     """
     Run the page classification pipeline on input documents.
 
@@ -103,16 +109,20 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str = None,
         return
 
     # Save to JSON
-    output_file = Path("data") / "prediction.json"
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    with output_file.open("w") as json_file:
-        json.dump(results, json_file, indent=4)
+    if write_result:
+        output_file = Path("data") / "prediction.json"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        with output_file.open("w") as json_file:
+            json.dump(results, json_file, indent=4)
 
     if ground_truth_path:
         evaluate_results(results, ground_truth_path)
 
     if mlflow_tracking:
         mlflow.end_run()
+
+    if not write_result:
+        return results
 
 
 if __name__ == "__main__":
