@@ -1,0 +1,11 @@
+services:
+  api:
+    image: swissgeol-assets-dataextraction/api:dev
+    build:
+      context: .
+    volumes:
+      - .env:/app/.env:ro
+      - .env.api:/app/.env.api:ro
+      - ~/.aws:/home/app/.aws:ro
+    ports:
+      - "8000:8000"
