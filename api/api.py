@@ -26,7 +26,7 @@ logging.basicConfig()
 logging.getLogger().setLevel(logging.INFO)
 
 class StartPayload(BaseModel):
-    file: str = Field(min_length=1)
+    file: str = Field(min_length=5)
 
 @app.post("/")
 def start(
