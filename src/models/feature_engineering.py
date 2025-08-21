@@ -95,7 +95,7 @@ def compute_text_features(
         list: A list of 17 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
-        return [0.0] * 17  # Handle empty pages
+        return [0.0] * 18  # Handle empty pages
 
     lefts, rights, line_lengths = [], [], []
     punct_count = capital_chars = total_chars = word_count = 0
@@ -160,30 +160,32 @@ def compute_text_features(
         num_map_keyword_lines = 0
 
     angles = [line.line_angle for line in geometric_lines]
+    lengths = [line.length for line in geometric_lines]
     grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
     grid_length_sum = sum(grid_lengths)
     non_grid_length_sum = sum(non_grid_lengths)
     angle_entropy = compute_angle_entropy(angles)
+    mean_line_length = np.mean(lengths) if lengths else 0
 
-    return [
-        float(n)
-        for n in [
-            wpl,
-            word_density,
-            mean_left,
-            mean_right,
-            text_width,
-            line_count,
-            line_len_var,
-            indent_std,
-            punct_density,
-            capital_ratio,
-            has_sidebar,
-            has_bh_keyword,
-            num_valid_descriptions,
-            num_map_keyword_lines,
-            float(grid_length_sum),
-            float(non_grid_length_sum),
-            float(angle_entropy),
-        ]
+    features = [
+        wpl,
+        word_density,
+        mean_left,
+        mean_right,
+        text_width,
+        line_count,
+        line_len_var,
+        indent_std,
+        punct_density,
+        capital_ratio,
+        has_sidebar,
+        has_bh_keyword,
+        num_valid_descriptions,
+        num_map_keyword_lines,
+        grid_length_sum,
+        non_grid_length_sum,
+        angle_entropy,
+        mean_line_length,
     ]
+
+    return list(map(float, features))

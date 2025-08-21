@@ -26,6 +26,7 @@ feature_names:
   - Grid Line Length Sum
   - Non Grid Line Length Sum
   - Line Angle Entropy
+  - Mean line Length
 
 # Model hyperparameters
 hyperparameters:
@@ -35,6 +36,7 @@ hyperparameters:
   max_depth: 30
   min_samples_leaf: 1
   random_state: 42
+
 
 tuning:
   n_iter: 20
