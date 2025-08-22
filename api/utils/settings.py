@@ -1,12 +1,12 @@
-import os
 from functools import lru_cache
-from typing import Literal
 
 from dotenv import load_dotenv
 from pydantic_settings import BaseSettings
 
 
 class ApiSettings(BaseSettings):
+    """Settings for the API."""
+
     tmp_path: str
 
     aws_profile: str | None = None
@@ -15,12 +15,13 @@ class ApiSettings(BaseSettings):
     s3_folder: str
 
 
-print(f"Loading env variables from '.env'.")
+print("Loading env variables from '.env'.")
 load_dotenv()
 
 env_file = ".env.api"
 print(f"Loading env variables from '{env_file}'.")
 load_dotenv(env_file)
+
 
 @lru_cache
 def api_settings():

@@ -1,20 +1,20 @@
-import os
-import time
 import argparse
 import logging
+import os
+import time
+from pathlib import Path
+
+import mlflow
 import pymupdf
 from dotenv import load_dotenv
-
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBClassifier
-from pathlib import Path
-import mlflow
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
 from models.treebased.basetrainer import TreeBasedTrainer
 from src.models.feature_engineering import get_features
-from src.utils import read_params, get_pdf_files
+from src.utils import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)
 
@@ -24,34 +24,32 @@ mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 MATCHING_PARAMS_PATH = "config/matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
 
+
 class RandomForestTrainer(TreeBasedTrainer):
     """Trainer for Random Forest models.
-    
+
     This class extends the TreeBasedTrainer to implement specific methods for training and evaluating
     Random Forest models using the provided configuration and data.
     """
+
     def prepare_model(self):
         """Prepares the Random Forest model for training."""
         hyperparams = self.config.get("hyperparameters", {})
         self.model = RandomForestClassifier(**hyperparams)
 
     def tune_hyperparameters(
-            self,
-            param_dist: dict,
-            n_iter: int = 20,
-            cv: int = 3,
-            scoring: str = "f1_micro",
-            random_state: int = 42
+        self, param_dist: dict, n_iter: int = 20, cv: int = 3, scoring: str = "f1_micro", random_state: int = 42
     ) -> tuple[dict, float]:
-        """Runs RandomizedSearchCV to tune hyperparameters. 
+        """Runs RandomizedSearchCV to tune hyperparameters.
+
         Args:
             param_dist (dict): Dictionary with parameters to search.
             n_iter (int): Number of parameter settings that are sampled.
             cv (int): Number of folds in cross-validation.
             scoring (str): Scoring method to use for evaluation.
             random_state (int): Random seed for reproducibility.
-            
-            Returns:
+
+        Returns:
                 best_params (dict): Best hyperparameters found during tuning.
                 best_score (float): Best score achieved during tuning.
         """
@@ -69,45 +67,36 @@ class RandomForestTrainer(TreeBasedTrainer):
         self.model = search.best_estimator_
         return search.best_params_, search.best_score_
 
+
 class XGBoostTrainer(TreeBasedTrainer):
     """Trainer for XGBoost models.
-    
+
     This class extends the TreeBasedTrainer to implement specific methods for training and evaluating
     XGBoost models using the provided configuration and data.
     """
+
     def prepare_model(self):
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
-        self.model = XGBClassifier(
-            objective='multi:softprob',
-            num_class=self.num_labels,
-            **hyperparams
-        )
+        self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
 
     def tune_hyperparameters(
-            self,
-            param_dist: dict,
-            n_iter: int = 20,
-            scoring: str = "f1_micro",
-            cv: int = 3
+        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3
     ) -> tuple[dict, float]:
         """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
+
         Args:
             param_dist: Dictionary with parameters to search.
             n_iter: Number of parameter settings that are sampled.
             scoring: Scoring method to use for evaluation.
             cv: Number of folds in cross-validation.
-            
-            Returns:
+
+        Returns:
                 best_params: Best hyperparameters found during tuning.
                 best_score: Best score achieved during tuning.
         """
         # Initialize XGBoost model with default parameters
-        model = XGBClassifier(
-            objective="multi:softprob",
-            num_class=self.num_labels,
-            eval_metric="mlogloss"
-        )
+        model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
         search = RandomizedSearchCV(
             estimator=model,
             param_distributions=param_dist,
@@ -120,6 +109,7 @@ class XGBoostTrainer(TreeBasedTrainer):
         )
         search.fit(self.X_train, self.y_train)
         return search.best_params_, search.best_score_
+
 
 def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int]):
     """Loads data and labels from PDF files in the specified folder.
@@ -141,8 +131,8 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
         with pymupdf.Document(file_path) as doc:
             print(f"Processing {filename}", end="\r")
 
-            for page_number, page in enumerate(doc, start = 1):
-                features = get_features(page,page_number,matching_params)
+            for page_number, page in enumerate(doc, start=1):
+                features = get_features(page, page_number, matching_params)
                 all_features.append(features)
 
                 key = (filename, page_number)
@@ -155,7 +145,7 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
 
 def main(config_path: str, out_directory: str, tuning: bool = False):
     """Main function to train the Random Forest or XGBoost model based on the provided configuration.
-    
+
     Args:
         config_path (str): Path to the YAML configuration file.
         out_directory (str): Directory where the trained model and logs will be saved.

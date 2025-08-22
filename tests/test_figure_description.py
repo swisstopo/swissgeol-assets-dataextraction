@@ -1,4 +1,5 @@
 import pytest
+
 from src.keyword_finding import FIGURE_PATTERNS
 
 
