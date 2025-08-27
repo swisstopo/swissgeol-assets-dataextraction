@@ -116,7 +116,7 @@ class PixtralClassifier(Classifier):
             messages=conversation,
             system=self.system_content,
             inferenceConfig={
-                "maxTokens": self.config.get("max_tokens", 200),
+                "maxTokens": self.config.get("max_tokens", 5),
                 "temperature": self.config.get("temperature", 0.2),
             },
         )

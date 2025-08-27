@@ -9,7 +9,7 @@ diagram_img_path: "examples/example_diagram_250_3.png"
 table_img_path: "examples/example_table_11380_6.png"
 unknown_img_path: "examples/example_unknown_10299_24.png"
 
-prompt_version: v1.1 # current best is v1
+prompt_version: v1.2 # current best is v1
 max_document_size_mb: 4.5
 slack_size_mb: 0.2
 max_tokens: 200
