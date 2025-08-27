@@ -19,6 +19,7 @@ print("Loading env variables from '.env'.")
 load_dotenv()
 
 env_file = ".env.api"
+
 print(f"Loading env variables from '{env_file}'.")
 load_dotenv(env_file)
 
