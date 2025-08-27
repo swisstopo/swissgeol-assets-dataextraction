@@ -21,56 +21,72 @@ logger = logging.getLogger(__name__)
 LABELS = [cls.value for cls in PageClasses]
 
 
-def load_ground_truth(ground_truth_path: Path) -> dict[str, Any] | None:
+def load_predictions(predictions: list[dict[str, Any]]) -> dict[tuple[str, int], dict[str, int]]:
+    """Normalizes predictions list into:
+    { (filename, page_number): classification_dict }
+    Works for both model predictions and ground-truth lists.
+    """
+    pred_dict: dict[tuple[str, int], dict[str, int]] = {}
+
+    for entry in predictions:
+        filename = entry.get("filename")
+        pages = entry.get("pages", [])
+
+        for page_entry in pages:
+            page_number = page_entry.get("page")
+            classification = page_entry.get("classification")
+
+            key = (filename, page_number)
+            if key in pred_dict:
+                logger.warning(f"Duplicate entry for {key}; overwriting previous value.")
+            pred_dict[key] = classification
+    return pred_dict
+
+
+def load_ground_truth(ground_truth_path: Path) -> dict | None:
     """Loads ground truth data from a JSON file."""
     try:
         with open(ground_truth_path) as f:
-            return {entry["filename"]: entry["classification"] for entry in json.load(f)}
+            gt_list = json.load(f)
+            return load_predictions(gt_list)
     except Exception as e:
-        logger.error(f"Invalid ground truth path: {e}")
+        logger.error(f"Invalid ground truth path or JSON: {e}")
         return None
 
 
-def compute_confusion_stats(predictions: dict[str, Any], ground_truth: dict[str, Any]) -> tuple[dict, int, int]:
+def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict, int, int]:
     """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
-    stats = {
-        label: {
-            "true_positives": 0,
-            "false_negatives": 0,
-            "false_positives": 0,
-            "true_negatives": 0,
-        }
-        for label in LABELS
-    }
+    stats = {label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0} for label in LABELS}
 
-    total_files, total_pages = 0, 0
+    pred_keys = set(predictions.keys())
+    gt_keys = set(ground_truth.keys())
 
-    for filename, pred_pages in predictions.items():
-        gt_pages = ground_truth.get(filename)
-        if gt_pages is None:
-            logger.info(f"No ground truth for {filename}. Skipping.")
-            continue
+    # Evaluate on the intersection so we don't crash when pages are missing
+    common_keys = pred_keys & gt_keys
 
-        if len(pred_pages) != len(gt_pages):
-            logger.info(f"Page count mismatch in {filename}. Skipping.")
-            continue
+    missing_in_pred = gt_keys - pred_keys
+    missing_in_gt = pred_keys - gt_keys
+    if missing_in_pred:
+        logger.info(f"{len(missing_in_pred)} GT pages have no prediction (e.g., {next(iter(missing_in_pred))}).")
+    if missing_in_gt:
+        logger.info(f"{len(missing_in_gt)} predicted pages missing in GT (e.g., {next(iter(missing_in_gt))}).")
 
-        total_files += 1
-        total_pages += len(pred_pages)
+    total_pages = len(common_keys)
+    total_files = len({fname for (fname, _page) in common_keys})
 
-        for pred_page, gt_page in zip(pred_pages, gt_pages, strict=False):
-            for label in LABELS:
-                pred = pred_page.get(label, 0)
-                gt = gt_page.get(label, 0)
+    for key in common_keys:
+        pred_page = predictions.get(key, {})
+        gt_page = ground_truth.get(key, {})
+        for label in LABELS:
+            pred = int(pred_page.get(label, 0))
+            gt = int(gt_page.get(label, 0))
 
-                if gt == 1 and pred == 1:
-                    stats[label]["true_positives"] += 1
-                elif gt == 1 and pred == 0:
-                    stats[label]["false_negatives"] += 1
-                elif gt == 0 and pred == 1:
-                    stats[label]["false_positives"] += 1
-                else:
-                    stats[label]["true_negatives"] += 1
+            if gt == 1 and pred == 1:
+                stats[label]["true_positives"] += 1
+            elif gt == 1 and pred == 0:
+                stats[label]["false_negatives"] += 1
+            elif gt == 0 and pred == 1:
+                stats[label]["false_positives"] += 1
 
     return stats, total_files, total_pages
 
@@ -87,7 +103,6 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
                 "True_Positives",
                 "False_Negatives",
                 "False_Positives",
-                "True_Negatives",
             ]
         )
         for label, s in stats.items():
@@ -97,7 +112,6 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
                     s["true_positives"],
                     s["false_negatives"],
                     s["false_positives"],
-                    s["true_negatives"],
                 ]
             )
     return csv_path
@@ -142,7 +156,8 @@ def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> No
 
 
 def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> pd.DataFrame:
-    """Creates and saves a per-page comparison DataFrame of prediction and ground truth labels."""
+    """Create a per-page comparison CSV/DF for pages present in both predictions and ground truth (intersection)."""
+    output_dir.mkdir(parents=True, exist_ok=True)
     report_path = output_dir / "per_page_comparison.csv"
 
     columns = (
@@ -150,41 +165,44 @@ def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> 
         + [f"{label}_pred" for label in LABELS]
         + [f"{label}_gt" for label in LABELS]
         + [f"{label}_match" for label in LABELS]
-        + ["All_labels_match"]
+        + ["All_labels_match", "Status"]
     )
-    rows = []
 
-    with open(report_path, "w", newline="") as f:
+    pred_keys = set(pred_dict.keys())
+    gt_keys = set(gt_dict.keys())
+
+    # Only evaluate files/pages that are in predictions.
+    keys = pred_keys & gt_keys
+
+    rows = []
+    for filename, page_num in sorted(keys, key=lambda k: (k[0], k[1])):
+        pred_page = pred_dict[(filename, page_num)]
+        gt_page = gt_dict[(filename, page_num)]
+
+        preds = [int(pred_page.get(label, 0)) for label in LABELS]
+        gts = [int(gt_page.get(label, 0)) for label in LABELS]
+        matches = [int(p == g) for p, g in zip(preds, gts, strict=True)]
+        all_match = int(all(matches))
+
+        # Only keep misclassifications
+        if not all_match:
+            status = "mismatch"
+            row = [filename, page_num] + preds + gts + matches + [all_match, status]
+            rows.append(row)
+
+    df = pd.DataFrame(rows, columns=columns)
+
+    # Write to csv file
+    with open(report_path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(columns)
-
-        for filename, pred_pages in pred_dict.items():
-            gt_pages = gt_dict.get(filename)
-            if gt_pages is None:
-                logger.info(f"WARNING: {filename} not in ground truth, skipping.")
-                continue
-
-            if len(pred_pages) != len(gt_pages):
-                logger.info(f"WARNING: Page length mismatch in {filename}, skipping.")
-                continue
-
-            for page_num in range(len(pred_pages)):
-                pred_page = pred_pages[page_num]
-                gt_page = gt_pages[page_num]
-
-                preds = [int(pred_page.get(label, 0)) for label in LABELS]
-                gts = [int(gt_page.get(label, 0)) for label in LABELS]
-                matches = [int(preds[i] == gts[i]) for i in range(len(LABELS))]
-                all_match = int(all(matches))
-
-                row = [filename, page_num + 1] + preds + gts + matches + [all_match]
-                writer.writerow(row)
-                rows.append(row)
+        writer.writerows(rows)
 
     if mlflow_tracking:
         mlflow.log_artifact(str(report_path))
-    logger.info(f"Logged page-by-page comparison to {report_path}")
-    return pd.DataFrame(rows, columns=columns)
+    logger.info(f"Logged misclassifications to {report_path}")
+
+    return df
 
 
 def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
@@ -217,28 +235,22 @@ def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
 def evaluate_results(
     predictions: list[dict], ground_truth_path: Path, output_dir: Path = Path("evaluation")
 ) -> dict | None:
-    """Main entry point for evaluating classification predictions against ground truth."""
+    """Evaluate classification predictions against ground truth."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
     gt_dict = load_ground_truth(ground_truth_path)
     if gt_dict is None:
         return None
 
-    # Build dictionary mapping filename to list of page classifications
-    class_dict = {}
-    for entry in predictions:
-        if entry["filename"] not in class_dict:
-            class_dict[entry["filename"]] = []
-        for page_entry in entry["pages"]:
-            class_dict[entry["filename"]].append(page_entry["classification"])
+    pred_dict = load_predictions(predictions)
 
-    stats, total_files, total_pages = compute_confusion_stats(class_dict, gt_dict)
+    stats, total_files, total_pages = compute_confusion_stats(pred_dict, gt_dict)
     stats_path = save_confusion_stats(stats, output_dir)
 
     if mlflow_tracking:
         log_metrics_to_mlflow(stats, total_files, total_pages)
         mlflow.log_artifact(str(stats_path))
-    comparison_data = create_page_comparison(class_dict, gt_dict, output_dir)
+    comparison_data = create_page_comparison(pred_dict, gt_dict, output_dir)
     save_misclassifications(comparison_data, output_dir)
 
     return stats

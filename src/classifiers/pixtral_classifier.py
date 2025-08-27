@@ -13,8 +13,6 @@ from src.utils import read_params
 
 logger = logging.getLogger(__name__)
 
-prompts = read_params("prompts/classification_prompts.yml")
-
 
 class PixtralClassifier(Classifier):
     """Page Classifier using Pixtral Large."""
@@ -35,19 +33,27 @@ class PixtralClassifier(Classifier):
         self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
         borehole_bytes = read_image_bytes(config["borehole_img_path"])
         text_bytes = read_image_bytes(config["text_img_path"])
-        maps_bytes = read_image_bytes(config["maps_img_path"])
+        map_bytes = read_image_bytes(config["map_img_path"])
         title_bytes = read_image_bytes(config["title_img_path"])
         unknown_bytes = read_image_bytes(config["unknown_img_path"])
+        geo_profile_bytes = read_image_bytes(config["geo_profile_img_path"])
+        table_bytes = read_image_bytes(config["table_img_path"])
+        diagram_bytes = read_image_bytes(config["diagram_img_path"])
         self.examples_bytes = {
             "borehole": borehole_bytes,
             "text": text_bytes,
-            "maps": maps_bytes,
+            "map": map_bytes,
             "title": title_bytes,
+            "geo_profile": geo_profile_bytes,
+            "diagram": diagram_bytes,
+            "table": table_bytes,
             "unknown": unknown_bytes,
         }
 
     def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
-        """Determines the class of a document page using the Pixtral model with baseline classifier as fallback.
+        """Determines the class of a document page using the Pixtral model.
+
+        Falls back to baseline classifier if output is malformed or ClientError.
 
         Args:
             page: The page of th document that should be classified
