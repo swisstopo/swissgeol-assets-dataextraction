@@ -1,5 +1,6 @@
 import fitz
-from src.text_objects import TextWord, TextLine
+
+from src.text_objects import TextLine, TextWord
 
 
 def test_textline_with_valid_words():
@@ -23,4 +24,4 @@ def test_textline_with_empty_words():
     except ValueError as e:
         assert str(e) == "Cannot create an empty TextLine."
     else:
-        assert False, "Expected ValueError was not raised"
+        raise AssertionError("Expected ValueError was not raised")

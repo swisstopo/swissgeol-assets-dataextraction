@@ -1,5 +1,6 @@
-from pathlib import Path
 import logging
+from pathlib import Path
+
 import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
@@ -7,14 +8,17 @@ from transformers import (
     LayoutLMv3ForSequenceClassification,
     LayoutLMv3Processor,
 )
+
 from src.page_classes import (
-    label2id,
-    id2label,
     enum2id,
     id2enum,
+    id2label,
+    label2id,
     num_labels,
 )
+
 logger = logging.getLogger(__name__)
+
 
 class LayoutLMv3:
     """LayoutLMv3 model for page classification.
@@ -25,11 +29,12 @@ class LayoutLMv3:
 
     def __init__(self, model_name_or_path: str = "microsoft/layoutlmv3-base", device: str = None):
         """Initializes the LayoutLMv3 model.
+
         Args:
             model_name_or_path (str): Path to a fine-tuned LayoutLMv3 model checkpoint or a Hugging Face model name.
                 If a local path is provided, it should point to a directory containing the model files.
-            device (str): Device to run the model on, e.g., "cuda" or "cpu". If None, it defaults to "cuda" if available,
-                otherwise "cpu".
+            device (str): Device to run the model on, e.g., "cuda" or "cpu".
+                If None, it defaults to "cuda" if available, otherwise "cpu".
         """
         self.label2id = label2id
         self.id2label = id2label
@@ -42,7 +47,9 @@ class LayoutLMv3:
         if Path(model_name_or_path).exists():
             self.processor = LayoutLMv3Processor.from_pretrained(model_name_or_path)
         else:
-            logger.info("Model path: {model_path} does not exist. Switching to Hugging Face model '[microsoft/layoutlmv3-base](https://huggingface.co/microsoft/layoutlmv3-base)'")
+            logger.info(
+                "Model path: {model_path} does not exist. Switching to Hugging Face model '[microsoft/layoutlmv3-base](https://huggingface.co/microsoft/layoutlmv3-base)'"
+            )
             self.processor = LayoutLMv3Processor.from_pretrained(model_name_or_path, apply_ocr=False)
 
         self.hf_model = LayoutLMv3ForSequenceClassification.from_pretrained(
@@ -59,6 +66,7 @@ class LayoutLMv3:
                 - "bboxes": List of bounding boxes corresponding to the words.
                 - "image": The image of the page as a PIL Image or numpy array.
                 - "label": The label for the sample (optional).
+
         Returns:
             dict: A dictionary containing the processed inputs for the model, including:
                 - "input_ids": Token IDs for the words.
@@ -81,7 +89,7 @@ class LayoutLMv3:
             "attention_mask": encoding.attention_mask[0],
             "bbox": encoding.bbox[0],
             "pixel_values": encoding.pixel_values[0],
-            "label": sample["label"] if "label" in sample else None,
+            "label": sample.get("label"),
         }
 
     def predict_batch(self, dataloader: DataLoader) -> tuple[list[int], list[list[float]]]:
@@ -89,6 +97,7 @@ class LayoutLMv3:
 
         Args:
             dataloader (DataLoader): A DataLoader containing the preprocessed samples.
+
         Returns:
             tuple: A tuple containing:
                 - all_preds: List of predicted class IDs for each sample.

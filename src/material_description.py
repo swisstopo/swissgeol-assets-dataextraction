@@ -1,5 +1,8 @@
-"""Very similar to code in swissgeol-boreholes-dataextraction repo https://github.com/swisstopo/swissgeol-boreholes-dataextraction
-The same including and excluding matching parameters used."""
+"""Very similar to code in swissgeol-boreholes-dataextraction repo.
+
+https://github.com/swisstopo/swissgeol-boreholes-dataextraction
+The same including and excluding matching parameters used.
+"""
 
 import pymupdf
 
@@ -18,7 +21,10 @@ class MaterialDescription:
         self.noise = self.compute_noise(all_words)
 
     def __repr__(self):
-        return f"MaterialDescription( lines = {[line.line_text() for line in self.text_lines]}, rect = {self.rect}, noise={self.noise} )"
+        return (
+            f"MaterialDescription( lines = {[line.line_text() for line in self.text_lines]}, "
+            f"rect = {self.rect}, noise={self.noise} )"
+        )
 
     def compute_bbox(self):
         """Calculate the bounding box of the material description."""
@@ -28,7 +34,7 @@ class MaterialDescription:
         return pymupdf.Rect(start_line.rect.x0, start_line.rect.y0, end_line.rect.x1, end_line.rect.y1)
 
     def compute_noise(self, all_words: list[TextWord]):
-        """For bounding box compute noise of words not containing to bbox entries"""
+        """For bounding box compute noise of words not containing to bbox entries."""
         description_words = [word for line in self.text_lines for word in line.words]
         noise_words = [word for word in all_words if self.rect.contains(word.rect) and word not in description_words]
 

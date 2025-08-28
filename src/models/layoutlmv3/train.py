@@ -1,10 +1,10 @@
-import json
 import logging
 import math
 import os
 import time
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+
 import click
 import mlflow
 import pymupdf
@@ -20,7 +20,8 @@ from transformers import (
 from transformers.trainer_utils import TrainOutput
 
 from classifiers.pdf_dataset_builder import (
-    build_lazy_dataset, build_filename_to_label_map,
+    build_filename_to_label_map,
+    build_lazy_dataset,
 )
 from src.models.layoutlmv3.model import LayoutLMv3
 
@@ -39,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+
 
 class LayoutLMv3Trainer:
     """Trainer class for LayoutLMv3 model.
@@ -128,6 +130,7 @@ class LayoutLMv3Trainer:
         Args:
             model_config (dict): The configuration dictionary containing paths to training and validation datasets,
                 as well as the ground truth file.
+
         Returns:
             tuple[Dataset, Dataset, int]: A tuple containing:
                 - train_dataset: The training dataset as a Dataset object.
@@ -152,6 +155,7 @@ class LayoutLMv3Trainer:
 
         Args:
             pdf_files (list[Path]): List of Path objects representing PDF files.
+
         Returns:
             int: The total number of pages across all PDF files.
         """
@@ -181,9 +185,9 @@ class LayoutLMv3Trainer:
             classes = set(predictions) | set(labels.tolist())
 
             for cls in classes:
-                tp += sum((pred == cls and lab == cls) for pred, lab in zip(predictions, labels))
-                fp += sum((pred == cls and lab != cls) for pred, lab in zip(predictions, labels))
-                fn += sum((pred != cls and lab == cls) for pred, lab in zip(predictions, labels))
+                tp += sum((pred == cls and lab == cls) for pred, lab in zip(predictions, labels, strict=False))
+                fp += sum((pred == cls and lab != cls) for pred, lab in zip(predictions, labels, strict=False))
+                fn += sum((pred != cls and lab == cls) for pred, lab in zip(predictions, labels, strict=False))
 
             precision = tp / (tp + fp) if (tp + fp) > 0 else 0.0
             recall = tp / (tp + fn) if (tp + fn) > 0 else 0.0
@@ -292,11 +296,10 @@ def train_model(
 
     Args:
         config_file_path (Path): Path to the YAML configuration file containing model parameters and paths.
-        model_checkpoint (Path): Optional path to a pre-trained model checkpoint. If None, the model will be initialized
-            from the Hugging Face library using the config file.
+        model_checkpoint (Path): Optional path to a pre-trained model checkpoint.
+        If None, the model will be initialized from the Hugging Face library using the config file.
         out_directory (Path): Path to the output directory where the trained model and logs will be saved.
     """
-
     with open(config_file_path) as f:
         model_config = yaml.safe_load(f)
 
