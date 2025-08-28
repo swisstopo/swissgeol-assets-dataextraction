@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 def _load_profile(config_path: str | None) -> dict:
     """Load prediction profile( YAML) that controls schema and mapping."""
-    profile_path = config_path or os.getenv("PREDICTION_PROFILE") or "config/prediction_profile.dev-v2.yaml"
+    profile_path = config_path or os.getenv("PREDICTION_PROFILE") or "config/prediction_profile.api-stable.yaml"
     return read_params(profile_path)
 
 

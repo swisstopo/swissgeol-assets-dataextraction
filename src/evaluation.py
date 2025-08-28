@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from src.page_classes import PageClasses
 
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "true"
 
 if mlflow_tracking:
     import mlflow
@@ -22,7 +22,8 @@ LABELS = [cls.value for cls in PageClasses]
 
 
 def load_predictions(predictions: list[dict[str, Any]]) -> dict[tuple[str, int], dict[str, int]]:
-    """Normalizes predictions list into:
+    """Normalizes predictions list.
+
     { (filename, page_number): classification_dict }
     Works for both model predictions and ground-truth lists.
     """
