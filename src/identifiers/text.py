@@ -17,7 +17,7 @@ def get_union_areas(rects: list[pymupdf.Rect]) -> float:
 
 
 def identify_text(ctx: PageContext) -> bool:
-    """Classifies Page as Text Page based on word density in TextBlocks and average words per TextLine"""
+    """Classifies Page as Text Page based on word density in TextBlocks and average words per TextLine."""
     if not ctx.lines:
         return False
     words_per_line = [len(line.words) for line in ctx.lines]

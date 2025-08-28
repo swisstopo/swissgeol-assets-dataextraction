@@ -11,9 +11,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from xgboost import XGBClassifier
 
-from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
+from classifiers.pdf_dataset_builder import build_filename_to_label_map
+from models.treebased.basetrainer import TreeBasedTrainer
 from src.models.feature_engineering import get_features
-from src.models.treebased.basetrainer import TreeBasedTrainer
 from src.utils import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)

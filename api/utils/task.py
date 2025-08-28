@@ -1,9 +1,8 @@
 import logging
 import threading
 import typing
-import uuid
 from dataclasses import dataclass
-from typing import Dict, TypeVar
+from typing import TypeVar
 
 from fastapi import BackgroundTasks
 
@@ -12,17 +11,21 @@ Result = TypeVar("Result")
 
 @dataclass
 class Task:
+    """Represents a background task."""
+
     file: str
     result: Result | None = None
 
 
 @dataclass
 class Output:
+    """Represents the output of a task."""
+
     ok: bool
     value: Result | RuntimeError
 
 
-active_tasks: Dict[str, Task] = {}
+active_tasks: dict[str, Task] = {}
 active_tasks_lock = threading.Lock()
 
 

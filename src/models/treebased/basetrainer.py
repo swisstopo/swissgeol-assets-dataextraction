@@ -1,28 +1,35 @@
 import abc
+import json
+from pathlib import Path
+
 import joblib
 import matplotlib.pyplot as plt
-import numpy as np
-from pathlib import Path
-from sklearn.metrics import precision_recall_fscore_support, confusion_matrix, classification_report, ConfusionMatrixDisplay
-import json
 import mlflow
+import numpy as np
+from sklearn.metrics import (
+    ConfusionMatrixDisplay,
+    classification_report,
+    confusion_matrix,
+    precision_recall_fscore_support,
+)
+
 from src.page_classes import (
-    label2id,
-    id2label,
     enum2id,
     id2enum,
+    id2label,
+    label2id,
     num_labels,
 )
 
+
 class TreeBasedTrainer(abc.ABC):
-    """
-    Abstract base class for training models.
+    """Abstract base class for training models.
 
     This class defines the structure for model training workflows,
     including methods for data loading, training, evaluation, and model saving.
 
     Subclasses should implement the `prepare_model` method to initialize their specific model type.
-    
+
     Attributes:
         label2id (dict): Mapping from label names to IDs.
         id2label (dict): Mapping from IDs to label names.
@@ -34,6 +41,7 @@ class TreeBasedTrainer(abc.ABC):
         feature_names (list): List of feature names used in the model.
         model_dir (Path): Directory where the trained model will be saved.
     """
+
     def __init__(self, config: dict, output_path: Path):
         """Initializes the BaseTrainer with configuration and output path.
 
@@ -60,7 +68,6 @@ class TreeBasedTrainer(abc.ABC):
 
     def load_data(self, X_train, y_train, X_val, y_val):
         """Loads training and validation data into numpy arrays."""
-
         self.X_train = np.array(X_train)
         self.y_train = np.array(y_train)
         self.X_val = np.array(X_val)
@@ -77,7 +84,7 @@ class TreeBasedTrainer(abc.ABC):
 
         Args:
             y_pred (list): Predicted labels for the validation set.
-        
+
         Returns:
             dict: A dictionary containing precision, recall, and F1 score.
         """
@@ -96,7 +103,7 @@ class TreeBasedTrainer(abc.ABC):
         """Plots and logs the feature importance of the trained model."""
         if not hasattr(self.model, "feature_importances_"):
             raise ValueError("Model does not have feature importances. Ensure it is a tree-based model.")
-        
+
         # Get feature importances and sort them
         if self.feature_names is None:
             raise ValueError("Feature names are not provided in the configuration.")
@@ -117,7 +124,7 @@ class TreeBasedTrainer(abc.ABC):
 
     def plot_and_log_confusion_matrix(self, y_pred: list):
         """Plots and logs the confusion matrix for the validation set predictions.
-        
+
         Args:
             y_pred (list): Predicted labels for the validation set.
         """

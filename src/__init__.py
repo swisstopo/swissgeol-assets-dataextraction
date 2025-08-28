@@ -1,1 +1,1 @@
-
+"""Module for page classification."""

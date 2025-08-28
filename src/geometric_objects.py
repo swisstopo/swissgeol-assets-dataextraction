@@ -1,18 +1,22 @@
-"""
-Most of this code is from the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
+"""Most of this code is from the swissgeol-boreholes-dataextraction repo.
+
+(https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
 
 from __future__ import annotations
 
-import numpy as np
 from dataclasses import dataclass
 from math import atan2, degrees
+
+import numpy as np
 
 
 @dataclass(frozen=True)
 class Point:
     """Class to represent a point in 2D space.
-    Code copied from swissgeol-boreholes-dataextraction repo."""
+
+    Code copied from swissgeol-boreholes-dataextraction repo.
+    """
 
     x: float
     y: float

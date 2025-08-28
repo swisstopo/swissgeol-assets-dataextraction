@@ -14,6 +14,8 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Entry:
+    """Represents a single entry in the boreprofile sidebar."""
+
     rect: pymupdf.Rect
     value: float
 
@@ -40,15 +42,14 @@ def detect_entries(words: list[TextWord]) -> list[Entry]:
 
 
 def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
-    """Create Sidebars from potential entries"""
+    """Create Sidebars from potential entries."""
     entries = detect_entries(words)
     clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
 
 
 def identify_boreprofile(ctx: PageContext, matching_params: dict) -> bool:
-    """
-    Determines whether a page contains a boreprofile.
+    """Determines whether a page contains a boreprofile.
 
     A boreprofile is detected if:
     - At least one valid material description is present
@@ -97,7 +98,8 @@ def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[st
 
     if len(keyword_groups) < 2:
         logger.warning(
-            f"Need 2 keyword groups (profile and borehole keywords) in figure_description.boreprofile, but got: {keyword_groups}"
+            "Need 2 keyword groups (profile and borehole keywords) in figure_description.boreprofile, but got: %s",
+            keyword_groups,
         )
         return []
 
