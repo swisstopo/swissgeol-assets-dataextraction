@@ -1,0 +1,8 @@
+output_schema: v1
+labels_v1: [text, boreprofile, map, title_page, unknown]
+
+# Any class not in labels_v1 will be mapped to Unknown
+class_mapping:
+  geo_profile: unknown
+  diagram: unknown
+  table: unknown
