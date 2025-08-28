@@ -19,6 +19,7 @@ class ApiSettings(BaseSettings):
     local_s3_access_key: str | None = None
     local_s3_secret_key: str | None = None
 
+
 print("Loading env variables from '.env'.")
 load_dotenv()
 
