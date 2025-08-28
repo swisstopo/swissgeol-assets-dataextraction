@@ -1,6 +1,6 @@
 import logging
+from collections.abc import Callable, Sequence
 from statistics import stdev
-from typing import Callable, Sequence
 
 from src.keyword_finding import DATE_PATTERNS, PHONE_PATTERNS, find_pattern
 from src.page_structure import PageContext
@@ -13,14 +13,14 @@ VERTICAL_SPACING_FACTOR = 5.0
 
 
 def identify_title_page(ctx: PageContext, matching_params: dict) -> bool:
-    """
-    Identifies whether a page is likely a title page based on a combination of:
+    """Identifies whether a page is likely a title page based on a combination of factors.
+
+    Factors include:
     - Line count
     - Centered or consistently aligned layout
     - Content clues (e.g., dates, keywords, phone info)
     - Large or varied fonts
     """
-
     if not (3 <= len(ctx.lines) <= 35):
         return False
 
@@ -36,15 +36,12 @@ def identify_title_page(ctx: PageContext, matching_params: dict) -> bool:
     if has_aligned_layout(ctx):
         return True
 
-    if has_large_font_layout(ctx) and contains_content_clues(ctx, matching_params):
-        return True
-
-    return False
+    return has_large_font_layout(ctx) and contains_content_clues(ctx, matching_params)
 
 
 def has_centered_layout(ctx: PageContext) -> bool:
-    """
-    Checks if the majority of text is in clusters that are horizontally centered.
+    """Checks if the majority of text is in clusters that are horizontally centered.
+
     Filters out 'centered' clusters that are actually right-aligned based on x0 spread.
     """
     page_width = ctx.page_rect.width
@@ -70,9 +67,7 @@ def has_centered_layout(ctx: PageContext) -> bool:
 
 
 def has_aligned_layout(ctx: PageContext) -> bool:
-    """
-    Checks if the majority of lines belong to clusters that are left-, right- or center-aligned.
-    """
+    """Checks if the majority of lines belong to clusters that are left-, right- or center-aligned."""
     total_words = len(ctx.words)
     if not total_words:
         return False
@@ -84,16 +79,14 @@ def has_aligned_layout(ctx: PageContext) -> bool:
 
 
 def has_large_font_layout(ctx: PageContext) -> bool:
-    """
-    Returns True if the page has at least one large font size and high font variety.
-    """
+    """Returns True if the page has at least one large font size and high font variety."""
     font_sizes = [line.font_size for line in ctx.lines]
     return len(set(font_sizes)) > 5 and max(font_sizes, default=0) > 20
 
 
 def contains_content_clues(ctx: PageContext, matching_params) -> bool:
-    """
-     Returns True if the page contains at least 2 out of 3 indicators:
+    """Returns True if the page contains at least 2 out of 3 indicators.
+
     - title keywords (language-dependent)
     - a date
     - a phone number
@@ -111,8 +104,7 @@ def contains_content_clues(ctx: PageContext, matching_params) -> bool:
 def remove_outlier_if_needed(
     values: list[float], threshold: float = 0.6, removable_indices: Sequence[int] | None = None
 ) -> list[float]:
-    """
-    Removes one value (from allowed positions) if doing so significantly reduces the standard deviation.
+    """Removes one value (from allowed positions) if doing so significantly reduces the standard deviation.
 
     Args:
         values: List of floats.
@@ -150,8 +142,8 @@ def remove_outlier_if_needed(
 
 
 def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[list[TextLine]]:
-    """
-    Returns all text line clusters aligned either left, right, or center.
+    """Returns all text line clusters aligned either left, right, or center.
+
     A line can belong to only one cluster (first match).
     """
     remaining_lines = set(lines)
@@ -175,12 +167,10 @@ def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[li
 
 
 def find_aligned_clusters(
-    lines: list[TextLine],
-    key_func: Callable[[TextLine], float],
-    threshold: float
+    lines: list[TextLine], key_func: Callable[[TextLine], float], threshold: float
 ) -> list[list[TextLine]]:
-    """
-     Groups text lines into alignment clusters based on a key function (e.g. x0-position).
+    """Groups text lines into alignment clusters based on a key function (e.g. x0-position).
+
     This function finds clusters of visually aligned lines by comparing each line’s alignment key
     (e.g. x0, center, x1) and vertical position.
 
@@ -195,9 +185,9 @@ def find_aligned_clusters(
     remaining_lines = set(lines)
     clusters = []
 
-    for current_line in sorted(lines, key = lambda l: l.rect.y0):
+    for current_line in sorted(lines, key=lambda line: line.rect.y0):
         if current_line not in remaining_lines:
-            continue #already clustered
+            continue  # already clustered
 
         remaining_lines.remove(current_line)
         cluster = []
@@ -212,12 +202,13 @@ def find_aligned_clusters(
             close_lines = {
                 other
                 for other in remaining_lines
-                if abs(key_func(other) - cluster_key) < threshold # limit for how much misaligned other line can be
-                and abs(other.rect.y0 - line.rect.y0) < VERTICAL_SPACING_FACTOR * font_size #limit for how far below other line can lie
+                if abs(key_func(other) - cluster_key) < threshold  # limit for how much misaligned other line can be
+                and abs(other.rect.y0 - line.rect.y0)
+                < VERTICAL_SPACING_FACTOR * font_size  # limit for how far below other line can lie
             }
 
-            line_queue.extend(close_lines) # add close lines into queue
-            remaining_lines -= close_lines # remove all close lines
+            line_queue.extend(close_lines)  # add close lines into queue
+            remaining_lines -= close_lines  # remove all close lines
 
         if len(cluster) > 1:
             clusters.append(cluster)
@@ -226,11 +217,13 @@ def find_aligned_clusters(
 
 
 def vertical_spacing(lines: list[TextLine]) -> list[float]:
-    """Compute vertical distances between vertically non-overlapping text lines,
-    and filtering out first or last line if they drastically decrease mean gaps."""
+    """Compute vertical distances between vertically non-overlapping text lines.
+
+    Filters out first or last line if they drastically decrease mean gaps.
+    """
     merged_lines = merge_y_overlapping_lines(lines)
     # compute vertical spacing between merged lines
-    distances = [below.rect.y0 - above.rect.y0 for above, below in zip(merged_lines, merged_lines[1:])]
+    distances = [below.rect.y0 - above.rect.y0 for above, below in zip(merged_lines, merged_lines[1:], strict=False)]
     # remove potential header / footnote
     filtered_distances = remove_outlier_if_needed(distances, threshold=0.6, removable_indices=[0, -1])
 

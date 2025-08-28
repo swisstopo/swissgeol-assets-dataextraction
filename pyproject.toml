@@ -38,6 +38,8 @@ dependencies = [
     "boto3-stubs[textract]",
     "pydantic",
     "pydantic-settings",
+    "mlflow (>=3.3.1,<4.0.0)",
+    "pytest-cov (>=6.2.1,<7.0.0)",
 ]
 
 [project.optional-dependencies]
@@ -62,7 +64,7 @@ line-length = 119
 
 [tool.ruff.lint]
 select = ["D", "E", "F", "UP", "B", "SIM", "I"]
-ignore = ["D102", "D105", "D107", "D100"]
+ignore = ["D102", "D105", "D107", "D100", "D103", "SIM108"]
 
 [tool.ruff.lint.pydocstyle]
 convention = "google"

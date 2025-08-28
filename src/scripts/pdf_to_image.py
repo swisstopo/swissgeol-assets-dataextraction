@@ -4,8 +4,7 @@ import pymupdf
 
 
 def convert_to_image(pdf_path, output_dir, dpi=300, page_range=None):
-    """Convert PDF to PNG using PyMuPDF (fitz) - Fastest option"""
-
+    """Convert PDF to PNG using PyMuPDF (fitz) - Fastest option."""
     with pymupdf.open(pdf_path) as pdf_document:
         pdf_name = Path(pdf_path).stem
 
