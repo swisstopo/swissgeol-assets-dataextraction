@@ -1,14 +1,18 @@
+import io
 import logging
 import math
 from dataclasses import dataclass
-from PIL import Image
-import io
+
 import pymupdf
+from PIL import Image
+
 logger = logging.getLogger(__name__)
 
 
 @dataclass
 class ImageRect:
+    """Represents an image rectangle on a PDF page."""
+
     rect: pymupdf.Rect  # Transformed rectangle respecting page rotation
     rotation: int  # Page rotation in degrees (0, 90, 180, 270)
     xref: int  # Image xref ID (unique reference in PDF)
@@ -19,7 +23,7 @@ class ImageRect:
 
 
 def extract_page_graphics(page: pymupdf.Page, is_digital: bool):
-    """Extract drawings and image bounding boxes from page"""
+    """Extract drawings and image bounding boxes from page."""
     if not is_digital:
         return [], []
 
@@ -46,9 +50,7 @@ def get_images_from_page(page: pymupdf.Page) -> list[ImageRect]:
 
 
 def get_page_image_bytes(page: pymupdf.Page, page_number: int, max_mb: float = 4.5) -> bytes:
-    """
-    Returns JPEG image bytes of a single PDF page. Downscales if image exceeds allowed size.
-    """
+    """Returns JPEG image bytes of a single PDF page. Downscales if image exceeds allowed size."""
     max_bytes = int(max_mb * 1024 * 1024)
     scale = 1.0
 
@@ -80,10 +82,9 @@ def get_page_image_bytes(page: pymupdf.Page, page_number: int, max_mb: float = 4
     logger.warning(f"[image-bytes] Final size {size_mb:.2f} MB after 10 attempts.")
     return image_bytes
 
+
 def convert_pdf_to_jpeg(page_bytes: bytes, scale: float = 1.0) -> bytes:
-    """
-    Converts a PDF page (as bytes) to JPEG image bytes using PyMuPDF and PIL.
-    """
+    """Converts a PDF page (as bytes) to JPEG image bytes using PyMuPDF and PIL."""
     with pymupdf.open(stream=page_bytes, filetype="pdf") as doc:
         page = doc[0]
         pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), colorspace=pymupdf.csRGB)

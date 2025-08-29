@@ -17,11 +17,12 @@ def merge_bounding_boxes(rects):
 
 
 def is_line_below_box(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
-    """
-    Determines whether a text line rect is directly below an image rect and horizontally aligned.
+    """Determines whether a text line rect is directly below an image rect and horizontally aligned.
+
     Args:
         line_rect (pymupdf.Rect): Bounding box of the text line.
         image_rect (pymupdf.Rect): Bounding box of the image (transformed according to page rotation).
+
     Returns:
         bool: True if the line is well aligned else False
     """

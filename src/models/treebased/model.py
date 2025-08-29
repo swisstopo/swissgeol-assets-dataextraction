@@ -1,28 +1,32 @@
+import logging
 from pathlib import Path
 
 import joblib
-import logging
 
 from src.page_classes import (
-    label2id,
-    id2label,
     enum2id,
     id2enum,
+    id2label,
+    label2id,
     num_labels,
 )
+
 logger = logging.getLogger(__name__)
+
 
 class TreeBasedModel:
     """Tree-based model for page classification.
+
     This class includes loading the model from a file and making predictions based on input features.
+
     Attributes:
         model: The trained model used for predictions.
+
     Args:
         model_path (str): Path to the trained model file. If None, the model is not loaded.
     """
 
     def __init__(self, model_path: str = None):
-
         self.label2id = label2id
         self.id2label = id2label
         self.enum2id = enum2id
@@ -37,7 +41,7 @@ class TreeBasedModel:
 
     def predict(self, x: list[float]) -> list[int]:
         """Predict the class labels for the input features.
-        
+
         Args:
             x: Input features for prediction.
         """
@@ -47,7 +51,7 @@ class TreeBasedModel:
 
     def load_model(self, model_path: str):
         """Load the model from the specified path.
-        
+
         Args:
             model_path (str): Path to the model file.
         """

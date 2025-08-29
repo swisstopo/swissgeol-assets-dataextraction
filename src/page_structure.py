@@ -34,5 +34,5 @@ class PageAnalysis:
         self.classification[label] = 1
 
     def to_classification_dict(self):
-        """Only exports classification and page number to dict"""
+        """Only exports classification and page number to dict."""
         return {cls.value: val for cls, val in self.classification.items()}

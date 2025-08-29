@@ -29,11 +29,12 @@ PHONE_PATTERNS = [
 
 
 def find_pattern(line: TextLine, patterns: list[str]) -> str | None:
-    """
-    Searches for a match of any given regex pattern in the text of a line.
+    """Searches for a match of any given regex pattern in the text of a line.
+
     Args:
         line: A TextLine object with a .line_text() method.
         patterns: List of regex strings to search for.
+
     Returns:
         The first matching string if found, otherwise None.
     """
@@ -46,15 +47,16 @@ def find_pattern(line: TextLine, patterns: list[str]) -> str | None:
 
 
 def find_figure_description(ctx: PageContext) -> list[TextLine]:
-    """
-    Identifies lines near images that likely contain figure, table, or illustration captions,
-     based on if line appears below any image and if it matches known figure/table patterns.
+    """Identifies lines near images that likely contain figure, table, or illustration captions.
+
+    Based on if line appears below any image and if it matches known figure/table patterns.
+
     Args:
         ctx (PageContext): The page context containing text lines and images.
+
     Returns:
         list[TextLine]: A list of lines matching the caption criteria.
     """
-
     relevant_lines = []
     added_lines = set()
 
