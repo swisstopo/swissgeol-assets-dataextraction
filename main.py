@@ -9,12 +9,13 @@ from dotenv import load_dotenv
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.evaluation import evaluate_results
 from src.pdf_processor import PDFProcessor
-from src.predictions.compat import V1_LABELS_DEFAULT, adapt_page_classification
+from src.predictions.compat import STABLE_CLASS_MAPPING, STABLE_LABELS, map_to_stable_labels
 from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "true"
+prediction_profile = os.getenv("PREDICTION_PROFILE") or "stable"
 
 if mlflow_tracking:
     import mlflow
@@ -25,26 +26,21 @@ logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
 
 
-def _load_profile(config_path: str | None) -> dict:
-    """Load prediction profile( YAML) that controls schema and mapping."""
-    profile_path = config_path or os.getenv("PREDICTION_PROFILE") or "config/prediction_profile.api-stable.yaml"
-    return read_params(profile_path)
-
-
-def _apply_profile(predictions: list[dict], profile: dict):
+def _apply_profile(predictions: list[dict], profile: str):
     """Apply profile to a single document or list of documents."""
 
     def _apply_to_doc(doc: dict) -> dict:
-        schema = str(profile.get("output_schema", "v2")).lower()
-        if schema == "v1":
-            labels_v1 = profile.get("labels_v1", list(V1_LABELS_DEFAULT))
-            class_mapping = profile.get("class_mapping", {})
+        if profile == "stable":
             for page in doc.get("pages", []):
-                page["classification"] = adapt_page_classification(
+                page["classification"] = map_to_stable_labels(
                     page.get("classification", {}),
-                    labels_v1=labels_v1,
-                    class_mapping=class_mapping,
+                    labels=STABLE_LABELS,
+                    class_mapping=STABLE_CLASS_MAPPING,
                 )
+
+            doc.setdefault("profile_version", "page_classification:stable")
+        elif profile == "dev":
+            doc.setdefault("profile_version", "page_classification:dev")
         return doc
 
     return [_apply_to_doc(d) for d in predictions]
@@ -94,7 +90,6 @@ def main(
     model_path: str = None,
     classifier_name: str = "baseline",
     write_result: bool = False,
-    config_path: str | None = None,
 ):
     """Run the page classification pipeline on input documents.
 
@@ -104,7 +99,6 @@ def main(
         model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
         write_result (bool): If True, writes results to prediction.json.
-        config_path (str, optional): Path to prediction profile YAML (overrides env).
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -136,8 +130,7 @@ def main(
         logger.warning("No data to save.")
         return
 
-    profile = _load_profile(config_path)
-    results = _apply_profile(results, profile)
+    results = _apply_profile(results, prediction_profile)
     # Save to JSON
     if write_result:
         output_file = Path("data") / "prediction.json"

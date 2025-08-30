@@ -15,18 +15,18 @@ which ultimately should facilitate the identification of borehole profiles and m
 Each page is categorized into one of the following:
 
 1. `text` - Continuous text page.  
-2. `borprofile` - Boreholes, longitudinal profiles, and dynamic probing logs.  
+2. `boreprofile` - Boreholes. 
 3. `map` - Geological or topographic maps.  
 4. `title_page` - Title pages of original reports.  
 5. `unknown` - Everything else.
 
-Extended (in development; mapped to `unknown` in API-stable):
+Extended in (in development; mapped to `unknown`):
 6. `geo_profile` - Geological cross-sections or longitudinal profiles.
 7. `table` -  Tabular numeric/textual data.
 8. `diagram` - Scientific 2D graphs or plots.
 
-When running with the **API-stable** profile, any class not in v1 is automatically mapped to `unknown`. 
-When using the **Dev v2** profile, extended classes are kept.
+When running with the **API-stable** profile, any class not supported by this profile is automatically mapped to `unknown`. 
+When using the **dev** profile, extended classes are kept.
 ---
 ## Quick start
 Requirements: Python 3.10(recommended), OCR'ed PDFs.
@@ -52,7 +52,7 @@ cp .env.template .env
 ```
 For development: 
 - Set `MLFLOW_TRACKING=True` in `.env` file for experiment tracking.
-- Set `PREDICTION_PROFILE= "config/prediction_profile.dev-v2.yaml` for extended page classification.
+- Set `PREDICTION_PROFILE=dev` for extended page classification. 
 
 ### 4. (Optional) Use a pre-trained model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
@@ -126,19 +126,9 @@ To run classification using the Pixtral Large Model, you must configure your AWS
 
 ---
 
-## Configuration (output profiles)
-
-Two profiles live under config/:
-- `config/prediction_profile.api-stable.yaml` -> v1 output; extended labels -> unknown.
-- `config/prediction_profile.dev-v2.yaml` -> v2 output; extended labels kept.
-
-Set `PREDICTION_PROFILE` to wanted configuration. Default to v1.
-
----
-
 ## Output Format
 `data/prediction.json` (if `-w`/`--write_result`) or returned as a Python object.
-#### Example Outputn (v1)
+#### Example Output (v1)
 ```json
 [
     {
