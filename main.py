@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 
 
 def _apply_profile(predictions: list[dict], profile: str):
-    """Apply profile to a single document or list of documents."""
+    """Applies output profile: 'stable' or 'dev' to classification output."""
 
     def _apply_to_doc(doc: dict) -> dict:
         if profile == "stable":

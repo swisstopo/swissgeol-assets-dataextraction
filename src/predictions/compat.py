@@ -1,4 +1,4 @@
-from collections.abc import Iterable
+from collections.abc import Sequence
 
 STABLE_LABELS: tuple = ("text", "boreprofile", "map", "title_page", "unknown")
 STABLE_CLASS_MAPPING: dict = {"geo_profile": "unknown", "diagram": "unknown", "table": "unknown"}
@@ -6,8 +6,8 @@ STABLE_CLASS_MAPPING: dict = {"geo_profile": "unknown", "diagram": "unknown", "t
 
 def map_to_stable_labels(
     classification: dict[str, float | int],
-    labels: Iterable[str] = STABLE_LABELS,
-    class_mapping: dict[str, str] | None = STABLE_CLASS_MAPPING,
+    labels: Sequence[str] = STABLE_LABELS,
+    class_mapping: dict[str, str] | None = None,
 ) -> dict[str, int]:
     """Adapt the (extended) per-page classification to an api-stable dictionary.
 
@@ -15,7 +15,7 @@ def map_to_stable_labels(
     - If a label is not in `class_mapping`, it is left unchanged.
     Labels not in the api-stable version are dropped from the output dictionary.
     """
-    mapping = class_mapping or {}
+    mapping = STABLE_CLASS_MAPPING if class_mapping is None else class_mapping
 
     # 1) Remap extended labels to targets
     remapped: dict[str, int] = {}

@@ -12,6 +12,7 @@ from pydantic import BaseModel, Field
 from starlette.responses import JSONResponse
 
 from utils import task
+from utils.mapping import map_labels_for_app
 from utils.settings import ApiSettings, api_settings
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -120,5 +121,6 @@ def process(
     result = script(
         input_path=tmp_dir, classifier_name="treebased", model_path="models/model.joblib", write_result=False
     )
+    result = [map_labels_for_app(doc) for doc in result]
     shutil.rmtree(tmp_dir)
     return result
