@@ -1,3 +1,4 @@
+from collections import defaultdict
 from collections.abc import Sequence
 
 STABLE_LABELS: tuple = ("text", "boreprofile", "map", "title_page", "unknown")
@@ -16,14 +17,17 @@ def map_to_stable_labels(
     Labels not in the api-stable version are dropped from the output dictionary.
     """
     mapping = STABLE_CLASS_MAPPING if class_mapping is None else class_mapping
+    labels = tuple(labels)
 
     # 1) Remap extended labels to targets
-    remapped: dict[str, int] = {}
+    remapped = defaultdict(int)
     for label, value in classification.items():
         target_label = mapping.get(label, label)
-        remapped[target_label] = value
+        if target_label not in labels:
+            target_label = "unknown"
+        remapped[target_label] += int(value)
 
     # 2) Keep only stable labels and fill missing with 0.
-    filtered = {label: remapped.get(label, 0) for label in labels}
+    filtered = {label: int(remapped.get(label, 0)) for label in labels}
 
     return filtered

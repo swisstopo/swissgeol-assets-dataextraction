@@ -38,7 +38,6 @@ def _apply_profile(predictions: list[dict], profile: str):
                     class_mapping=STABLE_CLASS_MAPPING,
                 )
 
-            doc.setdefault("profile_version", "page_classification:stable")
         elif profile == "dev":
             doc.setdefault("profile_version", "page_classification:dev")
         return doc

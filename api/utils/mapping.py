@@ -7,8 +7,6 @@ APP_LABELS: dict[str, str] = {
     "unknown": "Unknown",
 }
 
-STABLE_KEYS = tuple(APP_LABELS.keys())
-
 
 def map_labels_for_app(doc: dict) -> dict:
     """Return a copy of the classification results with classification keys renamed to the app’s labels."""
