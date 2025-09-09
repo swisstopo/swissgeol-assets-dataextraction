@@ -24,14 +24,13 @@ def find_map_scales(line: TextLine) -> regex.Match | None:
 
 
 def get_map_entry_lines(ctx: PageContext, keyword_lines: list[TextLine]) -> list[TextLine]:
-    """
-    Extracts candidate lines that are likely to be map entries (e.g., street names, place labels)
+    """Extracts candidate lines that are likely to be map entries (e.g., street names, place labels).
+
     These are:
         - Lines from small text blocks (<= 3 lines per block)
         - Short lines (< 4 words)
         - Not already identified as containing map keywords
     """
-
     map_entry_blocks = [block for block in ctx.text_blocks if len(block.lines) <= 3]
 
     map_entry_lines = [
@@ -43,12 +42,13 @@ def get_map_entry_lines(ctx: PageContext, keyword_lines: list[TextLine]) -> list
 
 def has_enough_map_entry_lines(map_entry_lines, lines) -> bool:
     """Checks whether a 50% of the page consists of potential map entry lines."""
-
     return map_entry_lines and (len(map_entry_lines) / len(lines)) > 0.5
 
 
 def map_like_words_ratio(words: list[TextWord], keyword_lines: list[TextLine]) -> float:
-    """Calculates the ratio of words following a typical map entry format:
+    """Calculates the ratio of words following a typical map entry format.
+
+    Needs to have:
     - All uppercase (e.g., "BASEL")
     - Title case (e.g., "Bern")
     - Contains numbers (e.g., "3", "A1")
@@ -78,6 +78,7 @@ def map_like_words_ratio(words: list[TextWord], keyword_lines: list[TextLine]) -
 
 def identify_map(ctx: PageContext, matching_params) -> bool:
     """Determines whether a page contains a map based on geometric lines and based on text features.
+
      Detection Logic:
     - Uses `map_lines_score` (primary driver) to quantify the presence of non-grid line structures
     - Uses `map_text_score` to quantify the presence of typical map-like text entries
@@ -105,8 +106,8 @@ def identify_map(ctx: PageContext, matching_params) -> bool:
 
 
 def map_text_score(ctx: PageContext, keyword_lines) -> float:
-    """ "
-    Returns score of how much page text follows map layout patterns.
+    """Returns score of how much page text follows map layout patterns.
+
     Detection logic:
     - Identifies short text blocks typical of map entries
     - Clusters entry lines by x-position and filters large clusters
@@ -143,7 +144,7 @@ def is_grid_angle(angle: float, tolerance: float = 2.0) -> bool:
 
 
 def split_lines_by_orientation(geometric_lines: list[Line]):
-    """return length of geometric lines in grid and non grid lists."""
+    """Return length of geometric lines in grid and non grid lists."""
     grid, non_grid = [], []
 
     for line in geometric_lines:
@@ -156,16 +157,15 @@ def split_lines_by_orientation(geometric_lines: list[Line]):
 
 
 def compute_angle_entropy(angles, angle_bin_count: int = 36):
-    """
-    Compute normalized entropy over the angle histogram.
+    """Compute normalized entropy over the angle histogram.
 
-    - We compute the Shannon entropy H(p), which measures the uncertainty in the angle distribution.
-    - Angles are binned into `angle_bin_count` bins (default = 36), i.e., 5° intervals over [0, 180).
-    - The entropy is normalized by dividing by log2(angle_bin_count), the maximum possible entropy for a uniform distribution.
-      This scales entropy to the range [0, 1].
-      See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html
+    We compute the Shannon entropy H(p), measuring the uncertainty in the angle distribution.
+    Angles are binned into `angle_bin_count` bins (default = 36), i.e., 5° intervals over [0, 180).
+    The entropy is normalized by dividing by log2(angle_bin_count),
+    the maximum possible entropy for a uniform distribution.
+    This scales entropy to the range [0, 1].
+    See: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.entropy.html
     """
-
     angle_hist = np.histogram(angles, bins=angle_bin_count, range=(0, 180))[0]
     return entropy(angle_hist) / np.log2(angle_bin_count)
 
@@ -177,7 +177,6 @@ def map_lines_score(ctx: PageContext) -> float:
     - Diverse angles (curved or non-orthogonal features, like contour lines)
     - Sum of non-grid line lengths higher than sum of to grid line lengths
     """
-
     if not ctx.geometric_lines:
         return 0.0
 

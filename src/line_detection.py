@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 def turn_page_to_image(page: pymupdf.Page, zoom: float = 2.0) -> np.ndarray:
-    """turns pdf page into an BGR image"""
+    """Turns pdf page into an BGR image."""
     mat = pymupdf.Matrix(zoom, zoom)  # apply zoom
     pix = page.get_pixmap(matrix=mat, colorspace=pymupdf.csRGB)
 
@@ -55,7 +55,7 @@ def extract_geometric_lines(page: pymupdf.Page) -> list:
 def line_segment_detection(
     preprocessed_image: NDArray[np.uint8],
 ) -> NDArray[np.float32]:
-    """detects straight lines using LineSegmentDetector from preprocessed image"""
+    """Detects straight lines using LineSegmentDetector from preprocessed image."""
     lsd = cv2.createLineSegmentDetector()
     lines = lsd.detect(preprocessed_image)[0]
 

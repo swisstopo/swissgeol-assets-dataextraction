@@ -7,8 +7,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
-from src.pdf_processor import PDFProcessor
 from src.evaluation import evaluate_results
+from src.pdf_processor import PDFProcessor
 from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow
@@ -62,15 +62,21 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def main(input_path: str, ground_truth_path: str = None, model_path: str = None, classifier_name: str = "baseline"):
-    """
-    Run the page classification pipeline on input documents.
+def main(
+    input_path: str,
+    ground_truth_path: str = None,
+    model_path: str = None,
+    classifier_name: str = "baseline",
+    write_result: bool = False,
+):
+    """Run the page classification pipeline on input documents.
 
     Args:
         input_path (str): Path to directory with PDF pages or documents.
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
         model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+        write_result (bool, optional): If True, writes results to JSON file. Defaults to False.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -103,16 +109,20 @@ def main(input_path: str, ground_truth_path: str = None, model_path: str = None,
         return
 
     # Save to JSON
-    output_file = Path("data") / "prediction.json"
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-    with output_file.open("w") as json_file:
-        json.dump(results, json_file, indent=4)
+    if write_result:
+        output_file = Path("data") / "prediction.json"
+        output_file.parent.mkdir(parents=True, exist_ok=True)
+        with output_file.open("w") as json_file:
+            json.dump(results, json_file, indent=4)
 
     if ground_truth_path:
         evaluate_results(results, ground_truth_path)
 
     if mlflow_tracking:
         mlflow.end_run()
+
+    if not write_result:
+        return results
 
 
 if __name__ == "__main__":

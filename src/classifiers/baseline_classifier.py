@@ -3,7 +3,7 @@ import math
 import numpy as np
 import pymupdf
 
-from src.classifiers.classifier_types import ClassifierTypes, Classifier
+from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
 from src.identifiers.map import identify_map
 from src.identifiers.text import identify_text
@@ -14,12 +14,12 @@ from src.page_structure import PageContext
 
 
 class RuleBasedClassifier(Classifier):
-    """
-    Baseline classifier for single document pages based on layout, content, and geometric features.
+    """Baseline classifier for single document pages based on layout, content, and geometric features.
 
     Subclasses can override `_detect_text`, `_detect_boreprofile`, or `_detect_map`
     to customize classification behavior.
     """
+
     def __init__(self, matching_params: dict):
         self.matching_params = matching_params
         self.type = ClassifierTypes.BASELINE
@@ -47,8 +47,7 @@ class RuleBasedClassifier(Classifier):
         return identify_boreprofile(context, self.matching_params)
 
     def _detect_map(self, page: pymupdf.Page, context: PageContext) -> bool:
-        """
-        Determines whether a page should be classified as a map page.
+        """Determines whether a page should be classified as a map page.
 
         Map detection relies on Line detection, which gets delayed until here.
         Short lines (often from text artifacts) are filtered out when text is present.
@@ -68,12 +67,13 @@ class RuleBasedClassifier(Classifier):
 
 
 class ScannedRuleBasedClassifier(RuleBasedClassifier):
+    """Baseline classifier for scanned pages."""
+
     pass
 
 
 class DigitalRuleBasedClassifier(RuleBasedClassifier):
-    """
-    Baseline classifier for digitally born documents.
+    """Baseline classifier for digitally born documents.
 
     Uses image coverage and figure metadata to adjust classification logic.
     """
@@ -82,7 +82,8 @@ class DigitalRuleBasedClassifier(RuleBasedClassifier):
         """Determines whether a page should be classified as a text page.
 
         For digitally born pages, we suppress text classification if images
-        covers more than 70% of the total text page area."""
+        covers more than 70% of the total text page area.
+        """
         total_image_coverage = sum(img.page_coverage(context.page_rect) for img in context.image_rects)
         return total_image_coverage < 0.70 and identify_text(context)
 
@@ -98,21 +99,20 @@ class DigitalRuleBasedClassifier(RuleBasedClassifier):
 
 
 class BaselineClassifier(Classifier):
-    """
-        Rule-based page classifier that delegates to digital or scanned classifiers
-        based on the page type.
+    """Classifier that delegates to digital or scanned classifiers.
 
-        Attributes:
-            type (ClassifierTypes): Identifier for the classifier type (BASELINE).
-            scanned (ScannedPageClassifier): Classifier for scanned pages.
-            digital (DigitalPageClassifier): Classifier for digital pages.
+    Attributes:
+        type (ClassifierTypes): Identifier for the classifier type (BASELINE).
+        scanned (ScannedPageClassifier): Classifier for scanned pages.
+        digital (DigitalPageClassifier): Classifier for digital pages.
     """
+
     def __init__(self, matching_params: dict):
         self.type = ClassifierTypes.BASELINE
         self.scanned = ScannedRuleBasedClassifier(matching_params)
         self.digital = DigitalRuleBasedClassifier(matching_params)
 
-    def determine_class(self, page:pymupdf.Page, context: PageContext, **kwargs) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, context: PageContext, **kwargs) -> PageClasses:
         if context.is_digital:
             return self.digital.determine_class(page, context)
         return self.scanned.determine_class(page, context)

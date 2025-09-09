@@ -1,17 +1,17 @@
 """Module to utilize the LayoutLMv3 model."""
+
 import pymupdf
 from torch.utils.data import DataLoader
 from transformers import default_data_collator
 
-from src.classifiers.classifier_types import ClassifierTypes, Classifier
+from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.pdf_dataset_builder import build_dataset_from_page_list
 from src.models.layoutlmv3.model import LayoutLMv3
 from src.page_classes import PageClasses
 
+
 class LayoutLMv3Classifier(Classifier):
-    """
-    Transformer-based page classifier using LayoutLMv3.
-    """
+    """Transformer-based page classifier using LayoutLMv3."""
 
     def __init__(self, model_path: str = None):
         """Initializes the LayoutLMv3PageClassifier with a pre-trained model.
@@ -47,6 +47,8 @@ class LayoutLMv3Classifier(Classifier):
 
         Args:
             page (pymupdf.Page): The page to classify.
+            kwargs: Additional keyword arguments (not used).
+
         Returns:
             PageClasses: The predicted class of the page.
         """

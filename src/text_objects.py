@@ -1,11 +1,13 @@
-"""
-Most of the code is copied from:
+"""Most of the code is copied.
+
+From:
 - the swissgeol-ocr repo (https://github.com/swisstopo/swissgeol-ocr)
 - the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
 
 from collections import defaultdict
-from typing import Callable, TypeVar
+from collections.abc import Callable
+from typing import TypeVar
 
 import pymupdf
 
@@ -15,6 +17,8 @@ T = TypeVar("T")
 
 
 class TextWord:
+    """Represents a word in a PDF document with its bounding box and text content."""
+
     def __init__(self, rect: pymupdf.Rect, text: str, page: int):
         self.rect = rect
         self.text = text
@@ -26,7 +30,7 @@ class TextWord:
 
 def extract_words(page, page_number):
     words = []
-    for x0, y0, x1, y1, word, block_no, line_no, _word_no in page.get_text("words"):
+    for x0, y0, x1, y1, word, _block_no, _line_no, _word_no in page.get_text("words"):
         rect = pymupdf.Rect(x0, y0, x1, y1) * page.rotation_matrix
         text_word = TextWord(rect=rect, text=word, page=page_number)
         words.append(text_word)
@@ -34,6 +38,8 @@ def extract_words(page, page_number):
 
 
 class TextLine:
+    """Represents a line of text composed of multiple words."""
+
     def __init__(self, words: list[TextWord]):
         if not words:
             raise ValueError("Cannot create an empty TextLine.")
@@ -72,9 +78,7 @@ def create_text_lines(page, page_number) -> list[TextLine]:
 
 
 def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
-    """
-    Merges raw lines into logical lines if PyMuPDF splits them unnecessarily.
-    """
+    """Merges raw lines into logical lines if PyMuPDF splits them unnecessarily."""
     merged_lines = []
     current_words = []
 
@@ -95,13 +99,13 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
 
 
 def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool:
-    """
-    Determines whether two words belong to the same line based on their y-coordinates.
-    """
+    """Determines whether two words belong to the same line based on their y-coordinates."""
     return abs(previous_word.rect.y0 - current_word.rect.y0) <= 2.0
 
 
 class TextBlock:
+    """Represents a block of text composed of multiple lines."""
+
     def __init__(self, lines: list[TextLine]):
         self.lines = lines
         self.rect = merge_bounding_boxes([line.rect for line in self.lines])
@@ -122,10 +126,9 @@ def adjacent_lines(lines: list[TextLine]) -> list[set[int]]:
     result = [set() for _ in lines]
     for index, line in enumerate(lines):
         for index2, line2 in enumerate(lines):
-            if index2 > index:
-                if overlaps(line, line2):
-                    result[index].add(index2)
-                    result[index2].add(index)
+            if index2 > index and overlaps(line, line2):
+                result[index].add(index2)
+                result[index2].add(index)
     return result
 
 
@@ -146,7 +149,7 @@ def apply_transitive_closure(data: list[set[int]]) -> bool:
 
 
 def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
-    """sort lines into TextBlocks"""
+    """Sort TextLines into TextBlocks."""
     data = adjacent_lines(text_lines)
 
     while apply_transitive_closure(data):
@@ -172,7 +175,6 @@ def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], toler
         key_fn: Function that extracts a float from each element (e.g. lambda obj: obj.rect.y0)
         tolerance: max allowed difference between entries and a cluster key
     """
-
     if not elements:
         return []
 
