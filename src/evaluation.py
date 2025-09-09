@@ -22,7 +22,8 @@ LABELS = [cls.value for cls in PageClasses]
 
 
 def load_predictions(predictions: list[dict[str, Any]]) -> dict[tuple[str, int], dict[str, int]]:
-    """Normalizes predictions list into:
+    """Normalizes predictions list.
+
     { (filename, page_number): classification_dict }
     Works for both model predictions and ground-truth lists.
     """
