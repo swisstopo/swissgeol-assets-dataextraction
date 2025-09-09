@@ -14,6 +14,7 @@ def clean_label(label: str) -> str:
     label = label.strip().lower()
     label = re.sub(r"[`\"']", "", label)  # remove backticks, quotes
     label = re.sub(r"[.:\s]+$", "", label)  # remove trailing punctuation/spaces
+    label = re.sub(r"[*]", "", label)  # remove bold ticks
     return label
 
 
