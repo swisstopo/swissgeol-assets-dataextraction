@@ -19,7 +19,7 @@ def clean_label(label: str) -> str:
 
 
 def normalize_label(label: str) -> str:
-    """Normalize to canonical enum value string (e.g. 'geo profile' → 'geo_profile')."""
+    """Normalize to canonical enum value string (e.g. 'geo profile' -> 'geo_profile')."""
     label = clean_label(label)
     return ALIASES.get(label, label)
 

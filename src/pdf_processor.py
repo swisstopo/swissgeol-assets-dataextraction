@@ -35,25 +35,9 @@ class PDFProcessor:
     def __init__(self, classifier):
         self.classifier = classifier
 
-    def classify_page(
-        self,
-        page: pymupdf.Page,
-        page_number: int,
-        language: str,
-    ) -> PageAnalysis:
-        """Classifies single pages into available PageClasses (Text, Boreprofile, Map, Title Page or Unknown).
-
-        Args:
-            page: page that get classified
-            page_number: page number in report (starting with 1)
-            language: language of page content
-
-        Returns:
-            PageAnalysis object with page classification.
-        """
-        analysis = PageAnalysis(page_number)
+    @staticmethod
+    def build_full_context(page: pymupdf.Page, page_number: int, language: str):
         is_digital = is_digitally_born(page)
-
         words = extract_words(page, page_number)
         lines = create_text_lines(page, page_number)
         text_blocks = create_text_blocks(lines)
@@ -61,7 +45,7 @@ class PDFProcessor:
         page_rect = get_page_bbox(page)
         text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
 
-        context = PageContext(
+        return PageContext(
             lines=lines,
             words=words,
             text_blocks=text_blocks,
@@ -74,9 +58,25 @@ class PDFProcessor:
             image_rects=image_rects,
         )
 
-        page_class = self.classifier.determine_class(page=page, context=context, page_number=page_number)
-        analysis.set_class(page_class)
+    def classify_page(self, page: pymupdf.Page, page_number: int, language: str) -> PageAnalysis:
+        """Classifies single pages into available PageClasses (Text, Boreprofile, Map, Title Page or Unknown).
 
+        Args:
+            page: page that get classified
+            page_number: page number in report (starting with 1)
+            language: language of page content
+
+        Returns:
+            PageAnalysis object with page classification.
+        """
+        analysis = PageAnalysis(page_number)
+
+        def ctx_builder():
+            return self.build_full_context(page=page, page_number=page_number, language=language)
+
+        page_class = self.classifier.determine_class(page=page, page_number=page_number, context_builder=ctx_builder)
+
+        analysis.set_class(page_class)
         return analysis
 
     def process(self, file_path: Path) -> dict:

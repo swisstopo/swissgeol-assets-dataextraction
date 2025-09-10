@@ -2,6 +2,7 @@ import logging
 import random
 import threading
 import time
+from collections.abc import Callable
 
 import boto3
 import pymupdf
@@ -11,7 +12,6 @@ from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
 from src.page_classes import PageClasses
 from src.page_graphics import get_page_image_bytes
-from src.page_structure import PageContext
 from src.utils import read_params
 
 logger = logging.getLogger(__name__)
@@ -89,14 +89,16 @@ class PixtralClassifier(Classifier):
         self.backoff_cap = config.get("backoff_cap", 8.0)
         self._rl = RateLimiter(self.qps)
 
-    def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
+    def determine_class(
+        self, page: pymupdf.Page, page_number: int, context_builder: Callable = None, **kwargs
+    ) -> PageClasses:
         """Determines the class of a document page using the Pixtral model.
 
         Falls back to baseline classifier if output is malformed or ClientError.
 
         Args:
             page: The page of th document that should be classified
-            context: Preprocessed page context (e.g., text blocks, lines).
+            context_builder: Builds page context (e.g., text blocks, lines) for fallback classifier.
             page_number: the Page number of the page that should be classified
             **kwargs: Additionally passed unused arguments
 
@@ -106,36 +108,33 @@ class PixtralClassifier(Classifier):
         max_doc_size = self.config["max_document_size_mb"] - self.config["slack_size_mb"]
         image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
 
-        fallback_args = {"page": page, "context": context}
-
         conversation = self._build_conversation(image_bytes=image_bytes)
 
         try:
             response = self._send_conversation(conversation)
-            logger.info(f"Pixtral stats: {self._stats}")
             raw_label = response["output"]["message"]["content"][0]["text"]
             logger.info(raw_label)
 
             label = clean_label(raw_label)
             category = map_string_to_page_class(label)
-
+            category = PageClasses.UNKNOWN
             if category == PageClasses.UNKNOWN and label not in ("unknown", ""):
                 logger.warning("Falling back to baseline classification, due to malformed category.")
-                if self.fallback_classifier and fallback_args:
-                    return self.fallback_classifier.determine_class(**fallback_args)
+                if self.fallback_classifier:
+                    return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
 
             return category
 
         except ClientError as e:
             logger.info(f"Pixtral classification failed due to ClientError: {e}. Fallback to baseline classification")
-            if self.fallback_classifier and fallback_args:
-                return self.fallback_classifier.determine_class(**fallback_args)
+            if self.fallback_classifier:
+                return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
             return PageClasses.UNKNOWN
 
         except Exception as e:
             logger.exception(f"Unexpected error during Pixtral classification: {e}")
-            if self.fallback_classifier and fallback_args:
-                return self.fallback_classifier.determine_class(**fallback_args)
+            if self.fallback_classifier:
+                return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
             return PageClasses.UNKNOWN
 
     def _build_conversation(self, image_bytes: bytes) -> list[dict]:
