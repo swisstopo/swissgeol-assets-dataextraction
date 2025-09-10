@@ -113,11 +113,9 @@ class PixtralClassifier(Classifier):
         try:
             response = self._send_conversation(conversation)
             raw_label = response["output"]["message"]["content"][0]["text"]
-            logger.info(raw_label)
 
             label = clean_label(raw_label)
             category = map_string_to_page_class(label)
-            category = PageClasses.UNKNOWN
             if category == PageClasses.UNKNOWN and label not in ("unknown", ""):
                 logger.warning("Falling back to baseline classification, due to malformed category.")
                 if self.fallback_classifier:
