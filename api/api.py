@@ -118,7 +118,10 @@ def process(
     )
 
     result = script(
-        input_path=tmp_dir, classifier_name="treebased", model_path="models/model.joblib", write_result=False
+        input_path=tmp_dir,
+        classifier_name="treebased",
+        model_path="models/xgboost/stable/model.joblib",
+        write_result=False,
     )
     shutil.rmtree(tmp_dir)
     return result
