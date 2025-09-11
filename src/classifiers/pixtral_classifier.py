@@ -43,15 +43,11 @@ def is_throttle_error(e) -> bool:
         code = e.response["Error"]["Code"]
         if code in {
             "ThrottlingException",
-            "TooManyRequestsException",
-            "ModelThrottledException",
             "ProvisionedThroughputExceededException",
-            "Throttling",
-            "429",
         }:
             return True
         status = e.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
-        return status in (500, 502, 503, 504)
+        return status in (429, 500)
     except Exception:
         return False
 
