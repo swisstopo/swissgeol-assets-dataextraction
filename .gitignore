@@ -4,7 +4,8 @@
 /evaluation/
 /mlruns/
 /mlartifacts/
-/models/FastText
+/models/*
+!/models/stable
 /build/
 
 # Jupyter notebook checkpoints

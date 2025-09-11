@@ -119,7 +119,10 @@ def process(
     )
 
     result = script(
-        input_path=tmp_dir, classifier_name="treebased", model_path="models/model.joblib", write_result=False
+        input_path=tmp_dir,
+        classifier_name="treebased",
+        model_path="models/stable/model.joblib",
+        write_result=False,
     )
     result = [map_labels_for_app(doc) for doc in result]
     shutil.rmtree(tmp_dir)
