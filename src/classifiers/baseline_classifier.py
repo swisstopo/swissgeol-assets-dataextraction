@@ -53,7 +53,7 @@ class RuleBasedClassifier(Classifier):
     def _detect_boreprofile(self, page: pymupdf.Page, context: PageContext) -> bool:
         return identify_boreprofile(context, self.matching_params)
 
-    def _detect_geo_profile(self, page: pymupdf.Page, context: PageContext):
+    def _detect_geo_profile(self, page: pymupdf.Page, context: PageContext) -> bool:
         """Determines whether a page should be classified as a geo profile page.
 
         Geo profile detection relies on Line detection, which gets delayed until here.
