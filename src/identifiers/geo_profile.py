@@ -1,6 +1,6 @@
-from identifiers.map import map_lines_score
-from language_detection.detect_language import DEFAULT_LANGUAGE
-from page_structure import PageContext
+from src.identifiers.map import map_lines_score
+from src.language_detection.detect_language import DEFAULT_LANGUAGE
+from src.page_structure import PageContext
 
 
 def identify_geo_profile(ctx: PageContext, matching_params: dict) -> bool:
@@ -11,6 +11,9 @@ def identify_geo_profile(ctx: PageContext, matching_params: dict) -> bool:
     Args:
         ctx (PageContext): The context of the page containing text and other information.
         matching_params (dict): A dictionary containing geo profile keywords for different languages.
+
+    Returns:
+        bool: True if the page is identified as a geo profile, False otherwise.
 
     """
     key_words = matching_params["geo_profile"].get(ctx.language, DEFAULT_LANGUAGE)
