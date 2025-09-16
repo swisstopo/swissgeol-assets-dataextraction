@@ -23,10 +23,6 @@ class Entry:
         return f"{self.value}"
 
 
-def is_strictly_increasing(entries: list[Entry]) -> bool:
-    return all(entries[i].value < entries[i + 1].value for i in range(len(entries) - 1))
-
-
 def detect_entries(words: list[TextWord]) -> list[Entry]:
     regex = re.compile(r"^-?\.?([0-9]+(\.[0-9]*)?)[müMN\\.]*$")
     entries = []
@@ -41,11 +37,26 @@ def detect_entries(words: list[TextWord]) -> list[Entry]:
     return entries
 
 
+def is_mostly_increasing(entries: list[Entry], tolerance: float = 0.2) -> bool:
+    """Check if a sequence is mostly increasing.
+
+    Args:
+        entries: list of Entry objects with a .value attribute.
+        tolerance: fraction of allowed violations (default: 0.2 = 20%).
+
+    Returns:
+        True if the sequence is increasing within tolerance.
+    """
+    values = [e.value for e in entries]
+    violations = sum(values[i] >= values[i + 1] for i in range(len(values) - 1))
+    return violations <= tolerance * (len(values) - 1)
+
+
 def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
     """Create Sidebars from potential entries."""
     entries = detect_entries(words)
     clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
-    return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
+    return [c for c in clusters if len(c) >= 3 and is_mostly_increasing(c)]
 
 
 def identify_boreprofile(ctx: PageContext, matching_params: dict) -> bool:
