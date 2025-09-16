@@ -14,7 +14,7 @@ from src.language_detection.detect_language import (
     summarize_language_metadata,
 )
 from src.language_detection.pages_to_ignore import is_belegblatt
-from src.page_graphics import extract_page_graphics
+from src.page_graphics import extract_page_graphics, get_color_proportion
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
 from src.utils import is_digitally_born
@@ -35,12 +35,7 @@ class PDFProcessor:
     def __init__(self, classifier):
         self.classifier = classifier
 
-    def classify_page(
-        self,
-        page: pymupdf.Page,
-        page_number: int,
-        language: str,
-    ) -> PageAnalysis:
+    def classify_page(self, page: pymupdf.Page, page_number: int, language: str) -> PageAnalysis:
         """Classifies single pages into available PageClasses (Text, Boreprofile, Map, Title Page or Unknown).
 
         Args:
@@ -60,6 +55,7 @@ class PDFProcessor:
         drawings, image_rects = extract_page_graphics(page, is_digital)
         page_rect = get_page_bbox(page)
         text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
+        color_proportion = get_color_proportion(page)
 
         context = PageContext(
             lines=lines,
@@ -72,6 +68,7 @@ class PDFProcessor:
             is_digital=is_digital,
             drawings=drawings,
             image_rects=image_rects,
+            color_proportion=color_proportion,
         )
 
         page_class = self.classifier.determine_class(page=page, context=context, page_number=page_number)

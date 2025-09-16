@@ -14,7 +14,7 @@ from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 prediction_profile = os.getenv("PREDICTION_PROFILE") or "stable"
 
 if mlflow_tracking:

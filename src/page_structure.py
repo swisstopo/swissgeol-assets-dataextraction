@@ -1,3 +1,4 @@
+from collections import Counter
 from dataclasses import dataclass
 
 import pymupdf
@@ -21,6 +22,7 @@ class PageContext:
     is_digital: bool
     drawings: list
     image_rects: list
+    color_proportion: Counter
 
 
 class PageAnalysis:

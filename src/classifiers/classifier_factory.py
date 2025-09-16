@@ -12,7 +12,7 @@ from src.utils import get_aws_config, read_params
 
 logger = logging.getLogger(__name__)
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 
 if mlflow_tracking:
     import mlflow
