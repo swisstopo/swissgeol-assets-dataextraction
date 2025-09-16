@@ -6,6 +6,7 @@ from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.models.feature_engineering import get_features_from_page
 from src.models.treebased.model import TreeBasedModel
 from src.page_classes import PageClasses
+from src.page_structure import PageContext
 
 
 class TreeBasedClassifier(Classifier):
@@ -41,7 +42,7 @@ class TreeBasedClassifier(Classifier):
         self.model = TreeBasedModel(model_path=model_path)
 
     def determine_class(
-        self, page: pymupdf.Page, page_number: int, context_builder: Callable, **kwargs
+        self, page: pymupdf.Page, page_number: int, context_builder: Callable[[], PageContext], **kwargs
     ) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
 

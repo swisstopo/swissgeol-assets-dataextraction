@@ -12,6 +12,7 @@ from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
 from src.page_classes import PageClasses
 from src.page_graphics import get_page_image_bytes
+from src.page_structure import PageContext
 from src.utils import read_params
 
 logger = logging.getLogger(__name__)
@@ -86,7 +87,7 @@ class PixtralClassifier(Classifier):
         self._rl = RateLimiter(self.qps)
 
     def determine_class(
-        self, page: pymupdf.Page, page_number: int, context_builder: Callable = None, **kwargs
+        self, page: pymupdf.Page, page_number: int, context_builder: Callable[[], PageContext] = None, **kwargs
     ) -> PageClasses:
         """Determines the class of a document page using the Pixtral model.
 
