@@ -147,7 +147,7 @@ class PixtralClassifier(Classifier):
         """Sends the conversation to Bedrock with retry-on-throttle."""
         attempt = 0
         while True:
-            self._rl.acquire()  # enusre we dont exceed QPS
+            self._rl.acquire()  # ensure we dont exceed QPS
             try:
                 return self.client.converse(
                     modelId=self.model_id,
@@ -155,7 +155,7 @@ class PixtralClassifier(Classifier):
                     system=self.system_content,
                     inferenceConfig={
                         "maxTokens": self.config.get("max_tokens", 5),
-                        "temperature": self.config.get("temperature", 0.0),
+                        "temperature": self.config.get("temperature", 0.2),
                     },
                 )
             except ClientError as e:

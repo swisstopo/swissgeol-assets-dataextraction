@@ -6,6 +6,7 @@ import pymupdf
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
+from src.classifiers.classifier_types import Classifier
 from src.language_detection.detect_language import (
     extract_cleaned_text,
     predict_language,
@@ -32,11 +33,11 @@ class PDFProcessor:
         classifier: An instance of a classifier that implements the `determine_class` method.
     """
 
-    def __init__(self, classifier):
+    def __init__(self, classifier: Classifier):
         self.classifier = classifier
 
     @staticmethod
-    def build_full_context(page: pymupdf.Page, page_number: int, language: str):
+    def build_full_context(page: pymupdf.Page, page_number: int, language: str) -> PageContext:
         is_digital = is_digitally_born(page)
         words = extract_words(page, page_number)
         lines = create_text_lines(page, page_number)
