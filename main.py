@@ -9,11 +9,13 @@ from dotenv import load_dotenv
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.evaluation import evaluate_results
 from src.pdf_processor import PDFProcessor
+from src.predictions.compat import STABLE_CLASS_MAPPING, STABLE_LABELS, map_to_stable_labels
 from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "true"
+prediction_profile = os.getenv("PREDICTION_PROFILE") or "stable"
 
 if mlflow_tracking:
     import mlflow
@@ -22,6 +24,25 @@ if mlflow_tracking:
 # Setup logging
 logging.basicConfig(level=logging.INFO, format="%(message)s")
 logger = logging.getLogger(__name__)
+
+
+def _apply_profile(predictions: list[dict], profile: str):
+    """Applies output profile: 'stable' or 'dev' to classification output."""
+
+    def _apply_to_doc(doc: dict) -> dict:
+        if profile == "stable":
+            for page in doc.get("pages", []):
+                page["classification"] = map_to_stable_labels(
+                    page.get("classification", {}),
+                    labels=STABLE_LABELS,
+                    class_mapping=STABLE_CLASS_MAPPING,
+                )
+
+        elif profile == "dev":
+            doc.setdefault("profile_version", "page_classification:dev")
+        return doc
+
+    return [_apply_to_doc(d) for d in predictions]
 
 
 def setup_mlflow(
@@ -76,7 +97,7 @@ def main(
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
         model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
-        write_result (bool, optional): If True, writes results to JSON file. Defaults to False.
+        write_result (bool): If True, writes results to prediction.json.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -108,6 +129,7 @@ def main(
         logger.warning("No data to save.")
         return
 
+    results = _apply_profile(results, prediction_profile)
     # Save to JSON
     if write_result:
         output_file = Path("data") / "prediction.json"
@@ -160,11 +182,23 @@ if __name__ == "__main__":
         required=False,
         help="Path to pretrained LayoutLMv3 or Tree Based model for classification.",
     )
-
+    parser.add_argument(
+        "-w",
+        "--write-results",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Writes classification results to prediction.json file.",
+    )
     args = parser.parse_args()
 
     # Check if model_path is required based on classifier
     if args.classifier.lower() in ["layoutlmv3", "treebased"] and not args.model_path:
         parser.error(f"--model_path is required when using classifier '{args.classifier}'")
 
-    main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)
+    main(
+        input_path=args.input_path,
+        ground_truth_path=args.ground_truth_path,
+        model_path=args.model_path,
+        classifier_name=args.classifier,
+        write_result=args.write_results,
+    )
