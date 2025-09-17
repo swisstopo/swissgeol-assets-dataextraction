@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 import pymupdf
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
@@ -39,18 +41,21 @@ class TreeBasedClassifier(Classifier):
             raise ValueError("Model path should specify the path to a trained model.")
         self.model = TreeBasedModel(model_path=model_path)
 
-    def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
+    def determine_class(
+        self, page: pymupdf.Page, page_number: int, context_builder: Callable[[], PageContext], **kwargs
+    ) -> PageClasses:
         """Determines the page class (e.g., BOREPROFILE, MAP) based on page content.
 
         Args:
             page (pymupdf.Page): The page to classify.
             page_number: Page number of page
-            context: PageContext
+            context_builder: Lazy PageContext Builder
             kwargs: Additional keyword arguments (not used).
 
         Returns:
             PageClasses: The predicted class of the page.
         """
+        context = context_builder()
         features = get_features_from_page(page=page, ctx=context, matching_params=self.matching_params)
 
         predictions = self.model.predict([features])

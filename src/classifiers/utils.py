@@ -14,11 +14,12 @@ def clean_label(label: str) -> str:
     label = label.strip().lower()
     label = re.sub(r"[`\"']", "", label)  # remove backticks, quotes
     label = re.sub(r"[.:\s]+$", "", label)  # remove trailing punctuation/spaces
+    label = re.sub(r"[*]", "", label)  # remove bold ticks
     return label
 
 
 def normalize_label(label: str) -> str:
-    """Normalize to canonical enum value string (e.g. 'geo profile' → 'geo_profile')."""
+    """Normalize to canonical enum value string (e.g. 'geo profile' -> 'geo_profile')."""
     label = clean_label(label)
     return ALIASES.get(label, label)
 
