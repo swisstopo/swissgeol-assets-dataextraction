@@ -1,4 +1,5 @@
 import math
+from collections.abc import Callable
 
 import numpy as np
 import pymupdf
@@ -116,7 +117,8 @@ class BaselineClassifier(Classifier):
         self.scanned = ScannedRuleBasedClassifier(matching_params)
         self.digital = DigitalRuleBasedClassifier(matching_params)
 
-    def determine_class(self, page: pymupdf.Page, context: PageContext, **kwargs) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, context_builder: Callable[[], PageContext], **kwargs) -> PageClasses:
+        context = context_builder()
         if context.is_digital:
             return self.digital.determine_class(page, context)
         return self.scanned.determine_class(page, context)

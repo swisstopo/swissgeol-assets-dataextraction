@@ -1,4 +1,8 @@
 import logging
+import random
+import threading
+import time
+from collections.abc import Callable
 
 import boto3
 import pymupdf
@@ -12,6 +16,41 @@ from src.page_structure import PageContext
 from src.utils import read_params
 
 logger = logging.getLogger(__name__)
+
+
+class RateLimiter:
+    """Simple token bucket QPS limiter."""
+
+    def __init__(self, qps: float):
+        self.qps = max(0.1, qps)
+        self.lock = threading.Lock()
+        self.tokens = 0.0
+        self.last = time.monotonic()
+
+    def acquire(self):
+        while True:
+            with self.lock:
+                now = time.monotonic()
+                self.tokens += (now - self.last) * self.qps
+                self.last = now
+                if self.tokens >= 1.0:
+                    self.tokens -= 1.0
+                    return
+            time.sleep(0.01)
+
+
+def is_throttle_error(e) -> bool:
+    try:
+        code = e.response["Error"]["Code"]
+        if code in {
+            "ThrottlingException",
+            "ProvisionedThroughputExceededException",
+        }:
+            return True
+        status = e.response.get("ResponseMetadata", {}).get("HTTPStatusCode")
+        return status in (429, 500)
+    except Exception:
+        return False
 
 
 class PixtralClassifier(Classifier):
@@ -31,33 +70,32 @@ class PixtralClassifier(Classifier):
         self.model_id = aws_config["model_id"]
 
         self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
-        borehole_bytes = read_image_bytes(config["borehole_img_path"])
-        text_bytes = read_image_bytes(config["text_img_path"])
-        map_bytes = read_image_bytes(config["map_img_path"])
-        title_bytes = read_image_bytes(config["title_img_path"])
-        unknown_bytes = read_image_bytes(config["unknown_img_path"])
-        geo_profile_bytes = read_image_bytes(config["geo_profile_img_path"])
-        table_bytes = read_image_bytes(config["table_img_path"])
-        diagram_bytes = read_image_bytes(config["diagram_img_path"])
         self.examples_bytes = {
-            "borehole": borehole_bytes,
-            "text": text_bytes,
-            "map": map_bytes,
-            "title": title_bytes,
-            "geo_profile": geo_profile_bytes,
-            "diagram": diagram_bytes,
-            "table": table_bytes,
-            "unknown": unknown_bytes,
+            "borehole": read_image_bytes(config["borehole_img_path"]),
+            "text": read_image_bytes(config["text_img_path"]),
+            "map": read_image_bytes(config["map_img_path"]),
+            "title": read_image_bytes(config["title_img_path"]),
+            "geo_profile": read_image_bytes(config["geo_profile_img_path"]),
+            "diagram": read_image_bytes(config["diagram_img_path"]),
+            "table": read_image_bytes(config["table_img_path"]),
         }
+        self._stats = {"throttles": 0, "retries": 0}
+        self.qps = config.get("qps", 2.0)
+        self.max_retries = config.get("max_retries", 6)
+        self.backoff_base = config.get("backoff_base", 0.4)
+        self.backoff_cap = config.get("backoff_cap", 8.0)
+        self._rl = RateLimiter(self.qps)
 
-    def determine_class(self, page: pymupdf.Page, context: PageContext, page_number: int, **kwargs) -> PageClasses:
+    def determine_class(
+        self, page: pymupdf.Page, page_number: int, context_builder: Callable[[], PageContext] = None, **kwargs
+    ) -> PageClasses:
         """Determines the class of a document page using the Pixtral model.
 
         Falls back to baseline classifier if output is malformed or ClientError.
 
         Args:
             page: The page of th document that should be classified
-            context: Preprocessed page context (e.g., text blocks, lines).
+            context_builder: Builds page context (e.g., text blocks, lines) for fallback classifier.
             page_number: the Page number of the page that should be classified
             **kwargs: Additionally passed unused arguments
 
@@ -67,8 +105,6 @@ class PixtralClassifier(Classifier):
         max_doc_size = self.config["max_document_size_mb"] - self.config["slack_size_mb"]
         image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
 
-        fallback_args = {"page": page, "context": context}
-
         conversation = self._build_conversation(image_bytes=image_bytes)
 
         try:
@@ -77,24 +113,23 @@ class PixtralClassifier(Classifier):
 
             label = clean_label(raw_label)
             category = map_string_to_page_class(label)
-
             if category == PageClasses.UNKNOWN and label not in ("unknown", ""):
                 logger.warning("Falling back to baseline classification, due to malformed category.")
-                if self.fallback_classifier and fallback_args:
-                    return self.fallback_classifier.determine_class(**fallback_args)
+                if self.fallback_classifier:
+                    return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
 
             return category
 
         except ClientError as e:
             logger.info(f"Pixtral classification failed due to ClientError: {e}. Fallback to baseline classification")
-            if self.fallback_classifier and fallback_args:
-                return self.fallback_classifier.determine_class(**fallback_args)
+            if self.fallback_classifier:
+                return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
             return PageClasses.UNKNOWN
 
         except Exception as e:
             logger.exception(f"Unexpected error during Pixtral classification: {e}")
-            if self.fallback_classifier and fallback_args:
-                return self.fallback_classifier.determine_class(**fallback_args)
+            if self.fallback_classifier:
+                return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
             return PageClasses.UNKNOWN
 
     def _build_conversation(self, image_bytes: bytes) -> list[dict]:
@@ -110,13 +145,39 @@ class PixtralClassifier(Classifier):
         return [{"role": "user", "content": content}]
 
     def _send_conversation(self, conversation: list) -> dict:
-        """Sends the conversation to Bedrock and returns the raw response."""
-        return self.client.converse(
-            modelId=self.model_id,
-            messages=conversation,
-            system=self.system_content,
-            inferenceConfig={
-                "maxTokens": self.config.get("max_tokens", 200),
-                "temperature": self.config.get("temperature", 0.2),
-            },
-        )
+        """Sends the conversation to Bedrock with retry-on-throttle."""
+        attempt = 0
+        while True:
+            self._rl.acquire()  # ensure we dont exceed QPS
+            try:
+                return self.client.converse(
+                    modelId=self.model_id,
+                    messages=conversation,
+                    system=self.system_content,
+                    inferenceConfig={
+                        "maxTokens": self.config.get("max_tokens", 5),
+                        "temperature": self.config.get("temperature", 0.2),
+                    },
+                )
+            except ClientError as e:
+                # Retry on throttling
+                if is_throttle_error(e) and attempt < self.max_retries:
+                    delay = min(self.backoff_cap, self.backoff_base * (2**attempt))
+                    # full jitter
+                    delay *= random.uniform(0.5, 1.5)
+                    logger.warning(f"Bedrock throttled (attempt {attempt + 1}/{self.max_retries}); sleep {delay:.2f}s")
+                    time.sleep(delay)
+                    attempt += 1
+
+                    self._stats["retries"] += 1
+                    if "Throttl" in str(e):
+                        self._stats["throttles"] += 1
+                    continue
+                raise  # not retryable or out of retries
+            except Exception:
+                # Non-ClientError; retry a couple of times
+                if attempt < 2:
+                    time.sleep(0.5 * (attempt + 1))
+                    attempt += 1
+                    continue
+                raise
