@@ -25,7 +25,7 @@ def map_to_stable_labels(
         target_label = mapping.get(label, label)
         if target_label not in labels:
             target_label = "unknown"
-        remapped[target_label] += int(value)
+        remapped[target_label] += value
 
     # 2) Keep only stable labels and fill missing with 0.
     filtered = {label: int(remapped.get(label, 0)) for label in labels}
