@@ -38,8 +38,7 @@ def identify_diagram(ctx: PageContext, matching_params: dict, axis_tolerance: in
 
     words_lower = (word.text.lower() for word in ctx.words)
     has_keyword = any(key in word for word in words_lower for key in keywords)
-    if has_keyword and has_units(ctx, units_cfg):
-        return True
+    has_unit = has_units(ctx, units_cfg)
 
     entries = detect_entries(ctx.words)
 
@@ -49,9 +48,8 @@ def identify_diagram(ctx: PageContext, matching_params: dict, axis_tolerance: in
     y_mono, y_prog = axis_checks(vertical_clusters, sort_key=lambda e: e.rect.y0)
     x_mono, x_prog = axis_checks(horizontal_clusters, sort_key=lambda e: e.rect.x0)
 
-    if y_mono and x_mono:
-        return True  #  both axes look like ordered scales
-    return y_prog or x_prog  # at least one axis shows numeric progression
+    votes = sum([has_keyword, has_unit, y_mono, x_mono, y_prog, x_prog])
+    return votes >= 3
 
 
 def axis_checks(clusters: list, sort_key: Callable) -> tuple[bool, bool]:
