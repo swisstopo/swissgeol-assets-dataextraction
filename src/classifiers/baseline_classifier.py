@@ -6,6 +6,7 @@ import pymupdf
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
+from src.identifiers.diagram import identify_diagram
 from src.identifiers.map import identify_map
 from src.identifiers.text import identify_text
 from src.identifiers.title_page import identify_title_page
@@ -35,6 +36,9 @@ class RuleBasedClassifier(Classifier):
 
         if self._detect_map(page, context):
             return PageClasses.MAP
+
+        if identify_diagram(context, self.matching_params):
+            return PageClasses.DIAGRAM
 
         if identify_title_page(context, self.matching_params):
             return PageClasses.TITLE_PAGE
