@@ -26,17 +26,14 @@ def has_units(ctx: PageContext, units: list[str]) -> bool:
 def identify_diagram(ctx: PageContext, matching_params: dict) -> bool:
     """Detect if page contains diagram.
 
-    Check if Page contains horizontal  and vertical numeric scale which has to be almost increasing or decreasing,
-    Checks if Page contains keywords and units (f.e kg/h)
+    Check if Page contains horizontal and vertical numeric scale which has to be almost increasing or decreasing,
+    Checks if Page contains keywords and units (e.g. kg/h)
     """
     keywords = matching_params["diagram"].get(ctx.language, [])
     keywords_unit = matching_params["units"]
 
     has_keyword = any(keyword in word.text.lower() for word in ctx.words for keyword in keywords)
     has_unit = has_units(ctx, keywords_unit)
-
-    if has_keyword and has_unit:
-        return True
 
     entries = detect_entries(ctx.words)
 
@@ -55,10 +52,11 @@ def identify_diagram(ctx: PageContext, matching_params: dict) -> bool:
     y_ok = is_true_axis(vertical_clusters, key=lambda e: e.rect.y0)
     x_ok = is_true_axis(horizontal_clusters, key=lambda e: e.rect.x0)
 
-    return y_ok and x_ok
+    votes = sum([has_keyword, has_unit, y_ok, x_ok])
+    return votes >= 2
 
 
-def normalize_direction(values: list[Entry]) -> list:
+def normalize_direction(values: list[Entry]) -> list[Entry]:
     """Ensure values of entries go ascending; reverse if descending, leave otherwise."""
     if len(values) < 2:
         return values
