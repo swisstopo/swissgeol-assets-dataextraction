@@ -22,6 +22,7 @@ RUN mkdir -p /models/FastText \
 FROM python:3.13-slim-bookworm AS runtime
 
 ENV FASTTEXT_MODEL_PATH="models/FastText/lid.176.bin"
+ENV TMP_PATH=/tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \

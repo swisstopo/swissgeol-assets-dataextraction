@@ -15,7 +15,7 @@ def make_doc(cls=None):
     }
 
 
-def test_mapping_renames_v1_keys_only():
+def test_mapping_to_stable_labels():
     doc = make_doc(cls={"text": 0, "boreprofile": 1, "map": 0, "title_page": 0, "unknown": 0})
     out = map_labels_for_app(doc)
     page = out["pages"][0]

@@ -11,7 +11,7 @@ which ultimately should facilitate the identification of borehole profiles and m
 ---
 ## Classes
 
-### v1 (current version)
+### stable version
 Each page is categorized into one of the following:
 
 1. `text` - Continuous text page.  
@@ -20,13 +20,13 @@ Each page is categorized into one of the following:
 4. `title_page` - Title pages of original reports.  
 5. `unknown` - Everything else.
 
-Extended in (in development; mapped to `unknown`):
+Extended classes in dev version( mapped to `unknown`):
 6. `geo_profile` - Geological cross-sections or longitudinal profiles.
 7. `table` -  Tabular numeric/textual data.
 8. `diagram` - Scientific 2D graphs or plots.
 
 When running with the **API-stable** profile, any class not supported by this profile is automatically mapped to `unknown`. 
-When using the **dev** profile, extended classes are kept.
+For development using the **dev** profile, extended classes are kept.
 ---
 ## Quick start
 Requirements: Python 3.10(recommended), OCR'ed PDFs.
