@@ -322,3 +322,29 @@ title_page:
   it:
     - rapporto
     - progetto
+
+geo_profile:
+  en:
+    - geological cross-section
+    - geological section
+    - geological profile
+    - cross-section
+    - vertical section
+  de:
+    - längsprofil
+    - längenprofil
+    - geologischer schnitt
+    - geologisches profil
+    - vertikalschnitt
+  fr:
+    - coupe géologique
+    - profil géologique
+    - section géologique
+    - coupe en profondeur
+    - coupe verticale
+    - coupe longitudinale
+  it:
+    - sezione geologica
+    - profilo geologico
+    - sezione verticale
+    - taglio geologico

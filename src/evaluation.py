@@ -11,7 +11,7 @@ from dotenv import load_dotenv
 from src.page_classes import PageClasses
 
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 
 if mlflow_tracking:
     import mlflow
