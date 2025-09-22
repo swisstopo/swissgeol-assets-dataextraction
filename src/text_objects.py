@@ -5,8 +5,10 @@ From:
 - the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
 
+import logging
 from collections import defaultdict
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import TypeVar
 
 import pymupdf
@@ -14,6 +16,8 @@ import pymupdf
 from src.bounding_box import merge_bounding_boxes
 
 T = TypeVar("T")
+
+logger = logging.getLogger(__name__)
 
 
 class TextWord:
@@ -167,7 +171,7 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
     return blocks
 
 
-def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: int = 10) -> list[list[T]]:
+def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: int = 10.0) -> list[list[T]]:
     """Cluster text elements based on coordinates of bounding box.
 
     Args:
@@ -200,3 +204,59 @@ def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], toler
     clusters = list(grouped.values())
 
     return clusters
+
+
+@dataclass
+class TextColumn:
+    """A vertical column of text, composed of multiple TextWords."""
+
+    words: list[TextWord]
+
+    @property
+    def rect(self):
+        return merge_bounding_boxes([w.rect for w in self.words])
+
+
+@dataclass
+class TextTable:
+    """A table composed of multiple aligned TextColumns."""
+
+    columns: list[TextColumn]
+    words: list = field(init=False)
+
+    def __post_init__(self):
+        self.words = [word for col in self.columns for word in col.words]
+
+    @property
+    def rect(self) -> pymupdf.Rect:
+        return merge_bounding_boxes([c.rect for c in self.columns if c.rect is not None])
+
+    def text_coverage(self, all_words: list[TextWord]):
+        """Fraction of words in the table relative to all words on the page."""
+        if not all_words:
+            return 0.0
+        return sum(len(col.words) for col in self.columns) / len(all_words)
+
+    @property
+    def confidence(self):
+        """Confidence based on row alignment across columns.
+
+        Steps:
+        - Collect row centers from all columns.
+        - Merge centers within a tolerance (rows aligning across columns).
+        - Confidence = 1 -  (#merged rows) / (total entries).
+        """
+        if not self.columns:
+            return 0.0
+
+        merged_rows = cluster_text_elements(self.words, key_fn=lambda w: (w.rect.y0 + w.rect.y1) / 2, tolerance=3.0)
+
+        total_entries = len(self.words)
+        if total_entries == 0:
+            return 0.0
+
+        # fewer merged rows relative to total entries -> better alignment
+        merged_count = len(merged_rows)
+        q_rows = 1.0 - (merged_count / total_entries)
+
+        return q_rows

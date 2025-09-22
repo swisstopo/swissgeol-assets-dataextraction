@@ -9,6 +9,7 @@ from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
 from src.identifiers.geo_profile import identify_geo_profile
 from src.identifiers.map import identify_map
+from src.identifiers.table import identify_table
 from src.identifiers.text import identify_text
 from src.identifiers.title_page import identify_title_page
 from src.line_detection import extract_geometric_lines
@@ -42,6 +43,9 @@ class RuleBasedClassifier(Classifier):
 
         if self._detect_map(page, context):
             return PageClasses.MAP
+
+        if identify_table(context):
+            return PageClasses.TABLE
 
         if identify_title_page(context, self.matching_params):
             return PageClasses.TITLE_PAGE
