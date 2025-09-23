@@ -33,10 +33,10 @@ def identify_diagram(ctx: PageContext, matching_params: dict, axis_tolerance: in
     - Otherwise, attempts to detect both x- and y-axes by clustering numbers based on their positions
     - Returns True if both axes appear to be ordered scales, or if at least one axis shows numeric progression.
     """
-    keywords = (matching_params.get("diagram", {}) or {}).get(ctx.language, []) or []
+    keywords = matching_params.get("diagram", {}).get(ctx.language, [])
     units_cfg = matching_params.get("units", [])
 
-    words_lower = (word.text.lower() for word in ctx.words)
+    words_lower = [word.text.lower() for word in ctx.words]
     has_keyword = any(key in word for word in words_lower for key in keywords)
     has_unit = has_units(ctx, units_cfg)
 
@@ -84,7 +84,7 @@ def axis_checks(clusters: list, sort_key: Callable) -> tuple[bool, bool]:
     return any_monotone, any_progression
 
 
-def normalize_direction(values: list[Entry]) -> list:
+def normalize_direction(values: list[Entry]) -> list[Entry]:
     """Ensure values of entries go ascending; reverse if descending, leave otherwise."""
     if len(values) < 2:
         return values
@@ -108,7 +108,7 @@ def is_arithmetic_progression(
 
     values: values of the potential arithmetic progression.
     frac_ok: fraction of steps that must match the median (e.g. 0.8 allows some OCR noise).
-    abs_tol: minimum absolute tolerance so small steps survive rounding/jitter. .
+    abs_tol: minimum absolute tolerance so small steps survive rounding/jitter.
     """
     if len(values) <= 2:
         return False
@@ -124,7 +124,7 @@ def is_arithmetic_progression(
 
 def is_log_progression(values: list, tol: float = 0.1) -> bool:
     """Checks if values are a log10 based progression."""
-    if any(v <= 0 for v in values) or len(values) <= 2:  ## log never negative
+    if any(v <= 0 for v in values) or len(values) <= 2:  # log requires positive values
         return False
     log_vals = [math.log10(v) for v in values]
     diffs = [b - a for a, b in zip(log_vals, log_vals[1:], strict=False)]
