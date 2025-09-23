@@ -22,7 +22,7 @@ class PageContext:
     is_digital: bool
     drawings: list
     image_rects: list
-    color_proportion: Counter
+    color_proportion: Counter | None = None
 
 
 class PageAnalysis:
