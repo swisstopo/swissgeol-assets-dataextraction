@@ -1,4 +1,5 @@
 import logging
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -21,6 +22,8 @@ from src.text_objects import create_text_blocks, create_text_lines, extract_word
 from src.utils import is_digitally_born
 
 logger = logging.getLogger(__name__)
+
+ENABLE_COLOR_PROPORTION = os.getenv("ENABLE_COLOR_PROPORTION", "false").lower() == "true"
 
 
 class PDFProcessor:
@@ -45,7 +48,7 @@ class PDFProcessor:
         drawings, image_rects = extract_page_graphics(page, is_digital)
         page_rect = get_page_bbox(page)
         text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
-        color_proportion = get_color_proportion(page)
+        color_proportion = get_color_proportion(page) if ENABLE_COLOR_PROPORTION else None
 
         return PageContext(
             lines=lines,
