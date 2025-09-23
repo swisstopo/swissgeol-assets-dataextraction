@@ -19,7 +19,7 @@ from src.utils import get_pdf_files, read_params
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 
 MATCHING_PARAMS_PATH = "config/matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)

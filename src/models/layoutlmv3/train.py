@@ -39,7 +39,7 @@ if __name__ == "__main__":
 logger = logging.getLogger(__name__)
 
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 
 
 class LayoutLMv3Trainer:
