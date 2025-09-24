@@ -264,7 +264,12 @@ class TextTable:
 
     @property
     def rect(self) -> pymupdf.Rect:
+        """Computes bounding box of text table."""
         return merge_bounding_boxes([c.rect for c in self.columns if c.rect is not None])
+
+    def height_coverage(self, page_height: float) -> float:
+        """Fraction of page height covered by text tables bounding box."""
+        return self.rect.height / page_height
 
     def text_coverage(self, all_words: list[TextWord]):
         """Fraction of words in the table relative to all words on the page."""

@@ -67,6 +67,8 @@ class Line:
                 / self.length
             )
 
+    # --------------------- copied from swissgeol-boreholes-dataextraction ------------------ #
+
     def distance_to_segment(self, point: Point) -> float:
         """Calculate the distance of a point to the line segment (bounded by endpoints).
 

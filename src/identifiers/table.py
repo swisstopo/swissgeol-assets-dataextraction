@@ -1,5 +1,3 @@
-import pymupdf
-
 from src.page_structure import PageContext
 from src.table_detection import detect_structure_lines, detect_table_structures
 from src.text_objects import TextColumn, TextTable, TextWord, cluster_connected_components, cluster_text_elements
@@ -10,35 +8,33 @@ def identify_table(ctx: PageContext, min_coverage: float = 0.5) -> bool:
 
     Factors include:
     - Presence of text tables
-    - if structure tables are present, text tables have to intersect with them.
-        - intersection has to cover 1/3 of page height
-        - text in table has to cover 1/2 of all text
-    - if no structure tables are present:
-        - text table area has to cover at least 0.3 of page
-        - text in table has to cover 1/2 of all text
+    - if line tables are present, text tables have to intersect with them.
+        - line table height has to cover 1/3 of page height
+        - text in table has to cover 1/2 of all page text
+    - if no line tables are present:
+        - text table height has to cover 1/3 of page height
+        - text in table has to cover 1/2 of all page text
     """
     text_tables = detect_text_table(ctx.words)
-    high_coverage_tables = [table for table in text_tables if table.text_coverage(ctx.words) > min_coverage]
+    valid_text_tables = [table for table in text_tables if table.text_coverage(ctx.words) > min_coverage]
 
-    if not high_coverage_tables:
+    if not valid_text_tables:
         return False
 
-    # Detect tables grids
+    page_height = ctx.page_rect.height
+
+    # Detect table grids
     structure_lines = detect_structure_lines(ctx.geometric_lines)
-    structure_tables = detect_table_structures(ctx.page_rect, structure_lines, ctx.lines)
+    line_tables = detect_table_structures(ctx.page_rect, structure_lines, ctx.lines)
 
-    if structure_tables:
-        for table in structure_tables:
-            structure_rect = table.bounding_rect
-            for text_table in text_tables:
-                if structure_rect.intersect(text_table.rect):
-                    height_ratio = structure_rect.height / ctx.page_rect.height
+    if line_tables:
+        return any(
+            line_table.rect.intersect(text_table.rect) and line_table.height_coverage(page_height) >= 0.3
+            for line_table in line_tables
+            for text_table in valid_text_tables
+        )
 
-                    if height_ratio > 0.3 and text_table.text_coverage(ctx.words) > min_coverage:
-                        return True
-        return False
-    else:
-        return any(text_table.rect.get_area() / ctx.page_rect.get_area() >= 0.3 for text_table in high_coverage_tables)
+    return any(text_table.height_coverage(page_height) >= 0.3 for text_table in valid_text_tables)
 
 
 def detect_text_table(words: list[TextWord], x_tol: int = 2, min_cols: int = 3) -> list[TextTable]:
@@ -86,25 +82,25 @@ def make_text_tables(cols: list[TextColumn]) -> list[TextTable]:
     Returns:
         List of detected TextTables.
     """
-    components = cluster_connected_components(cols, do_rects_align)
+    components = cluster_connected_components(cols, _columns_align)
     return [TextTable(comp) for comp in components if len(comp) > 1]
 
 
-def do_rects_align(
-    rect1: pymupdf.Rect,
-    rect2: pymupdf.Rect,
+def _columns_align(
+    col1: TextColumn,
+    col2: TextColumn,
     min_vert_overlap: float = 0.80,
     max_horizontal_overlap: float = 0.10,
     edge_align_tol: float = 6.0,
 ) -> bool:
-    """Checks if two rectangles (pymupdf.Rects) align to form a table structure.
+    """Checks if two text columns align to form a table structure.
 
     Conditions:
     - Top or bottom edges roughly aligned  OR sufficient vertical overlap
     - have no more than a small horizontal overlap
     Args:
-        rect1: First rectangle.
-        rect2: Second rectangle.
+        col1: First TextColumn.
+        col2: Second TextColumn.
         min_vert_overlap: Minimum vertical overlap ratio to consider aligned if edges not aligned.
         max_horizontal_overlap: Maximum horizontal overlap ratio to consider aligned.
         edge_align_tol: Tolerance in px for top/bottom edge alignment.
@@ -112,6 +108,8 @@ def do_rects_align(
     Returns:
         True if columns align, False otherwise.
     """
+    rect1, rect2 = col1.rect, col2.rect
+
     # Check vertical alignment, if not: check if vertical overlap ratio smaller than allowed
     if abs(rect1.y0 - rect2.y0) > edge_align_tol or abs(rect1.y1 - rect2.y1) > edge_align_tol:
         y0, y1 = max(rect1.y0, rect2.y0), min(rect1.y1, rect2.y1)
