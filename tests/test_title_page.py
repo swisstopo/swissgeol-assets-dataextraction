@@ -1,6 +1,6 @@
 import pymupdf
 
-from src.identifiers.title_page import VERTICAL_SPACING_FACTOR, find_aligned_clusters
+from src.identifiers.title_page import VERTICAL_SPACING_FACTOR, cluster_aligned_text_lines
 from src.text_objects import TextLine, TextWord
 
 
@@ -15,7 +15,7 @@ def test_x0_cluster():
         TextLine([TextWord(pymupdf.Rect(100, 145, 200, 155), "Line 2", 0)]),
         TextLine([TextWord(pymupdf.Rect(100, 190, 200, 200), "Line 3", 0)]),
     ]
-    clusters = find_aligned_clusters(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
+    clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 1
     assert len(clusters[0]) == 3
 
@@ -28,7 +28,7 @@ def test_two_x0_clusters():
         TextLine([TextWord(pymupdf.Rect(300, 100, 400, 110), "Line 1 in cluster 2", 0)]),
         TextLine([TextWord(pymupdf.Rect(298, 130, 400, 140), "Line 2 in cluster 2", 0)]),
     ]
-    clusters = find_aligned_clusters(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
+    clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 2
     for cluster in clusters:
         assert len(cluster) == 2
@@ -41,7 +41,7 @@ def test_transitive_inclusion():
         TextLine([TextWord(pymupdf.Rect(104, 130, 204, 140), "Line B", 0)]),  # B
         TextLine([TextWord(pymupdf.Rect(108, 160, 208, 170), "Line C", 0)]),  # C
     ]
-    clusters = find_aligned_clusters(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
+    clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 1
     assert len(clusters[0]) == 3
 
@@ -53,7 +53,7 @@ def test_no_clusters_x0():
         TextLine([TextWord(pymupdf.Rect(300, 300, 400, 310), "Line B", 0)]),
         TextLine([TextWord(pymupdf.Rect(500, 500, 600, 510), "Line C", 0)]),
     ]
-    clusters = find_aligned_clusters(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
+    clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 0
 
 
@@ -64,5 +64,5 @@ def test_no_cluster_y0():
         TextLine([TextWord(pymupdf.Rect(100, 160, 200, 170), "Line B", 0)]),  # > 5 * height away
         TextLine([TextWord(pymupdf.Rect(100, 210, 200, 220), "Line C", 0)]),  # > 5 * height away
     ]
-    clusters = find_aligned_clusters(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
+    clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 0

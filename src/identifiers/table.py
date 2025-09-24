@@ -1,5 +1,5 @@
 from src.page_structure import PageContext
-from src.text_objects import TextColumn, TextTable, TextWord, cluster_text_elements
+from src.text_objects import TextColumn, TextTable, TextWord, cluster_connected_components, cluster_text_elements
 
 
 def identify_table(ctx: PageContext, min_conf: float = 0.6, min_coverage: float = 0.5) -> bool:
@@ -64,30 +64,8 @@ def make_text_tables(cols: list[TextColumn]) -> list[TextTable]:
     Returns:
         List of detected TextTables.
     """
-    n = len(cols)
-    visited = [False] * n
-    tables: list[TextTable] = []
-
-    for i in range(n):
-        if visited[i]:
-            continue
-        # BFS
-        queue = [i]
-        visited[i] = True
-        table_columns = [cols[i]]
-        while queue:
-            u = queue.pop()
-            for v in range(n):
-                if visited[v] or v == u:
-                    continue
-                if _columns_align(cols[u], cols[v]):
-                    visited[v] = True
-                    queue.append(v)
-                    table_columns.append(cols[v])
-        table = TextTable(table_columns)
-        tables.append(table)
-
-    return tables
+    components = cluster_connected_components(cols, _columns_align)
+    return [TextTable(comp) for comp in components if len(comp) > 1]
 
 
 def _columns_align(

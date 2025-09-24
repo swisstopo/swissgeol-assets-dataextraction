@@ -203,6 +203,44 @@ def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], toler
     return clusters
 
 
+def cluster_connected_components(items: list[T], is_connected: Callable[[T, T], bool]) -> list[list[T]]:
+    """Generic BFS clustering of items into connected components.
+
+    Each item is connected to others if `is_connected(a, b)` returns True.
+    Items that can be reached transitively form one cluster.
+
+    Args:
+        items: List of objects to cluster.
+        is_connected: Predicate that decides whether two items are connected.
+
+    Returns:
+        List of clusters, where each cluster is a list of connected items.
+    """
+    n = len(items)
+    visited = [False] * n
+    components: list[list[T]] = []
+
+    for i in range(n):
+        if visited[i]:
+            continue
+        # BFS
+        queue = [i]
+        visited[i] = True
+        component = [items[i]]
+        while queue:
+            u = queue.pop()
+            for v in range(n):
+                if visited[v] or v == u:
+                    continue
+                if is_connected(items[u], items[v]):
+                    visited[v] = True
+                    queue.append(v)
+                    component.append(items[v])
+        components.append(component)
+
+    return components
+
+
 @dataclass
 class TextColumn:
     """A vertical column of text, composed of multiple TextWords."""
