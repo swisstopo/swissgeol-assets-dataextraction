@@ -44,7 +44,7 @@ def detect_entries(words: list[TextWord]) -> list[Entry]:
 def create_sidebars(words: list[TextWord]) -> list[list[Entry]]:
     """Create Sidebars from potential entries."""
     entries = detect_entries(words)
-    clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10)
+    clusters = cluster_text_elements(entries, key_fn=lambda e: e.rect.x0, tolerance=10.0)
     return [c for c in clusters if len(c) >= 3 and is_strictly_increasing(c)]
 
 

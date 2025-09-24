@@ -38,7 +38,7 @@ def detect_text_table(ctx: PageContext, x_tol: int = 2, min_cols: int = 2) -> li
     return [table for table in tables if len(table.columns) > min_cols]
 
 
-def make_text_columns(words: list[TextWord], x_tol: int = 2, min_words: int = 3) -> list[TextColumn]:
+def make_text_columns(words: list[TextWord], x_tol: float = 2.0, min_words: int = 3) -> list[TextColumn]:
     """Build TextColumns based on x0 alignment of TextWords.
 
     Args:

@@ -5,7 +5,6 @@ From:
 - the swissgeol-boreholes-dataextraction repo (https://github.com/swisstopo/swissgeol-boreholes-dataextraction)
 """
 
-import logging
 from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -16,8 +15,6 @@ import pymupdf
 from src.bounding_box import merge_bounding_boxes
 
 T = TypeVar("T")
-
-logger = logging.getLogger(__name__)
 
 
 class TextWord:
@@ -171,7 +168,7 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
     return blocks
 
 
-def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: int = 10.0) -> list[list[T]]:
+def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: float = 10.0) -> list[list[T]]:
     """Cluster text elements based on coordinates of bounding box.
 
     Args:
