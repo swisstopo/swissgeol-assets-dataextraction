@@ -19,7 +19,7 @@ def identify_table(ctx: PageContext, min_conf: float = 0.6, min_coverage: float 
     return any(table.text_coverage(ctx.words) > min_coverage for table in good_text_tables)
 
 
-def detect_text_table(ctx: PageContext, x_tol: int = 2, min_cols: int = 2) -> list[TextTable]:
+def detect_text_table(ctx: PageContext, x_tol: int = 2, min_cols: int = 3) -> list[TextTable]:
     """Detects and returns text tables with minimum 3 columns on a page based on aligned text columns.
 
     Args:
@@ -35,7 +35,7 @@ def detect_text_table(ctx: PageContext, x_tol: int = 2, min_cols: int = 2) -> li
         return []
 
     tables = make_text_tables(cols)
-    return [table for table in tables if len(table.columns) > min_cols]
+    return [table for table in tables if len(table.columns) >= min_cols]
 
 
 def make_text_columns(words: list[TextWord], x_tol: float = 2.0, min_words: int = 3) -> list[TextColumn]:

@@ -257,7 +257,7 @@ class TextTable:
     """A table composed of multiple aligned TextColumns."""
 
     columns: list[TextColumn]
-    words: list = field(init=False)
+    words: list[TextWord] = field(init=False)
 
     def __post_init__(self):
         self.words = [word for col in self.columns for word in col.words]
