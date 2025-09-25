@@ -26,7 +26,7 @@ class TextWord:
         self.page_number = page
 
     def __repr__(self) -> str:
-        return f"TextWord({self.rect}, {self.text})"
+        return f"TextWord({self.text},{self.rect},)"
 
 
 def extract_words(page, page_number):
@@ -251,6 +251,20 @@ class TextColumn:
     def rect(self):
         return merge_bounding_boxes([w.rect for w in self.words])
 
+    def __repr__(self):
+        return f"TextColumn({[word.text for word in self.words]},{self.rect},)"
+
+    def noise(self, all_words) -> float:
+        """Metric that shows how noisy a column is.
+
+        It's the ratio between actual column entries and non-column words overlapping with the column bounding box.
+        Best noise = 1 (intersecting words = self.words). More intersecting words will lead to a higher ratio.
+        """
+        column_bbox = self.rect
+        intersecting_words = [word for word in all_words if column_bbox.intersects(word.rect)]
+        ratio = len(intersecting_words) / len(self.words)
+        return ratio
+
 
 @dataclass
 class TextTable:
@@ -266,11 +280,12 @@ class TextTable:
     def rect(self) -> pymupdf.Rect:
         return merge_bounding_boxes([c.rect for c in self.columns if c.rect is not None])
 
-    def text_coverage(self, all_words: list[TextWord]):
-        """Fraction of words in the table relative to all words on the page."""
+    def text_coverage(self, all_words: list[TextWord]) -> float:
+        """Fraction of words belonging to the table relative to all words on the page."""
         if not all_words:
             return 0.0
-        return sum(len(col.words) for col in self.columns) / len(all_words)
+        coverage = sum(len(col.words) for col in self.columns) / len(all_words)
+        return coverage
 
     @property
     def confidence(self):
