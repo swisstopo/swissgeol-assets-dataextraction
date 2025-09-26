@@ -1,9 +1,15 @@
+import os
 from pathlib import Path
 
 import pytest
+from dotenv import load_dotenv
 
 from main import main as pipeline_main
+from src.page_classes import PageClasses
 from src.predictions.compat import STABLE_LABELS
+
+load_dotenv()
+prediction_profile = os.getenv("PREDICTION_PROFILE") or "stable"
 
 PDF = Path("examples/example_pdf.pdf")
 
@@ -39,7 +45,9 @@ def test_pipeline_output_structure_stable(monkeypatch):
 
         cls = page["classification"]
         # Only stable keys in stable profile
-        assert set(cls.keys()) == set(STABLE_LABELS)
+        assert set(cls.keys()) == (
+            set(STABLE_LABELS) if prediction_profile == "stable" else set([c.value for c in PageClasses])
+        )
 
         lang = page["metadata"].get("language")
         assert (lang is None) or isinstance(lang, str)

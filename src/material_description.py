@@ -22,7 +22,7 @@ class MaterialDescription:
 
     def __repr__(self):
         return (
-            f"MaterialDescription( lines = {[line.line_text() for line in self.text_lines]}, "
+            f"MaterialDescription( lines = {[line.line_text for line in self.text_lines]}, "
             f"rect = {self.rect}, noise={self.noise} )"
         )
 

@@ -52,8 +52,9 @@ class TextLine:
         self.font_size = self.compute_font_size()
 
     def __repr__(self) -> str:
-        return f"TextLine({self.rect},{self.line_text()})"
+        return f"TextLine({self.rect},{self.line_text})"
 
+    @property
     def line_text(self):
         return " ".join([word.text for word in self.words])
 

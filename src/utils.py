@@ -22,7 +22,7 @@ def is_digitally_born(page: pymupdf.Page) -> bool:
 
 def is_description(line: TextLine, matching_params: dict):
     """Check if the words in line matches with matching parameters."""
-    line_text = line.line_text().lower()
+    line_text = line.line_text.lower()
     return any(line_text.find(word) > -1 for word in matching_params["including_expressions"]) and not any(
         line_text.find(word) > -1 for word in matching_params["excluding_expressions"]
     )

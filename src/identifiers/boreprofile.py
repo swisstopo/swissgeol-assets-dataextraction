@@ -116,7 +116,7 @@ def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[st
 
     matched_lines = []
     for line in caption_lines:
-        text = line.line_text().lower()
+        text = line.line_text.lower()
 
         if all(any(keyword in text for keyword in group) for group in keyword_groups):
             matched_lines.append(line)
