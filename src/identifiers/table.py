@@ -41,7 +41,12 @@ def identify_table(ctx: PageContext, min_coverage: float = 0.3) -> bool:
 
 
 def detect_text_table(
-    words: list[TextWord], gap_factor: float = 4.0, x_tol: float = 2.0, min_cols: int = 3, max_noise: float = 1.5
+    words: list[TextWord],
+    gap_factor: float = 4.0,
+    x_tol: float = 2.0,
+    min_cols: int = 3,
+    max_noise: float = 1.5,
+    min_conf: float = 0.5,
 ) -> list[TextTable]:
     """Detects and returns text tables with minimum 3 columns on a page based on aligned text columns.
 
@@ -53,6 +58,7 @@ def detect_text_table(
         x_tol: Tolerance for x0 alignment of words to form columns (in px).
         min_cols: Minimum number of columns for a valid table.
         max_noise: Maximal noise (overlapping non-column words) a column is allowed to have to be considered valid.
+        min_conf: Minimal confidence we can have in a table to be considered a table.
 
     Returns:
         List of detected TextTables.
@@ -68,7 +74,8 @@ def detect_text_table(
     valid_cols = [col for col in cols if col.noise(words) < max_noise]
     tables = make_text_tables(valid_cols)
 
-    return [table for table in tables if len(table.columns) >= min_cols]
+    result = [table for table in tables if len(table.columns) >= min_cols and table.confidence >= min_conf]
+    return result
 
 
 def make_text_columns(
