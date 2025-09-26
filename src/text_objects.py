@@ -12,7 +12,7 @@ from typing import TypeVar
 
 import pymupdf
 
-from src.bounding_box import merge_bounding_boxes
+from src.bounding_box import _y_center, merge_bounding_boxes
 
 T = TypeVar("T")
 
@@ -300,7 +300,11 @@ class TextTable:
         if not self.columns:
             return 0.0
 
-        merged_rows = cluster_text_elements(self.words, key_fn=lambda w: (w.rect.y0 + w.rect.y1) / 2, tolerance=3.0)
+        def _same_row(w1: TextWord, w2: TextWord, tolerance: float = 3.0):
+            w1_center, w2_center = _y_center(w1.rect), _y_center(w2.rect)
+            return abs(w1_center - w2_center) <= tolerance
+
+        merged_rows = cluster_connected_components(self.words, _same_row)
 
         total_entries = len(self.words)
         if total_entries == 0:

@@ -1,6 +1,7 @@
 import numpy as np
 import pymupdf
 
+from src.bounding_box import _x_center
 from src.page_structure import PageContext
 from src.text_objects import TextColumn, TextTable, TextWord, cluster_connected_components
 
@@ -186,11 +187,6 @@ def _median_line_gap(words: list[TextWord]) -> float:
     ys = sorted((w.rect.y0 + w.rect.y1) / 2.0 for w in words)  # baselines
     gaps = [ys[i + 1] - ys[i] for i in range(len(ys) - 1) if ys[i + 1] > ys[i]]
     return max(10.0, float(np.median(gaps))) if gaps else 20.0
-
-
-def _x_center(rect: pymupdf.Rect) -> float:
-    """Finds middle x position of a rectangle."""
-    return 0.5 * (rect.x0 + rect.x1)
 
 
 def _hproj_overlap_ratio(a: pymupdf.Rect, b: pymupdf.Rect) -> float:
