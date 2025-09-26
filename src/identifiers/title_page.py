@@ -4,7 +4,7 @@ from statistics import stdev
 
 from src.keyword_finding import DATE_PATTERNS, PHONE_PATTERNS, find_pattern
 from src.page_structure import PageContext
-from src.text_objects import TextLine
+from src.text_objects import TextLine, cluster_connected_components
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +45,7 @@ def has_centered_layout(ctx: PageContext) -> bool:
     Filters out 'centered' clusters that are actually right-aligned based on x0 spread.
     """
     page_width = ctx.page_rect.width
-    centered_clusters = find_aligned_clusters(
+    centered_clusters = cluster_aligned_text_lines(
         ctx.lines, key_func=lambda line: line.rect.x0 + 0.5 * line.rect.width, threshold=0.05 * page_width
     )
 
@@ -157,7 +157,7 @@ def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[li
 
     for layout in layout_funcs:
         unassigned_lines = list(remaining_lines)
-        clusters = find_aligned_clusters(unassigned_lines, layout, threshold=0.05 * page_width)
+        clusters = cluster_aligned_text_lines(unassigned_lines, layout, threshold=0.05 * page_width)
 
         for cluster in clusters:
             all_clusters.append(cluster)
@@ -166,54 +166,39 @@ def get_all_layout_clusters(lines: list[TextLine], page_width: float) -> list[li
     return all_clusters
 
 
-def find_aligned_clusters(
-    lines: list[TextLine], key_func: Callable[[TextLine], float], threshold: float
+def cluster_aligned_text_lines(
+    lines: list[TextLine],
+    key_func: Callable[[TextLine], float],
+    threshold: float,
 ) -> list[list[TextLine]]:
-    """Groups text lines into alignment clusters based on a key function (e.g. x0-position).
+    """Cluster text lines that are aligned.
 
-    This function finds clusters of visually aligned lines by comparing each line’s alignment key
-    (e.g. x0, center, x1) and vertical position.
+    A line joins a cluster if:
+      - Its alignment key (e.g., x0, center, x1) differs by less than `threshold`.
+      - Its vertical distance is within a multiple of the font size.
 
-       Parameters:
-        lines (list[TextLine]): List of text lines to cluster.
-        key_func (Callable): Function to extract the alignment key from a line (e.g. lambda l: l.rect.x0).
-        threshold (float): Maximal misalignment between lines for them to be considered aligned.
+    Args:
+        lines: Text lines to cluster.
+        key_func: Function that extracts an alignment key (e.g., lambda l: l.rect.x0).
+        threshold: Max misalignment tolerated for lines to be grouped.
 
     Returns:
-        list[list[TextLine]]: List of clusters, each a list of aligned TextLines.
+        Clusters of aligned lines, each as a list of TextLines.
     """
-    remaining_lines = set(lines)
-    clusters = []
+    if not lines:
+        return []
+    lines = sorted(lines, key=lambda line: line.rect.y0)
 
-    for current_line in sorted(lines, key=lambda line: line.rect.y0):
-        if current_line not in remaining_lines:
-            continue  # already clustered
+    def is_conn(a: TextLine, b: TextLine) -> bool:
+        # misalignment on key
+        if abs(key_func(a) - key_func(b)) >= threshold:
+            return False
+        # vertical closeness
+        vertical_distance = abs(a.rect.y0 - b.rect.y0)
+        limit = VERTICAL_SPACING_FACTOR * max(a.font_size, b.font_size)
+        return vertical_distance < limit
 
-        remaining_lines.remove(current_line)
-        cluster = []
-        line_queue = [current_line]
-
-        while line_queue:
-            line = line_queue.pop()
-            cluster_key = key_func(line)
-            cluster.append(line)
-            font_size = line.font_size
-
-            close_lines = {
-                other
-                for other in remaining_lines
-                if abs(key_func(other) - cluster_key) < threshold  # limit for how much misaligned other line can be
-                and abs(other.rect.y0 - line.rect.y0)
-                < VERTICAL_SPACING_FACTOR * font_size  # limit for how far below other line can lie
-            }
-
-            line_queue.extend(close_lines)  # add close lines into queue
-            remaining_lines -= close_lines  # remove all close lines
-
-        if len(cluster) > 1:
-            clusters.append(cluster)
-
-    return clusters
+    return [c for c in cluster_connected_components(lines, is_conn) if len(c) > 1]
 
 
 def vertical_spacing(lines: list[TextLine]) -> list[float]:
