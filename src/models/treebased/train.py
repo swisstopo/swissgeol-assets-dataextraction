@@ -1,6 +1,7 @@
 import argparse
 import logging
 import os
+import pickle
 import time
 from pathlib import Path
 
@@ -9,6 +10,8 @@ import pymupdf
 from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
+
+# from skopt import BayesSearchCV
 from xgboost import XGBClassifier
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
@@ -97,9 +100,9 @@ class XGBoostTrainer(TreeBasedTrainer):
         """
         # Initialize XGBoost model with default parameters
         model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
-        search = RandomizedSearchCV(
+        search = RandomizedSearchCV(  # BayesSearchCV(
             estimator=model,
-            param_distributions=param_dist,
+            param_distributions=param_dist,  # search_spaces=param_dist,
             n_iter=n_iter,
             scoring=scoring,
             cv=cv,
@@ -154,6 +157,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
     if not mlflow_tracking:
         print("MLflow tracking is disabled. Set MLFLOW_TRACKING=True in .env to enable it.")
 
+    mlflow.set_experiment("Classifier Training")
+
     config = read_params(config_path)
     train_folder = Path(config["train_folder_path"])
     val_folder = Path(config["val_folder_path"])
@@ -164,19 +169,22 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
     # Create dataset
     label_lookup = build_filename_to_label_map(ground_truth_path)
-    X_train, y_train = load_data_and_labels(train_folder, label_lookup)
-    X_val, y_val = load_data_and_labels(val_folder, label_lookup)
-
-    mlflow.set_experiment("Classifier Training")
+    # X_train, y_train = load_data_and_labels(train_folder, label_lookup)
+    # X_val, y_val = load_data_and_labels(val_folder, label_lookup)
+    X_train, y_train, X_val, y_val = temp_cache_data(train_folder, val_folder, label_lookup)
+    X_train, X_val, ignored_feat = filter_feat(X_train, X_val)
 
     if trainer_name == "random_forest":
         trainer = RandomForestTrainer(config, model_out_directory)
+        mlflow.sklearn.autolog()
     elif trainer_name == "xgboost":
         trainer = XGBoostTrainer(config, model_out_directory)
+        mlflow.xgboost.autolog()
     else:
         raise ValueError(f"Unsupported trainer: {trainer_name}")
 
     with mlflow.start_run(run_name=trainer_name):
+        mlflow.log_param("ignored_idx", ", ".join(map(str, ignored_feat)))
         trainer.load_data(X_train, y_train, X_val, y_val)
         if tuning:
             search_params = config["tuning"]["param_grid"]
@@ -215,6 +223,75 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
         # Log confusion matrix and classification report
         trainer.plot_and_log_confusion_matrix(y_pred)
+
+
+def temp_cache_data(train_folder, val_folder, label_lookup):
+    def cache_data(file_path, data=None):
+        if data is not None:
+            # Save data
+            with open(file_path, "wb") as f:
+                pickle.dump(data, f)
+        else:
+            # Load data
+            with open(file_path, "rb") as f:
+                return pickle.load(f)
+
+    # Paths for cached files
+    train_cache = "Xy_train_25_feat.pkl"
+    val_cache = "Xy_val_25_feat.pkl"
+
+    # Load or create train data
+    if os.path.exists(train_cache):
+        X_train, y_train = cache_data(train_cache)
+    else:
+        X_train, y_train = load_data_and_labels(train_folder, label_lookup)
+        cache_data(train_cache, (X_train, y_train))
+
+    # Load or create validation data
+    if os.path.exists(val_cache):
+        X_val, y_val = cache_data(val_cache)
+    else:
+        X_val, y_val = load_data_and_labels(val_folder, label_lookup)
+        cache_data(val_cache, (X_val, y_val))
+
+    print("Data loaded!")
+    return X_train, y_train, X_val, y_val
+
+
+def filter_feat(X_train, X_val):
+    # with feat 26 continais in order :
+    #   0- Words Per Line
+    #   1- Text zone Density
+    #   2- Mean Left
+    #   3- Mean Right
+    #   4- Text Width
+    #   5- Line Count
+    #   6- Line Length Variance
+    #   7- Indent Std Dev
+    #   8- Punctuation Density
+    #   9- Capitalization Ratio
+    #   10- Has Sidebar
+    #   11- Num Sidebar
+    #   12- Has Borehole Keyword
+    #   13- Num Borehole Keyword
+    #   14- Num Valid Material Descriptions
+    #   15- Num Map Keyword Lines
+    #   16- Grid Line Length Sum
+    #   17- Non Grid Line Length Sum
+    #   18- Line Angle Entropy
+    #   19- Line score
+    #   20- Num Geo Profile Keywords
+    #   21- Num Diagram Keyword
+    #   22- Num Unit Keyword
+    #   23- Y scale ok
+    #   24- X scale ok
+
+    # THOSE IGNORED must match the CONFIG file
+    ignored_feat = [11, 13] + list(range(19, 25))
+    X_train = [[c for i, c in enumerate(r) if i not in ignored_feat] for r in X_train] if X_train else None
+    X_val = [[c for i, c in enumerate(r) if i not in ignored_feat] for r in X_val] if X_val else None
+
+    return X_train, X_val, ignored_feat
 
 
 if __name__ == "__main__":

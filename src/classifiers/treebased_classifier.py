@@ -5,6 +5,7 @@ import pymupdf
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.models.feature_engineering import get_features_from_page
 from src.models.treebased.model import TreeBasedModel
+from src.models.treebased.train import filter_feat
 from src.page_classes import PageClasses
 from src.page_structure import PageContext
 
@@ -57,6 +58,8 @@ class TreeBasedClassifier(Classifier):
         """
         context = context_builder()
         features = get_features_from_page(page=page, ctx=context, matching_params=self.matching_params)
+        _, features, _ = filter_feat(None, [features])
+        features = features[0]
 
         predictions = self.model.predict([features])
 

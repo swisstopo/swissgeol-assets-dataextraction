@@ -14,7 +14,7 @@ def identify_table(ctx: PageContext, min_conf: float = 0.6, min_coverage: float 
     - Confidence of detected text tables based on row alignment
     - Text coverage of detected tables in relation to all text on the page
     """
-    text_table = detect_text_table(ctx)
+    text_table = detect_text_table(ctx.words)
     if not text_table:
         return False
 
@@ -24,12 +24,12 @@ def identify_table(ctx: PageContext, min_conf: float = 0.6, min_coverage: float 
 
 
 def detect_text_table(
-    ctx: PageContext, gap_factor: float = 4.0, x_tol: float = 2.0, min_cols: int = 3, max_noise: float = 1.5
+    words: list[TextWord], gap_factor: float = 4.0, x_tol: float = 2.0, min_cols: int = 3, max_noise: float = 1.5
 ) -> list[TextTable]:
     """Detects and returns text tables with minimum 3 columns on a page based on aligned text columns.
 
     Args:
-        ctx: PageContext of the page to analyze.
+        words: words on the page to analyze.
         gap_factor: Factor by which mean vertical word gap will be multiplied
             To get maximal vertical gap with which column will be constructed.
             This allows adapting to different line spacings on the page.
@@ -41,14 +41,14 @@ def detect_text_table(
         List of detected TextTables.
     """
     # adaptive vertical cap from page content
-    word_gap = _median_line_gap(ctx.words)
+    word_gap = _median_line_gap(words)
     max_vert_gap = gap_factor * word_gap
 
-    cols = make_text_columns(ctx.words, x_tol=x_tol, max_vertical_gap=max_vert_gap)
+    cols = make_text_columns(words, x_tol=x_tol, max_vertical_gap=max_vert_gap)
     if len(cols) < min_cols:
         return []
 
-    valid_cols = [col for col in cols if col.noise(ctx.words) < max_noise]
+    valid_cols = [col for col in cols if col.noise(words) < max_noise]
     tables = make_text_tables(valid_cols)
 
     return [table for table in tables if len(table.columns) >= min_cols]
