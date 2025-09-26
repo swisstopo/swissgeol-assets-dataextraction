@@ -7,6 +7,7 @@ From:
 
 from collections import defaultdict
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import TypeVar
 
 import pymupdf
@@ -25,7 +26,7 @@ class TextWord:
         self.page_number = page
 
     def __repr__(self) -> str:
-        return f"TextWord({self.rect}, {self.text})"
+        return f"TextWord({self.text},{self.rect},)"
 
 
 def extract_words(page, page_number):
@@ -168,7 +169,7 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
     return blocks
 
 
-def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: int = 10) -> list[list[T]]:
+def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: float = 10.0) -> list[list[T]]:
     """Cluster text elements based on coordinates of bounding box.
 
     Args:
@@ -201,3 +202,112 @@ def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], toler
     clusters = list(grouped.values())
 
     return clusters
+
+
+def cluster_connected_components(items: list[T], is_connected: Callable[[T, T], bool]) -> list[list[T]]:
+    """Generic BFS clustering of items into connected components.
+
+    Each item is connected to others if `is_connected(a, b)` returns True.
+    Items that can be reached transitively form one cluster.
+
+    Args:
+        items: List of objects to cluster.
+        is_connected: Predicate that decides whether two items are connected.
+
+    Returns:
+        List of clusters, where each cluster is a list of connected items.
+    """
+    n = len(items)
+    visited = [False] * n
+    components: list[list[T]] = []
+
+    for i in range(n):
+        if visited[i]:
+            continue
+        # BFS
+        queue = [i]
+        visited[i] = True
+        component = [items[i]]
+        while queue:
+            u = queue.pop()
+            for v in range(n):
+                if visited[v] or v == u:
+                    continue
+                if is_connected(items[u], items[v]):
+                    visited[v] = True
+                    queue.append(v)
+                    component.append(items[v])
+        components.append(component)
+
+    return components
+
+
+@dataclass
+class TextColumn:
+    """A vertical column of text, composed of multiple TextWords."""
+
+    words: list[TextWord]
+
+    @property
+    def rect(self):
+        return merge_bounding_boxes([w.rect for w in self.words])
+
+    def __repr__(self):
+        return f"TextColumn({[word.text for word in self.words]},{self.rect},)"
+
+    def noise(self, all_words) -> float:
+        """Metric that shows how noisy a column is.
+
+        It's the ratio between actual column entries and non-column words overlapping with the column bounding box.
+        Best noise = 1 (intersecting words = self.words). More intersecting words will lead to a higher ratio.
+        """
+        column_bbox = self.rect
+        intersecting_words = [word for word in all_words if column_bbox.intersects(word.rect)]
+        ratio = len(intersecting_words) / len(self.words)
+        return ratio
+
+
+@dataclass
+class TextTable:
+    """A table composed of multiple aligned TextColumns."""
+
+    columns: list[TextColumn]
+    words: list[TextWord] = field(init=False)
+
+    def __post_init__(self):
+        self.words = [word for col in self.columns for word in col.words]
+
+    @property
+    def rect(self) -> pymupdf.Rect:
+        return merge_bounding_boxes([c.rect for c in self.columns if c.rect is not None])
+
+    def text_coverage(self, all_words: list[TextWord]) -> float:
+        """Fraction of words belonging to the table relative to all words on the page."""
+        if not all_words:
+            return 0.0
+        coverage = sum(len(col.words) for col in self.columns) / len(all_words)
+        return coverage
+
+    @property
+    def confidence(self):
+        """Confidence based on row alignment across columns.
+
+        Steps:
+        - Collect row centers from all columns.
+        - Merge centers within a tolerance (rows aligning across columns).
+        - Confidence = 1 -  (#merged rows) / (total entries).
+        """
+        if not self.columns:
+            return 0.0
+
+        merged_rows = cluster_text_elements(self.words, key_fn=lambda w: (w.rect.y0 + w.rect.y1) / 2, tolerance=3.0)
+
+        total_entries = len(self.words)
+        if total_entries == 0:
+            return 0.0
+
+        # fewer merged rows relative to total entries -> better alignment
+        merged_count = len(merged_rows)
+        q_rows = 1.0 - (merged_count / total_entries)
+
+        return q_rows

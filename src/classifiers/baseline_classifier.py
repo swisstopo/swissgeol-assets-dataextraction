@@ -10,6 +10,7 @@ from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure
 from src.identifiers.diagram import identify_diagram
 from src.identifiers.geo_profile import identify_geo_profile
 from src.identifiers.map import identify_map
+from src.identifiers.table import identify_table
 from src.identifiers.text import identify_text
 from src.identifiers.title_page import identify_title_page
 from src.line_detection import extract_geometric_lines
@@ -46,6 +47,9 @@ class RuleBasedClassifier(Classifier):
 
         if identify_diagram(context, self.matching_params):
             return PageClasses.DIAGRAM
+
+        if identify_table(context):
+            return PageClasses.TABLE
 
         if identify_title_page(context, self.matching_params):
             return PageClasses.TITLE_PAGE
