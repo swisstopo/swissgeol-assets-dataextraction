@@ -12,7 +12,7 @@ from typing import TypeVar
 
 import pymupdf
 
-from src.bounding_box import merge_bounding_boxes
+from src.bounding_box import _y_center, merge_bounding_boxes
 
 T = TypeVar("T")
 
@@ -26,7 +26,7 @@ class TextWord:
         self.page_number = page
 
     def __repr__(self) -> str:
-        return f"TextWord({self.rect}, {self.text})"
+        return f"TextWord({self.text},{self.rect},)"
 
 
 def extract_words(page, page_number):
@@ -251,6 +251,20 @@ class TextColumn:
     def rect(self):
         return merge_bounding_boxes([w.rect for w in self.words])
 
+    def __repr__(self):
+        return f"TextColumn({[word.text for word in self.words]},{self.rect},)"
+
+    def noise(self, all_words) -> float:
+        """Metric that shows how noisy a column is.
+
+        It's the ratio between actual column entries and non-column words overlapping with the column bounding box.
+        Best noise = 1 (intersecting words = self.words). More intersecting words will lead to a higher ratio.
+        """
+        column_bbox = self.rect
+        intersecting_words = [word for word in all_words if column_bbox.intersects(word.rect)]
+        ratio = len(intersecting_words) / len(self.words)
+        return ratio
+
 
 @dataclass
 class TextTable:
@@ -271,11 +285,12 @@ class TextTable:
         """Fraction of page height covered by text tables bounding box."""
         return self.rect.height / page_height
 
-    def text_coverage(self, all_words: list[TextWord]):
-        """Fraction of words in the table relative to all words on the page."""
+    def text_coverage(self, all_words: list[TextWord]) -> float:
+        """Fraction of words belonging to the table relative to all words on the page."""
         if not all_words:
             return 0.0
-        return sum(len(col.words) for col in self.columns) / len(all_words)
+        coverage = sum(len(col.words) for col in self.columns) / len(all_words)
+        return coverage
 
     @property
     def confidence(self):
@@ -289,7 +304,11 @@ class TextTable:
         if not self.columns:
             return 0.0
 
-        merged_rows = cluster_text_elements(self.words, key_fn=lambda w: (w.rect.y0 + w.rect.y1) / 2, tolerance=3.0)
+        def _same_row(w1: TextWord, w2: TextWord, tolerance: float = 3.0):
+            w1_center, w2_center = _y_center(w1.rect), _y_center(w2.rect)
+            return abs(w1_center - w2_center) <= tolerance
+
+        merged_rows = cluster_connected_components(self.words, _same_row)
 
         total_entries = len(self.words)
         if total_entries == 0:

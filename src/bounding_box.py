@@ -16,6 +16,16 @@ def merge_bounding_boxes(rects):
     return pymupdf.Rect(x0, y0, x1, y1)
 
 
+def _x_center(rect: pymupdf.Rect) -> float:
+    """Finds middle x position of a rectangle."""
+    return 0.5 * (rect.x0 + rect.x1)
+
+
+def _y_center(rect: pymupdf.Rect) -> float:
+    """Finds middle y position of a rectangle."""
+    return 0.5 * (rect.y0 + rect.y1)
+
+
 def is_line_below_box(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
     """Determines whether a text line rect is directly below an image rect and horizontally aligned.
 
