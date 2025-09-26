@@ -48,7 +48,7 @@ class RuleBasedClassifier(Classifier):
         if identify_diagram(context, self.matching_params):
             return PageClasses.DIAGRAM
 
-        if identify_table(context):
+        if self._detect_table(page, context):
             return PageClasses.TABLE
 
         if identify_title_page(context, self.matching_params):
