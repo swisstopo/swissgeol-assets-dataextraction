@@ -1,41 +1,64 @@
 import numpy as np
 import pymupdf
 
-from src.bounding_box import _x_center
+from src.bounding_box import _x_center, rects_intersect
 from src.page_structure import PageContext
+from src.table_detection import detect_structure_lines, detect_table_structures
 from src.text_objects import TextColumn, TextTable, TextWord, cluster_connected_components
 
 
-def identify_table(ctx: PageContext, min_conf: float = 0.6, min_coverage: float = 0.3) -> bool:
-    """Identifies whether a page is likely to contain a table based on text alignment.
+def identify_table(ctx: PageContext, min_coverage: float = 0.3) -> bool:
+    """Identifies whether a page is likely to contain a table based on text alignment and line structure.
 
-    Factors include:
-    - Presence of text tables
-    - Confidence of detected text tables based on row alignment
-    - Text coverage of detected tables in relation to all text on the page
+    Logic:
+    - Presence of valid text tables ( via text positioning).
+      Text tables are considered valid, if they cover more than min_coverage of text.
+    - If valid line tables (via line positions) are present, they have to intersect with a valid text table.
+
+    Args:
+        ctx: PageContext of the page to analyze.
+        min_coverage: Minimum text coverage a detected text table must have to be considered valid.
     """
-    text_table = detect_text_table(ctx.words)
-    if not text_table:
+    text_tables = detect_text_table(ctx.words)
+    valid_text_tables = [table for table in text_tables if table.text_coverage(ctx.words) > min_coverage]
+
+    # Exit early
+    if not valid_text_tables:
         return False
 
-    good_text_tables = [table for table in text_table if table.confidence >= min_conf]
+    # Detect table grids
+    structure_lines = detect_structure_lines(ctx.geometric_lines)
+    line_tables = detect_table_structures(ctx.page_rect, structure_lines, ctx.lines)
 
-    return any(table.text_coverage(ctx.words) > min_coverage for table in good_text_tables)
+    if not line_tables:
+        return True
+
+    return any(
+        rects_intersect(line_table.rect, text_table.rect)
+        for line_table in line_tables
+        for text_table in valid_text_tables
+    )
 
 
 def detect_text_table(
-    words: list[TextWord], gap_factor: float = 4.0, x_tol: float = 2.0, min_cols: int = 3, max_noise: float = 1.5
+    words: list[TextWord],
+    gap_factor: float = 4.0,
+    x_tol: float = 2.0,
+    min_cols: int = 3,
+    max_noise: float = 1.5,
+    min_conf: float = 0.5,
 ) -> list[TextTable]:
     """Detects and returns text tables with minimum 3 columns on a page based on aligned text columns.
 
     Args:
-        words: words on the page to analyze.
+        words: Words of the page to analyze.
         gap_factor: Factor by which mean vertical word gap will be multiplied
             To get maximal vertical gap with which column will be constructed.
             This allows adapting to different line spacings on the page.
         x_tol: Tolerance for x0 alignment of words to form columns (in px).
         min_cols: Minimum number of columns for a valid table.
         max_noise: Maximal noise (overlapping non-column words) a column is allowed to have to be considered valid.
+        min_conf: Minimal confidence we can have in a table to be considered a table.
 
     Returns:
         List of detected TextTables.
@@ -51,7 +74,8 @@ def detect_text_table(
     valid_cols = [col for col in cols if col.noise(words) < max_noise]
     tables = make_text_tables(valid_cols)
 
-    return [table for table in tables if len(table.columns) >= min_cols]
+    result = [table for table in tables if len(table.columns) >= min_cols and table.confidence >= min_conf]
+    return result
 
 
 def make_text_columns(

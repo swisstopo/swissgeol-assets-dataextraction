@@ -4,6 +4,8 @@ import cv2
 import numpy as np
 import pymupdf
 
+from src.geometric_objects import Line
+
 logger = logging.getLogger(__name__)
 
 
@@ -24,6 +26,28 @@ def _x_center(rect: pymupdf.Rect) -> float:
 def _y_center(rect: pymupdf.Rect) -> float:
     """Finds middle y position of a rectangle."""
     return 0.5 * (rect.y0 + rect.y1)
+
+
+def bbox_of_lines(lines: list[Line]) -> pymupdf.Rect | None:
+    """Returns bounding box of a list of lines."""
+    if not lines:
+        return None
+    xs, ys = [], []
+    for L in lines:
+        xs.extend((L.start.x, L.end.x))
+        ys.extend((L.start.y, L.end.y))
+    return pymupdf.Rect(min(xs), min(ys), max(xs), max(ys))
+
+
+def rects_intersect(rect_a: pymupdf.Rect, rect_b: pymupdf.Rect) -> bool:
+    """Checks if two rectangles intersect, given they share same axis."""
+    ax0, ay0, ax1, ay1 = rect_a.x0, rect_a.y0, rect_a.x1, rect_a.y1
+    bx0, by0, bx1, by1 = rect_b.x0, rect_b.y0, rect_b.x1, rect_b.y1
+
+    x_overlap = max(ax0, bx0) < min(ax1, bx1)
+    y_overlap = max(ay0, by0) < min(ay1, by1)
+
+    return x_overlap and y_overlap
 
 
 def is_line_below_box(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
