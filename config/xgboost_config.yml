@@ -9,17 +9,12 @@ feature_names:
   - Words Per Line
   - Text zone Density
   - Mean Left
-  - Mean Right
   - Text Width
   - Line Count
-  - Line Length Variance
   - Indent Std Dev
-  - Punctuation Density
   - Capitalization Ratio
   - Has Sidebar
-  - Num Sidebar
   - Has Borehole Keyword
-  - Num Borehole Keyword
   - Num Valid Material Descriptions
   - Num Map Keyword Lines
   - Grid Line Length Sum
@@ -27,7 +22,6 @@ feature_names:
   - Line Angle Entropy
   - Line score
   - Num Geo Profile Keywords
-  - Num Diagram Keyword
   - Num Unit Keyword
   - Y scale ok
   - X scale ok
@@ -36,22 +30,19 @@ feature_names:
 
 
 hyperparameters:
-  n_estimators: 100
-  max_depth: 7
-  learning_rate: 0.1
+  n_estimators: 500
+  max_depth: 5
+  learning_rate: 0.05
   subsample: 0.8
-  colsample_bytree: 0.8
+  colsample_bytree: 1
   eval_metric: mlogloss
 
 tuning:
   n_iter: 50
   cv: 3
   param_grid:
-    n_estimators: [100, 200, 300, 400]
-    max_depth: [3, 5, 7, 10]
+    n_estimators: [100, 200, 300, 400, 500, 600]
+    max_depth: [5, 6, 7]
     learning_rate: [0.01, 0.05, 0.1, 0.3]
     subsample: [0.6, 0.8, 1.0]
     colsample_bytree: [0.6, 0.8, 1.0]
-    # gamma: [0, 1, 5]
-    # reg_alpha: [0, 0.1, 0.5]
-    # reg_lambda: [1, 1.5, 2.0]

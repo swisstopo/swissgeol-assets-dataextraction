@@ -98,22 +98,19 @@ def compute_text_features(
         list: A list of X computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
-        return [0.0] * 25  # Handle empty pages
+        return [0.0] * 19  # Handle empty pages
 
     (
         line_count,
         word_per_line,
         word_density,
         mean_left,
-        mean_right,
         text_width,
-        line_len_var,
         indent_std,
-        punct_density,
         capital_ratio,
     ) = get_word_features(lines, text_blocks)
 
-    num_valid_descriptions, num_sidebar, num_bh_keyword = get_borehole_features(lines, language, matching_params)
+    num_valid_descriptions, has_sidebar, has_bh_keyword = get_borehole_features(lines, language, matching_params)
 
     num_map_keyword_lines = get_map_features(lines, language, matching_params)
 
@@ -121,9 +118,9 @@ def compute_text_features(
 
     num_geo_profile_keywords = get_geo_profile_feature(lines, language, matching_params)
 
-    num_diagram_keyword, num_unit, y_ok, x_ok = get_diagram_features(lines, language, matching_params)
+    num_unit, y_ok, x_ok = get_diagram_features(lines, matching_params)
 
-    # num_tables = get_table_features(lines)
+    # num_tables = get_table_features(lines) # continue with this
 
     return [
         float(n)
@@ -131,25 +128,19 @@ def compute_text_features(
             word_per_line,
             word_density,
             mean_left,
-            mean_right,
             text_width,
             line_count,
-            line_len_var,
             indent_std,
-            punct_density,
             capital_ratio,
-            int(bool(num_sidebar)),
-            num_sidebar,
-            int(bool(num_bh_keyword)),
-            num_bh_keyword,
+            has_sidebar,
+            has_bh_keyword,
             num_valid_descriptions,
             num_map_keyword_lines,
             grid_length_sum,
             non_grid_length_sum,
             angle_entropy,
-            line_score,  # new after
+            line_score,
             num_geo_profile_keywords,
-            num_diagram_keyword,
             num_unit,
             y_ok,
             x_ok,
@@ -168,11 +159,9 @@ def get_table_features(lines: list[TextLine], min_conf: float = 0.6, min_coverag
     return len([table.text_coverage(words) > min_coverage for table in good_text_tables])
 
 
-def get_diagram_features(lines: list[TextLine], language: str, matching_params: dict):
-    keywords = matching_params["diagram"].get(language, [])
+def get_diagram_features(lines: list[TextLine], matching_params: dict):
     keywords_unit = matching_params["units"]
 
-    num_diagram_keyword = sum(keyword in line.line_text for line in lines for keyword in keywords)
     num_unit = sum(
         bool(re.search(r"[\(\[]\s*" + re.escape(u) + r"\s*[\)\]]", line.line_text.lower()))
         for u in keywords_unit
@@ -201,7 +190,7 @@ def get_diagram_features(lines: list[TextLine], language: str, matching_params: 
 
     y_ok = is_true_axis(vertical_clusters, key=lambda e: e.rect.y0)
     x_ok = is_true_axis(horizontal_clusters, key=lambda e: e.rect.x0)
-    return num_diagram_keyword, num_unit, y_ok, x_ok
+    return num_unit, y_ok, x_ok
 
 
 def get_geo_profile_feature(lines: list[TextLine], language: str, matching_params: dict):
@@ -237,11 +226,11 @@ def get_borehole_features(lines: list[TextLine], language: str, matching_params:
     num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
 
     sidebars = create_sidebars(words)
-    num_sidebar = len(sidebars)
+    has_sidebar = int(bool(sidebars))
 
     keyword_set = matching_params["boreprofile"].get(language, {})
-    num_bh_keyword = sum(keyword in word.text.lower() for word in words for keyword in keyword_set)
-    return num_valid_descriptions, num_sidebar, num_bh_keyword
+    has_bh_keyword = int(any(keyword in word.text.lower() for word in words for keyword in keyword_set))
+    return num_valid_descriptions, has_sidebar, has_bh_keyword
 
 
 def get_word_features(lines: list[TextLine], text_blocks: list[TextBlock]):
@@ -280,21 +269,15 @@ def get_word_features(lines: list[TextLine], text_blocks: list[TextBlock]):
     # Calculate word density as the ratio of word area to total area
     word_density = word_area / tot_area if tot_area > 0 else 0
     mean_left = np.mean(lefts)
-    mean_right = np.mean(rights)
     text_width = np.mean([r - left for r, left in zip(rights, lefts, strict=False)])
-    line_len_var = np.var(line_lengths)
     indent_std = np.std(lefts)
-    punct_density = punct_count / line_count if line_count else 0
     capital_ratio = capital_chars / total_chars if total_chars else 0
     return (
         line_count,
         word_per_line,
         word_density,
         mean_left,
-        mean_right,
         text_width,
-        line_len_var,
         indent_std,
-        punct_density,
         capital_ratio,
     )

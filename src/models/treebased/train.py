@@ -12,6 +12,7 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 
 # from skopt import BayesSearchCV
+from skopt import BayesSearchCV
 from xgboost import XGBClassifier
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
@@ -100,9 +101,9 @@ class XGBoostTrainer(TreeBasedTrainer):
         """
         # Initialize XGBoost model with default parameters
         model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
-        search = RandomizedSearchCV(  # BayesSearchCV(
+        search = BayesSearchCV(
             estimator=model,
-            param_distributions=param_dist,  # search_spaces=param_dist,
+            search_spaces=param_dist,
             n_iter=n_iter,
             scoring=scoring,
             cv=cv,
@@ -237,8 +238,8 @@ def temp_cache_data(train_folder, val_folder, label_lookup):
                 return pickle.load(f)
 
     # Paths for cached files
-    train_cache = "Xy_train_25_feat.pkl"
-    val_cache = "Xy_val_25_feat.pkl"
+    train_cache = "Xy_train_feat.pkl"
+    val_cache = "Xy_val_feat.pkl"
 
     # Load or create train data
     if os.path.exists(train_cache):
@@ -263,31 +264,25 @@ def filter_feat(X_train, X_val):
     #   0- Words Per Line
     #   1- Text zone Density
     #   2- Mean Left
-    #   3- Mean Right
-    #   4- Text Width
-    #   5- Line Count
-    #   6- Line Length Variance
-    #   7- Indent Std Dev
-    #   8- Punctuation Density
-    #   9- Capitalization Ratio
-    #   10- Has Sidebar
-    #   11- Num Sidebar
-    #   12- Has Borehole Keyword
-    #   13- Num Borehole Keyword
-    #   14- Num Valid Material Descriptions
-    #   15- Num Map Keyword Lines
-    #   16- Grid Line Length Sum
-    #   17- Non Grid Line Length Sum
-    #   18- Line Angle Entropy
-    #   19- Line score
-    #   20- Num Geo Profile Keywords
-    #   21- Num Diagram Keyword
-    #   22- Num Unit Keyword
-    #   23- Y scale ok
-    #   24- X scale ok
+    #   3- Text Width
+    #   4- Line Count
+    #   5- Indent Std Dev
+    #   6- Capitalization Ratio
+    #   7- Has Sidebar
+    #   8- Has Borehole Keyword
+    #   9- Num Valid Material Descriptions
+    #   10- Num Map Keyword Lines
+    #   11- Grid Line Length Sum
+    #   12- Non Grid Line Length Sum
+    #   13- Line Angle Entropy
+    #   14- Line score
+    #   15- Num Geo Profile Keywords
+    #   16- Num Unit Keyword
+    #   17- Y scale ok
+    #   18- X scale ok
 
     # THOSE IGNORED must match the CONFIG file
-    ignored_feat = [11, 13] + list(range(19, 25))
+    ignored_feat = []
     X_train = [[c for i, c in enumerate(r) if i not in ignored_feat] for r in X_train] if X_train else None
     X_val = [[c for i, c in enumerate(r) if i not in ignored_feat] for r in X_val] if X_val else None
 
