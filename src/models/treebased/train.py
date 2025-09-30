@@ -9,9 +9,6 @@ import pymupdf
 from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
-
-# from skopt import BayesSearchCV
-from skopt import BayesSearchCV
 from xgboost import XGBClassifier
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
@@ -105,9 +102,9 @@ class XGBoostTrainer(TreeBasedTrainer):
         """
         # Initialize XGBoost model with default parameters
         model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
-        search = BayesSearchCV(
+        search = RandomizedSearchCV(
             estimator=model,
-            search_spaces=param_dist,
+            param_distributions=param_dist,
             n_iter=n_iter,
             scoring=scoring,
             cv=cv,

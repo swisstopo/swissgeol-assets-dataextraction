@@ -75,7 +75,7 @@ def compute_text_features(
     geometric_lines: list[Line],
     matching_params: dict,
 ) -> list[float]:
-    """Computes 17 numerical features used for tree-based page classification models.
+    """Computes 19 numerical features used for tree-based page classification models.
 
     (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
 
@@ -94,7 +94,7 @@ def compute_text_features(
         matching_params: Configuration dictionary for keyword and pattern matching.
 
     Returns:
-        list: A list of X computed feature values for the page. If no text lines are found, returns a zero vector.
+        list: A list of 19 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
         return [0.0] * 19  # Handle empty pages

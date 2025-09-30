@@ -28,7 +28,7 @@ feature_names:
 
 
 hyperparameters:
-  n_estimators: 500
+  n_estimators: 600
   max_depth: 5
   learning_rate: 0.05
   subsample: 0.8
