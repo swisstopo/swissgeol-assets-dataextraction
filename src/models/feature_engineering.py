@@ -4,7 +4,7 @@ from collections.abc import Callable
 import numpy as np
 import pymupdf
 
-from identifiers.table import detect_text_table
+from page_structure import PageContext
 from src.geometric_objects import Line
 from src.identifiers.boreprofile import Entry, create_sidebars, detect_entries, is_mostly_increasing
 from src.identifiers.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
@@ -16,7 +16,6 @@ from src.language_detection.detect_language import (
 )
 from src.line_detection import extract_geometric_lines
 from src.material_description import detect_material_description
-from src.page_structure import PageContext
 from src.text_objects import TextBlock, TextLine, cluster_text_elements, create_text_blocks, create_text_lines
 from src.utils import is_description
 
@@ -120,43 +119,28 @@ def compute_text_features(
 
     num_unit, y_ok, x_ok = get_diagram_features(lines, matching_params)
 
-    # num_tables = get_table_features(lines) # continue with this
-
-    return [
-        float(n)
-        for n in [
-            word_per_line,
-            word_density,
-            mean_left,
-            text_width,
-            line_count,
-            indent_std,
-            capital_ratio,
-            has_sidebar,
-            has_bh_keyword,
-            num_valid_descriptions,
-            num_map_keyword_lines,
-            grid_length_sum,
-            non_grid_length_sum,
-            angle_entropy,
-            line_score,
-            num_geo_profile_keywords,
-            num_unit,
-            y_ok,
-            x_ok,
-        ]
+    features = [
+        word_per_line,
+        word_density,
+        mean_left,
+        text_width,
+        line_count,
+        indent_std,
+        capital_ratio,
+        has_sidebar,
+        has_bh_keyword,
+        num_valid_descriptions,
+        num_map_keyword_lines,
+        grid_length_sum,
+        non_grid_length_sum,
+        angle_entropy,
+        line_score,
+        num_geo_profile_keywords,
+        num_unit,
+        y_ok,
+        x_ok,
     ]
-
-
-def get_table_features(lines: list[TextLine], min_conf: float = 0.6, min_coverage: float = 0.3):
-    words = [word for line in lines for word in line.words]
-    text_table = detect_text_table(words)
-    if not text_table:
-        return 0
-
-    good_text_tables = [table for table in text_table if table.confidence >= min_conf]
-
-    return len([table.text_coverage(words) > min_coverage for table in good_text_tables])
+    return list(map(float, features))
 
 
 def get_diagram_features(lines: list[TextLine], matching_params: dict):

@@ -85,7 +85,7 @@ class XGBoostTrainer(TreeBasedTrainer):
         self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
 
     def tune_hyperparameters(
-        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3
+        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
     ) -> tuple[dict, float]:
         """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
 
@@ -94,6 +94,7 @@ class XGBoostTrainer(TreeBasedTrainer):
             n_iter: Number of parameter settings that are sampled.
             scoring: Scoring method to use for evaluation.
             cv: Number of folds in cross-validation.
+            random_state (int): Random seed for reproducibility.
 
         Returns:
                 best_params: Best hyperparameters found during tuning.
@@ -108,7 +109,7 @@ class XGBoostTrainer(TreeBasedTrainer):
             scoring=scoring,
             cv=cv,
             verbose=1,
-            random_state=42,
+            random_state=random_state,
             n_jobs=-1,
         )
         search.fit(self.X_train, self.y_train)
@@ -260,7 +261,7 @@ def temp_cache_data(train_folder, val_folder, label_lookup):
 
 
 def filter_feat(X_train, X_val):
-    # with feat 26 continais in order :
+    # with 19 feat containing in order :
     #   0- Words Per Line
     #   1- Text zone Density
     #   2- Mean Left

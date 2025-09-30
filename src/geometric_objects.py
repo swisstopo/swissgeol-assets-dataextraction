@@ -22,7 +22,7 @@ class Point:
     y: float
 
     @property
-    def tuple(self) -> (float, float):
+    def tuple(self) -> tuple[float, float]:
         return self.x, self.y
 
     def distance_to(self, point: Point) -> float:
@@ -36,8 +36,9 @@ class Line:
     start: Point
     end: Point
 
-    def __post_init__(self):
-        object.__setattr__(self, "length", self.start.distance_to(self.end))
+    @property
+    def length(self) -> float:
+        return self.start.distance_to(self.end)
 
     @property
     def line_angle(self) -> float:
