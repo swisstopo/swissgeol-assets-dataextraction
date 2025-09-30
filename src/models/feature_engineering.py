@@ -4,7 +4,6 @@ from collections.abc import Callable
 import numpy as np
 import pymupdf
 
-from page_structure import PageContext
 from src.geometric_objects import Line
 from src.identifiers.boreprofile import Entry, create_sidebars, detect_entries, is_mostly_increasing
 from src.identifiers.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
@@ -16,6 +15,7 @@ from src.language_detection.detect_language import (
 )
 from src.line_detection import extract_geometric_lines
 from src.material_description import detect_material_description
+from src.page_structure import PageContext
 from src.text_objects import TextBlock, TextLine, cluster_text_elements, create_text_blocks, create_text_lines
 from src.utils import is_description
 
