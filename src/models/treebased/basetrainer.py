@@ -98,6 +98,8 @@ class TreeBasedTrainer(abc.ABC):
         """Saves the trained model to the specified file."""
         path = self.model_dir / filename
         joblib.dump(self.model, path)
+        signature = mlflow.models.infer_signature(self.X_train[:1], self.model.predict(self.X_train[:1]))
+        mlflow.sklearn.log_model(self.model, name=self.model_name, signature=signature)
         return path
 
     def plot_and_log_feature_importance(self):

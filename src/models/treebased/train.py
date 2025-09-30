@@ -35,6 +35,8 @@ class RandomForestTrainer(TreeBasedTrainer):
     Random Forest models using the provided configuration and data.
     """
 
+    model_name = "random_forest_model"
+
     def prepare_model(self):
         """Prepares the Random Forest model for training."""
         hyperparams = self.config.get("hyperparameters", {})
@@ -77,6 +79,8 @@ class XGBoostTrainer(TreeBasedTrainer):
     This class extends the TreeBasedTrainer to implement specific methods for training and evaluating
     XGBoost models using the provided configuration and data.
     """
+
+    model_name = "xgboost_model"
 
     def prepare_model(self):
         """Prepares the XGBoost model for training."""
@@ -175,10 +179,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
     if trainer_name == "random_forest":
         trainer = RandomForestTrainer(config, model_out_directory)
-        mlflow.sklearn.autolog()
     elif trainer_name == "xgboost":
         trainer = XGBoostTrainer(config, model_out_directory)
-        mlflow.xgboost.autolog()
     else:
         raise ValueError(f"Unsupported trainer: {trainer_name}")
 
