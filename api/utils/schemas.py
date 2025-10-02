@@ -70,7 +70,7 @@ class PagePrediction(BaseModel):
 
     predicted_class: str
     page_number: int = Field(gt=0, description="Page number must be greater than 0")
-    page_meta_data: PageMetaDataSchema
+    page_metadata: PageMetaDataSchema
 
     @classmethod
     def from_prediction(cls, prediction: dict):
