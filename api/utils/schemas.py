@@ -77,7 +77,7 @@ class PagePrediction(BaseModel):
         return cls(
             predicted_class=parse_predicted_class(prediction["classification"]),
             page_number=prediction["page"],
-            page_meta_data=PageMetaDataSchema.from_prediction(prediction["metadata"]),
+            page_metadata=PageMetaDataSchema.from_prediction(prediction["metadata"]),
         )
 
 
@@ -115,7 +115,7 @@ class CollectResponse(BaseModel):
                             {
                                 "predicted_class": "Map",
                                 "page_number": 1,
-                                "page_meta_data": {"language": "fr", "is_frontpage": True},
+                                "page_metadata": {"language": "fr", "is_frontpage": True},
                             }
                         ],
                     }
