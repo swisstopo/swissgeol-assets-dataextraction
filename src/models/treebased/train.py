@@ -224,8 +224,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, help="Path to YAML config file")
-    parser.add_argument("--out", required=True, help="Output directory root")
-    parser.add_argument("--tune", action="store_true", help="Enable hyperparameter tuning")
+    parser.add_argument("--config-file-path", required=True, help="Path to YAML config file")
+    parser.add_argument("--out-directory", required=True, help="Output directory root")
+    parser.add_argument("--tuning", action="store_true", help="Enable hyperparameter tuning")
     args = parser.parse_args()
-    main(args.config, args.out, args.tune)
+    main(args.config_file_path, args.out_directory, args.tuning)
