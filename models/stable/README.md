@@ -7,7 +7,7 @@ It uses 17 input features to predict one of 8 possible classes:
 
 # Version Notes
 
-In version 1 (v1), the classes "geo_profile", "diagram", and "table" are mapped to "unknown" after prediction.
+In the initial version (available on the v0 router with endpoint '/'), the classes "geo_profile", "diagram", and "table" are mapped to "unknown" after prediction.
 
 # Example usage
 ```
