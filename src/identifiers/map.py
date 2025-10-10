@@ -92,7 +92,7 @@ def identify_map(ctx: PageContext, matching_params) -> bool:
         logger.warning(f"No keywords for language '{ctx.language}', falling back to 'de'")
         keywords = matching_params["map_terms"].get("de", [])
 
-    line_score = map_lines_score(ctx)
+    line_score = map_lines_score(ctx.geometric_lines)
 
     map_keyword_lines = [line for line in ctx.lines if is_description(line, keywords) or find_map_scales(line)]
     text_score = map_text_score(ctx, map_keyword_lines)
@@ -170,20 +170,20 @@ def compute_angle_entropy(angles, angle_bin_count: int = 36):
     return entropy(angle_hist) / np.log2(angle_bin_count)
 
 
-def map_lines_score(ctx: PageContext) -> float:
+def map_lines_score(geometric_lines: list[Line]) -> float:
     """Returns a score (0.0 to 1.0) indicating whether the page contains map-like line structure.
 
      A high score suggests the presence of:
     - Diverse angles (curved or non-orthogonal features, like contour lines)
     - Sum of non-grid line lengths higher than sum of to grid line lengths
     """
-    if not ctx.geometric_lines:
+    if not geometric_lines:
         return 0.0
 
-    angles = [line.line_angle for line in ctx.geometric_lines]
+    angles = [line.line_angle for line in geometric_lines]
 
     # Grid/non-grid splitting of lines
-    grid_lengths, non_grid_lengths = split_lines_by_orientation(ctx.geometric_lines)
+    grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
     grid_length_sum = sum(grid_lengths)
     non_grid_length_sum = sum(non_grid_lengths)
 

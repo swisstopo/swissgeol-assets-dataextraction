@@ -208,10 +208,11 @@ python scripts/split_data.py
 
 To train a LayoutLMv3 model, run:
 ```bash
-python src.models.layoutlmv3.train.py
-    --config_file_path config/layoutlmv3_config.yml
-    --out_directory models/layoutlmv3_output 
-    [--model_checkpoint models/layoutlmv3_pretrained_checkpoint]
+python -m src.models.layoutlmv3.train \
+    --config-file-path config/layoutlmv3_config.yaml \
+    --out-directory models/layoutlmv3_output \
+    # Optional argument:
+    --model-checkpoint models/layoutlmv3_pretrained_checkpoint
 ```
 **Arguments**:
 - `config_file_path`: Path to the YAML configuration file with model parameters and dataset paths.
@@ -223,9 +224,9 @@ The script supports freezing/unfreezing specific layers and uses the Hugging Fac
 ### Train TreeBased (RandomForest or  XGBoost)
 To train a RandomForest or XGBoost classifier, use:
 ```bash
-python src.models.treebased.train.py \
-    --config_file_path config/xgboost_config.yml \
-    --out_directory models/xgboost_model
+python -m src.models.treebased.train \
+    --config-file-path config/xgboost_config.yml \
+    --out-directory models/xgboost_model
 ```
 - `config_file_path`: Path to the YAML config specifying hyperparameters and feature extraction settings.
 - `out_directory`: Output path for the trained model.

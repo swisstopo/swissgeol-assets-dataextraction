@@ -48,7 +48,7 @@ class RuleBasedClassifier(Classifier):
         if identify_diagram(context, self.matching_params):
             return PageClasses.DIAGRAM
 
-        if identify_table(context):
+        if self._detect_table(page, context):
             return PageClasses.TABLE
 
         if identify_title_page(context, self.matching_params):
@@ -82,6 +82,17 @@ class RuleBasedClassifier(Classifier):
             self._extract_geometric_lines(context, page)
 
         return identify_map(context, self.matching_params)
+
+    def _detect_table(self, page: pymupdf.Page, context: PageContext) -> bool:
+        """Determines whether a page should be classified as a map page.
+
+        Table detection relies on Line detection, which gets delayed until here.
+        Short lines (often from text artifacts) are filtered out when text is present.
+        """
+        if not context.geometric_lines:
+            self._extract_geometric_lines(context, page)
+
+        return identify_table(context)
 
     def _extract_geometric_lines(self, context: PageContext, page: pymupdf.Page):
         """Extracts and filters geometric lines from the page.

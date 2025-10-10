@@ -32,13 +32,13 @@ def find_pattern(line: TextLine, patterns: list[str]) -> str | None:
     """Searches for a match of any given regex pattern in the text of a line.
 
     Args:
-        line: A TextLine object with a .line_text() method.
+        line: A TextLine object with a .line_text attribute.
         patterns: List of regex strings to search for.
 
     Returns:
         The first matching string if found, otherwise None.
     """
-    text = line.line_text().lower()
+    text = line.line_text.lower()
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:
@@ -57,7 +57,7 @@ def find_figure_description(ctx: PageContext) -> list[TextLine]:
     Returns:
         list[TextLine]: A list of lines matching the caption criteria.
     """
-    relevant_lines = []
+    relevant_lines: list[TextLine] = []
     added_lines = set()
 
     for line in ctx.lines:
@@ -72,7 +72,7 @@ def find_figure_description(ctx: PageContext) -> list[TextLine]:
 
     figure_description_lines = []
     for line in relevant_lines:
-        line_text = line.line_text()
+        line_text = line.line_text
         if FIGURE_PATTERNS.match(line_text):
             figure_description_lines.append(line)
 

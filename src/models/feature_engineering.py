@@ -1,12 +1,14 @@
 import re
+from collections.abc import Callable
 
 import numpy as np
 import pymupdf
 
 from src.geometric_objects import Line
-from src.identifiers.boreprofile import create_sidebars
-from src.identifiers.map import compute_angle_entropy, find_map_scales, split_lines_by_orientation
+from src.identifiers.boreprofile import Entry, create_sidebars, detect_entries, is_mostly_increasing
+from src.identifiers.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
 from src.language_detection.detect_language import (
+    DEFAULT_LANGUAGE,
     extract_cleaned_text,
     predict_language,
     select_classification_language,
@@ -14,7 +16,7 @@ from src.language_detection.detect_language import (
 from src.line_detection import extract_geometric_lines
 from src.material_description import detect_material_description
 from src.page_structure import PageContext
-from src.text_objects import TextBlock, TextLine, create_text_blocks, create_text_lines
+from src.text_objects import TextBlock, TextLine, cluster_text_elements, create_text_blocks, create_text_lines
 from src.utils import is_description
 
 
@@ -73,7 +75,7 @@ def compute_text_features(
     geometric_lines: list[Line],
     matching_params: dict,
 ) -> list[float]:
-    """Computes 17 numerical features used for tree-based page classification models.
+    """Computes 19 numerical features used for tree-based page classification models.
 
     (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
 
@@ -92,11 +94,130 @@ def compute_text_features(
         matching_params: Configuration dictionary for keyword and pattern matching.
 
     Returns:
-        list: A list of 17 computed feature values for the page. If no text lines are found, returns a zero vector.
+        list: A list of 19 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
-        return [0.0] * 17  # Handle empty pages
+        return [0.0] * 19  # Handle empty pages
 
+    (
+        line_count,
+        word_per_line,
+        word_density,
+        mean_left,
+        text_width,
+        indent_std,
+        capital_ratio,
+    ) = get_word_features(lines, text_blocks)
+
+    num_valid_descriptions, has_sidebar, has_bh_keyword = get_borehole_features(lines, language, matching_params)
+
+    num_map_keyword_lines = get_map_features(lines, language, matching_params)
+
+    grid_length_sum, non_grid_length_sum, angle_entropy, line_score = get_geom_line_features(geometric_lines)
+
+    num_geo_profile_keywords = get_geo_profile_feature(lines, language, matching_params)
+
+    num_unit, y_ok, x_ok = get_diagram_features(lines, matching_params)
+
+    features = [
+        word_per_line,
+        word_density,
+        mean_left,
+        text_width,
+        line_count,
+        indent_std,
+        capital_ratio,
+        has_sidebar,
+        has_bh_keyword,
+        num_valid_descriptions,
+        num_map_keyword_lines,
+        grid_length_sum,
+        non_grid_length_sum,
+        angle_entropy,
+        line_score,
+        num_geo_profile_keywords,
+        num_unit,
+        y_ok,
+        x_ok,
+    ]
+    return list(map(float, features))
+
+
+def get_diagram_features(lines: list[TextLine], matching_params: dict):
+    keywords_unit = matching_params["units"]
+
+    num_unit = sum(
+        bool(re.search(r"[\(\[]\s*" + re.escape(u) + r"\s*[\)\]]", line.line_text.lower()))
+        for u in keywords_unit
+        for line in lines
+    )
+    words = [word for line in lines for word in line.words]
+    depths_entries = detect_entries(words)  # TODO should include
+
+    vertical_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.x0, tolerance=10)
+    horizontal_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.y0, tolerance=10)
+
+    def normalize_direction(values: list[Entry]) -> list[Entry]:
+        """Ensure values of entries go ascending; reverse if descending, leave otherwise."""
+        if len(values) < 2:
+            return values
+        return values[::-1] if values[0].value > values[-1].value else values
+
+    def is_true_axis(clusters: list[list[Entry]], key: Callable) -> bool:
+        for cluster in clusters:
+            if len(cluster) < 3:
+                continue
+            axis = sorted(cluster, key=key)
+            if is_mostly_increasing(normalize_direction(axis)):
+                return True
+        return False
+
+    y_ok = is_true_axis(vertical_clusters, key=lambda e: e.rect.y0)
+    x_ok = is_true_axis(horizontal_clusters, key=lambda e: e.rect.x0)
+    return num_unit, y_ok, x_ok
+
+
+def get_geo_profile_feature(lines: list[TextLine], language: str, matching_params: dict):
+    geo_profile_key_words = matching_params["geo_profile"].get(language, DEFAULT_LANGUAGE)
+    num_geo_profile_key_words = sum(kw in line.line_text.lower() for kw in geo_profile_key_words for line in lines)
+    return num_geo_profile_key_words
+
+
+def get_map_features(lines: list[TextLine], language: str, matching_params: dict):
+    keywords = matching_params["map_terms"].get(language, {})
+    num_map_keyword_lines = (
+        len([line for line in lines if is_description(line, keywords) or find_map_scales(line)]) if keywords else 0
+    )
+
+    return num_map_keyword_lines
+
+
+def get_geom_line_features(geometric_lines: list[Line]):
+    angles = [line.line_angle for line in geometric_lines]
+    grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
+    grid_length_sum = sum(grid_lengths)
+    non_grid_length_sum = sum(non_grid_lengths)
+    angle_entropy = compute_angle_entropy(angles)
+    lines_score = map_lines_score(geometric_lines)
+    return float(grid_length_sum), float(non_grid_length_sum), float(angle_entropy), lines_score
+
+
+def get_borehole_features(lines: list[TextLine], language: str, matching_params: dict):
+    words = [word for line in lines for word in line.words]
+
+    keywords = matching_params["material_description"].get(language, {})
+    descriptions = detect_material_description(lines, words, keywords) if keywords else []
+    num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
+
+    sidebars = create_sidebars(words)
+    has_sidebar = int(bool(sidebars))
+
+    keyword_set = matching_params["boreprofile"].get(language, {})
+    has_bh_keyword = int(any(keyword in word.text.lower() for word in words for keyword in keyword_set))
+    return num_valid_descriptions, has_sidebar, has_bh_keyword
+
+
+def get_word_features(lines: list[TextLine], text_blocks: list[TextBlock]):
     lefts, rights, line_lengths = [], [], []
     punct_count = capital_chars = total_chars = word_count = 0
 
@@ -114,7 +235,7 @@ def compute_text_features(
         total_chars += len(re.sub(r"\s", "", text))
 
     line_count = len(lines)
-    wpl = word_count / line_count if line_count else 0
+    word_per_line = word_count / line_count if line_count else 0
     word_area = sum(
         word.rect.get_area()
         for block in text_blocks
@@ -132,58 +253,15 @@ def compute_text_features(
     # Calculate word density as the ratio of word area to total area
     word_density = word_area / tot_area if tot_area > 0 else 0
     mean_left = np.mean(lefts)
-    mean_right = np.mean(rights)
     text_width = np.mean([r - left for r, left in zip(rights, lefts, strict=False)])
-    line_len_var = np.var(line_lengths)
     indent_std = np.std(lefts)
-    punct_density = punct_count / line_count if line_count else 0
     capital_ratio = capital_chars / total_chars if total_chars else 0
-
-    words = [word for line in lines for word in line.words]
-
-    keywords = matching_params["material_description"].get(language, {})
-    descriptions = detect_material_description(lines, words, keywords) if keywords else []
-    num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
-
-    sidebars = create_sidebars(words)
-    has_sidebar = int(bool(sidebars))
-
-    keyword_set = matching_params["boreprofile"].get(language, {})
-    has_bh_keyword = int(any(keyword in word.text.lower() for word in words for keyword in keyword_set))
-
-    keywords = matching_params["map_terms"].get(language, {})
-    if keywords:
-        num_map_keyword_lines = len(
-            [line for line in lines if is_description(line, keywords) or find_map_scales(line)]
-        )
-    else:
-        num_map_keyword_lines = 0
-
-    angles = [line.line_angle for line in geometric_lines]
-    grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
-    grid_length_sum = sum(grid_lengths)
-    non_grid_length_sum = sum(non_grid_lengths)
-    angle_entropy = compute_angle_entropy(angles)
-
-    return [
-        float(n)
-        for n in [
-            wpl,
-            word_density,
-            mean_left,
-            mean_right,
-            text_width,
-            line_count,
-            line_len_var,
-            indent_std,
-            punct_density,
-            capital_ratio,
-            has_sidebar,
-            has_bh_keyword,
-            num_valid_descriptions,
-            num_map_keyword_lines,
-            float(grid_length_sum),
-            float(non_grid_length_sum),
-            float(angle_entropy),
-        ]
-    ]
+    return (
+        line_count,
+        word_per_line,
+        word_density,
+        mean_left,
+        text_width,
+        indent_std,
+        capital_ratio,
+    )
