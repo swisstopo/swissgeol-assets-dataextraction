@@ -52,7 +52,6 @@ cp .env.template .env
 ```
 For development: 
 - Set `MLFLOW_TRACKING=True` in `.env` file for experiment tracking.
-- Set `PREDICTION_PROFILE=dev` for extended page classification. 
 
 ### 4. (Optional) Use a pre-trained model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).

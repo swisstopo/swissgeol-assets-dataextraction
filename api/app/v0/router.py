@@ -11,12 +11,11 @@ from starlette.responses import JSONResponse
 
 from api.aws import aws
 from api.utils import task
-from api.utils.mapping import map_labels_for_app
+from api.utils.mapping import map_labels_for_v0
 from api.utils.schemas import CollectPayload, StartPayload
 from api.utils.settings import ApiSettings, api_settings
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from main import _apply_profile
 from main import main as script
 
 logging.basicConfig()
@@ -113,9 +112,7 @@ def process(
         model_path="models/stable/model.joblib",
         write_result=False,
     )
-    # the call to _apply_profile in script is based on environment variables, we make sure the results are mapped here.
-    result = _apply_profile(result, "stable")
 
-    result = [map_labels_for_app(doc) for doc in result]
+    result = [map_labels_for_v0(doc) for doc in result]
     shutil.rmtree(tmp_dir)
     return result

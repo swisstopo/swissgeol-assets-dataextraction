@@ -17,8 +17,6 @@ from src.line_detection import extract_geometric_lines
 from src.page_classes import PageClasses
 from src.page_structure import PageContext
 
-prediction_profile = os.getenv("PREDICTION_PROFILE") or "stable"
-
 
 class RuleBasedClassifier(Classifier):
     """Baseline classifier for single document pages based on layout, content, and geometric features.
@@ -39,7 +37,7 @@ class RuleBasedClassifier(Classifier):
         if self._detect_boreprofile(page, context):
             return PageClasses.BOREPROFILE
 
-        if self._detect_geo_profile(page, context) and prediction_profile == "dev":
+        if self._detect_geo_profile(page, context):
             return PageClasses.GEO_PROFILE
 
         if self._detect_map(page, context):
