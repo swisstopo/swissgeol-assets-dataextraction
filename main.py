@@ -9,7 +9,6 @@ from dotenv import load_dotenv
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.evaluation import evaluate_results
 from src.pdf_processor import PDFProcessor
-from src.predictions.compat import STABLE_CLASS_MAPPING, STABLE_LABELS, map_to_stable_labels
 from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow

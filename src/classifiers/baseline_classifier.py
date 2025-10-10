@@ -1,5 +1,4 @@
 import math
-import os
 from collections.abc import Callable
 
 import numpy as np
