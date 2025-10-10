@@ -62,8 +62,9 @@ def predict_language(text: str) -> list[tuple[str, float]]:
         return []
 
     # Check if model already load globaly
+    global detector
     if detector is None:
-        fasttext.load_model(model_path)
+        detector = fasttext.load_model(model_path)
 
     try:
         labels, scores = detector.predict(text.lower(), k=5)
