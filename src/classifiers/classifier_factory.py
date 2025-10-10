@@ -3,11 +3,7 @@ import os
 
 from dotenv import load_dotenv
 
-from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
-from src.classifiers.layoutlmv3_classifier import LayoutLMv3Classifier
-from src.classifiers.pixtral_classifier import PixtralClassifier
-from src.classifiers.treebased_classifier import TreeBasedClassifier
 from src.utils import get_aws_config, read_params
 
 logger = logging.getLogger(__name__)
@@ -35,15 +31,24 @@ def create_classifier(
         A classifier instance matching the specified type.
     """
     if classifier_type == ClassifierTypes.BASELINE:
+        from src.classifiers.baseline_classifier import BaselineClassifier
+
         return BaselineClassifier(matching_params)
 
     elif classifier_type == ClassifierTypes.TREEBASED:
+        from src.classifiers.treebased_classifier import TreeBasedClassifier
+
         return TreeBasedClassifier(matching_params=matching_params, model_path=model_path)
 
     elif classifier_type == ClassifierTypes.LAYOUTLMV3:
+        from src.classifiers.layoutlmv3_classifier import LayoutLMv3Classifier
+
         return LayoutLMv3Classifier(model_path=model_path)
 
     elif classifier_type == ClassifierTypes.PIXTRAL:
+        from src.classifiers.baseline_classifier import BaselineClassifier
+        from src.classifiers.pixtral_classifier import PixtralClassifier
+
         pixtral_config = read_params(PIXTRAL_CONFIG_FILE_PATH)
         if mlflow_tracking:
             mlflow.log_params(pixtral_config)

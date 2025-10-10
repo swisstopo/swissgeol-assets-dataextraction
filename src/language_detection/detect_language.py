@@ -9,10 +9,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Global model for detector empty if not used
+detector = None
 model_path = os.getenv("FASTTEXT_MODEL_PATH")
 if not model_path or not os.path.isfile(model_path):
     raise FileNotFoundError(f"FASTTEXT model path is invalid or missing: {model_path}")
-detector = fasttext.load_model(model_path)
 
 logger = logging.getLogger(__name__)
 
@@ -59,6 +60,10 @@ def predict_language(text: str) -> list[tuple[str, float]]:
     """Returns list of (language_code, score) tuples from FastText."""
     if not text.strip():
         return []
+
+    # Check if model already load globaly
+    if detector is None:
+        fasttext.load_model(model_path)
 
     try:
         labels, scores = detector.predict(text.lower(), k=5)
