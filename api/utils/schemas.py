@@ -1,6 +1,6 @@
 from pydantic import BaseModel, ConfigDict, Field
 
-from api.utils.mapping import parse_predicted_class
+from api.utils.mapping import predicted_class_v1
 
 
 class ErrorResponse(BaseModel):
@@ -75,7 +75,7 @@ class PagePrediction(BaseModel):
     @classmethod
     def from_prediction(cls, prediction: dict):
         return cls(
-            predicted_class=parse_predicted_class(prediction["classification"]),
+            predicted_class=predicted_class_v1(prediction["classification"]),
             page_number=prediction["page"],
             page_metadata=PageMetaDataSchema.from_prediction(prediction["metadata"]),
         )
