@@ -127,34 +127,41 @@ To run classification using the Pixtral Large Model, you must configure your AWS
 
 ## Output Format
 `data/prediction.json` (if `-w`/`--write_result`) or returned as a Python object.
-#### Example Output (v1)
+#### Example Output (v0)
 ```json
-[
-    {
-        "filename": "1858.pdf",
-        "metadata": { "page_count": 3, "languages": ["de", "fr"] },
-        "pages": [
-            {
-                "page": 1,
-                "classification": { "text": 1, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0 },
-                "metadata": {"language": "de", "is_frontpage": false }
-            },
-            {
-                "page": 2,
-              "classification": { "text": 0, "boreprofile": 1, "map": 0, "title_page": 0, "unknown": 0 },
-                "metadata": { "language": "fr", "is_frontpage": false }
-            },
-            {
-                "page": 3,
-                "classification": { "text": 1, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0 },
-                "metadata": { "language": null, "is_frontpage": false }
-            }
-        ]
-    }
-]
-
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "input.pdf",
+			"metadata": {
+				"page_count": 1,
+				"languages": [
+					"de"
+				]
+			},
+			"pages": [
+				{
+					"page": 1,
+					"classification": {
+						"Text": 0,
+						"Boreprofile": 1,
+						"Maps": 0,
+						"Title_Page": 0,
+						"Unknown": 0
+					},
+					"metadata": {
+						"language": "de",
+						"is_frontpage": false
+					}
+				}
+			]
+		}
+	]
+}
 ```
-**Notes**:
+
+**V0 Notes**:
 - filename: The name of the processed PDF file.
 - metadata: metadata about the file.
 - pages: list of dictionaries containing:
@@ -164,10 +171,50 @@ To run classification using the Pixtral Large Model, you must configure your AWS
     - 0: class was not assigned.
   - metadata: metadata about the current page.
 
+
+
+#### Example Output (v1)
+```json
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "742_6.pdf",
+			"metadata": {
+				"page_count": 1,
+				"languages": [
+					"de"
+				]
+			},
+			"pages": [
+				{
+					"predicted_class": "Boreprofile",
+					"page_number": 1,
+					"page_metadata": {
+						"language": "de",
+						"is_frontpage": false
+					}
+				}
+			]
+		}
+	]
+}
+```
+**V1 Notes**:
+- filename: The name of the processed PDF file.
+- metadata: metadata about the file.
+- pages: list of dictionaries containing:
+  - predicted_class: The class name of the predicted calss (e.g. "Boreprofile")
+  - page_number: The page number (1-indexed).
+  - page_metadata: metadata about the current page.
+
+
+**General Notes:**
+
 - The classifier supports batch input of multiple reports.
 - Input must be preprocessed: PDFs should already have OCR. 
 - Classification is multi-class with a single label per page. Future updates may support multiple-labels.
-- Classification gets extended to classify pages into **geo_profile**, **table**, **diagram**
+- Classification is extended to classify pages into **geo_profile**, **table**, **diagram** on the **v1** endpoint
 ---
 ## Data
 The dataset is stored in the S3 bucket `stijnvermeeren-assets-data`, under the `single_pages/` folder. 
