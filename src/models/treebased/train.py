@@ -32,6 +32,8 @@ class RandomForestTrainer(TreeBasedTrainer):
     Random Forest models using the provided configuration and data.
     """
 
+    model_name = "random_forest_model"
+
     def prepare_model(self):
         """Prepares the Random Forest model for training."""
         hyperparams = self.config.get("hyperparameters", {})
@@ -75,13 +77,15 @@ class XGBoostTrainer(TreeBasedTrainer):
     XGBoost models using the provided configuration and data.
     """
 
+    model_name = "xgboost_model"
+
     def prepare_model(self):
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
         self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
 
     def tune_hyperparameters(
-        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3
+        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
     ) -> tuple[dict, float]:
         """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
 
@@ -90,6 +94,7 @@ class XGBoostTrainer(TreeBasedTrainer):
             n_iter: Number of parameter settings that are sampled.
             scoring: Scoring method to use for evaluation.
             cv: Number of folds in cross-validation.
+            random_state (int): Random seed for reproducibility.
 
         Returns:
                 best_params: Best hyperparameters found during tuning.
@@ -104,7 +109,7 @@ class XGBoostTrainer(TreeBasedTrainer):
             scoring=scoring,
             cv=cv,
             verbose=1,
-            random_state=42,
+            random_state=random_state,
             n_jobs=-1,
         )
         search.fit(self.X_train, self.y_train)
@@ -154,6 +159,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
     if not mlflow_tracking:
         print("MLflow tracking is disabled. Set MLFLOW_TRACKING=True in .env to enable it.")
 
+    mlflow.set_experiment("Classifier Training")
+
     config = read_params(config_path)
     train_folder = Path(config["train_folder_path"])
     val_folder = Path(config["val_folder_path"])
@@ -166,8 +173,6 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
     label_lookup = build_filename_to_label_map(ground_truth_path)
     X_train, y_train = load_data_and_labels(train_folder, label_lookup)
     X_val, y_val = load_data_and_labels(val_folder, label_lookup)
-
-    mlflow.set_experiment("Classifier Training")
 
     if trainer_name == "random_forest":
         trainer = RandomForestTrainer(config, model_out_directory)
@@ -219,8 +224,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", required=True, help="Path to YAML config file")
-    parser.add_argument("--out", required=True, help="Output directory root")
-    parser.add_argument("--tune", action="store_true", help="Enable hyperparameter tuning")
+    parser.add_argument("--config-file-path", required=True, help="Path to YAML config file")
+    parser.add_argument("--out-directory", required=True, help="Output directory root")
+    parser.add_argument("--tuning", action="store_true", help="Enable hyperparameter tuning")
     args = parser.parse_args()
-    main(args.config, args.out, args.tune)
+    main(args.config_file_path, args.out_directory, args.tuning)

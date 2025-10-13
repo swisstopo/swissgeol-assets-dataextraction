@@ -1,6 +1,5 @@
 # === rf_config.yaml ===
 model_type: random_forest
-output_dir: models/random_forest
 
 # Data parameters
 train_folder_path: "data/single_pages_splits/train"
@@ -12,12 +11,9 @@ feature_names:
   - Words Per Line
   - Text zone Density
   - Mean Left
-  - Mean Right
   - Text Width
   - Line Count
-  - Line Length Variance
   - Indent Std Dev
-  - Punctuation Density
   - Capitalization Ratio
   - Has Sidebar
   - Has Borehole Keyword
@@ -26,18 +22,23 @@ feature_names:
   - Grid Line Length Sum
   - Non Grid Line Length Sum
   - Line Angle Entropy
+  - Line score
+  - Num Geo Profile Keywords
+  - Num Unit Keyword
+  - Y scale ok
+  - X scale ok
 
 # Model hyperparameters
 hyperparameters:
   max_features: "log2"
-  n_estimators: 150
+  n_estimators: 100
   min_samples_split: 2
-  max_depth: 30
+  max_depth: 25
   min_samples_leaf: 1
   random_state: 42
 
 tuning:
-  n_iter: 20
+  n_iter: 50
   scoring: "f1_micro"
   cv: 3
   param_grid:
