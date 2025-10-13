@@ -4,31 +4,54 @@
 
 This repository provides a classification pipeline to categorize PDF pages 
 from geological reports into document classes, with the goal of supporting document
-understanding and metadata extraction in the [Assets](https://assets.swissgeol.ch/) platform.
+understanding and metadata extraction in the [Assets](https://assets.swissgeol.ch/) platform. The solution can be used as a standalone API.
 
 This classification helps to map individual pages in a document,
 which ultimately should facilitate the identification of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
 ---
+## API endpoints
+Current API supports two endpoint versions **V1** with the latest changes (e.g., extended classes and different [response schema](#output-format)) and **V0** for backwards compatability.
+
+**Endpoints for V0:**
+ - `/` - main document selection endpoint
+ - `/collect` - response collection
+
+ **Endpoints for V1:**
+ - `/v1` - main document selection endpoint
+ - `/v1/collect` - response collection
+
+ The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
+
 ## Classes
 
-### stable version
+For each file a [response](#output-format) is compiled classifying the page into one of the defined page classes.
+
+### V0 version
 Each page is categorized into one of the following:
 
-1. `text` - Continuous text page.  
-2. `boreprofile` - Boreholes. 
-3. `map` - Geological or topographic maps.  
-4. `title_page` - Title pages of original reports.  
-5. `unknown` - Everything else.
+1. `Text` - Continuous text page.
+2. `Boreprofile` - Boreholes.
+3. `Maps` - Geological or topographic maps.
+4. `Title_Page` - Title pages of original reports.
+5. `Unknown` - Everything else.
 
-Extended classes in dev version( mapped to `unknown`):
-6. `geo_profile` - Geological cross-sections or longitudinal profiles.
-7. `table` -  Tabular numeric/textual data.
-8. `diagram` - Scientific 2D graphs or plots.
+Extended classes in available in V1 version are mapped to `unknown` whe running the V0 API version.
 
-When running with the **API-stable** profile, any class not supported by this profile is automatically mapped to `unknown`. 
-For development using the **dev** profile, extended classes are kept.
+### V1 version 
+The V1 version containes extended classes from v0 and Each page is categorized into one of the following:
+
+1. `Text` - Continuous text page.  
+2. `Boreprofile` - Boreholes. 
+3. `Maps` - Geological or topographic maps.  
+4. `TitlePage` - Title pages of original reports.  
+5. `GeoProfile` - Geological cross-sections or longitudinal profiles.
+6. `Table` -  Tabular numeric/textual data.
+7. `Diagram` - Scientific 2D graphs or plots.
+8. `Unknown` - Everything else.
+
+
 ---
-## Quick start
+## Development quick start
 Requirements: Python 3.10(recommended), OCR'ed PDFs.
 
 ### 1. Create and activate a virtual environment
