@@ -1,5 +1,4 @@
 import math
-import os
 from collections.abc import Callable
 
 import numpy as np
@@ -16,8 +15,6 @@ from src.identifiers.title_page import identify_title_page
 from src.line_detection import extract_geometric_lines
 from src.page_classes import PageClasses
 from src.page_structure import PageContext
-
-prediction_profile = os.getenv("PREDICTION_PROFILE") or "stable"
 
 
 class RuleBasedClassifier(Classifier):
@@ -39,7 +36,7 @@ class RuleBasedClassifier(Classifier):
         if self._detect_boreprofile(page, context):
             return PageClasses.BOREPROFILE
 
-        if self._detect_geo_profile(page, context) and prediction_profile == "dev":
+        if self._detect_geo_profile(page, context):
             return PageClasses.GEO_PROFILE
 
         if self._detect_map(page, context):
