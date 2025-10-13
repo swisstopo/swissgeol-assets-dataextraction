@@ -1,14 +1,15 @@
 # Page Classification for Geological Documents in Assets
 
-## **Purpose** 
+## Purpose
 
 This repository provides a classification pipeline to categorize PDF pages 
 from geological reports into document classes, with the goal of supporting document
 understanding and metadata extraction in the [Assets](https://assets.swissgeol.ch/) platform. The solution can be used as a standalone API.
 
-This classification helps to map individual pages in a document,
-which ultimately should facilitate the identification of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
----
+This classification helps to map individual pages in a document, which ultimately should facilitate the identification 
+of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and 
+boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
+
 ## API endpoints
 Current API supports two endpoint versions **V1** with the latest changes (e.g., extended classes and different [response schema](#output-format)) and **V0** for backwards compatability.
 
@@ -20,7 +21,7 @@ Current API supports two endpoint versions **V1** with the latest changes (e.g.,
  - `/v1` - main document selection endpoint
  - `/v1/collect` - response collection
 
- The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
+The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
 
 ## Classes
 
@@ -35,7 +36,7 @@ Each page is categorized into one of the following:
 4. `Title_Page` - Title pages of original reports.
 5. `Unknown` - Everything else.
 
-Extended classes in available in V1 version are mapped to `unknown` whe running the V0 API version.
+Extended classes in available in V1 version are mapped to `unknown` when running the V0 API version.
 
 ### V1 version 
 The V1 version containes extended classes from v0 and Each page is categorized into one of the following:
@@ -48,6 +49,96 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 6. `Table` -  Tabular numeric/textual data.
 7. `Diagram` - Scientific 2D graphs or plots.
 8. `Unknown` - Everything else.
+
+
+## Output Format
+`data/prediction.json` (if `-w`/`--write_result`) or returned as a Python object.
+#### Example Output (v0)
+```json
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "input.pdf",
+			"metadata": {
+				"page_count": 1,
+				"languages": [
+					"de"
+				]
+			},
+			"pages": [
+				{
+					"page": 1,
+					"classification": {
+						"Text": 0,
+						"Boreprofile": 1,
+						"Maps": 0,
+						"Title_Page": 0,
+						"Unknown": 0
+					},
+					"metadata": {
+						"language": "de",
+						"is_frontpage": false
+					}
+				}
+			]
+		}
+	]
+}
+```
+
+**V0 Notes**:
+- `filename`: The name of the processed PDF file.
+- `metadata`: metadata about the file.
+- `pages`: list of dictionaries containing:
+  - `page`: The page number (1-indexed). 
+  - `classification`: Classification of a current page:
+    - 1: class was assigned to the page. 
+    - 0: class was not assigned.
+  - `metadata`: metadata about the current page.
+
+
+#### Example Output (v1)
+```json
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "742_6.pdf",
+			"metadata": {
+				"page_count": 1,
+				"languages": [
+					"de"
+				]
+			},
+			"pages": [
+				{
+					"predicted_class": "Boreprofile",
+					"page_number": 1,
+					"page_metadata": {
+						"language": "de",
+						"is_frontpage": false
+					}
+				}
+			]
+		}
+	]
+}
+```
+**V1 Notes**:
+- `filename`: The name of the processed PDF file.
+- `metadata`: metadata about the file.
+- `pages`: list of dictionaries containing:
+  - `predicted_class`: The class name of the predicted class (e.g. "Boreprofile"). All possible classes are listed above in the section "Classes".
+  - `page_number`: The page number (1-indexed).
+  - `page_metadata`: metadata about the current page.
+
+
+**General Notes:**
+
+- The classifier supports batch input of multiple reports.
+- Input must be preprocessed: PDFs should already have OCR. 
+- Classification is multi-class with a single label per page. Future updates may support multiple-labels.
 
 
 ---
@@ -146,99 +237,6 @@ To run classification using the Pixtral Large Model, you must configure your AWS
      aws_secret_access_key=YOUR_SECRET_KEY
      ```
 
----
-
-## Output Format
-`data/prediction.json` (if `-w`/`--write_result`) or returned as a Python object.
-#### Example Output (v0)
-```json
-{
-	"has_finished": true,
-	"data": [
-		{
-			"filename": "input.pdf",
-			"metadata": {
-				"page_count": 1,
-				"languages": [
-					"de"
-				]
-			},
-			"pages": [
-				{
-					"page": 1,
-					"classification": {
-						"Text": 0,
-						"Boreprofile": 1,
-						"Maps": 0,
-						"Title_Page": 0,
-						"Unknown": 0
-					},
-					"metadata": {
-						"language": "de",
-						"is_frontpage": false
-					}
-				}
-			]
-		}
-	]
-}
-```
-
-**V0 Notes**:
-- filename: The name of the processed PDF file.
-- metadata: metadata about the file.
-- pages: list of dictionaries containing:
-  - page: The page number (1-indexed). 
-  - classification: Classification of a current page:
-    - 1: class was assigned to the page. 
-    - 0: class was not assigned.
-  - metadata: metadata about the current page.
-
-
-
-#### Example Output (v1)
-```json
-{
-	"has_finished": true,
-	"data": [
-		{
-			"filename": "742_6.pdf",
-			"metadata": {
-				"page_count": 1,
-				"languages": [
-					"de"
-				]
-			},
-			"pages": [
-				{
-					"predicted_class": "Boreprofile",
-					"page_number": 1,
-					"page_metadata": {
-						"language": "de",
-						"is_frontpage": false
-					}
-				}
-			]
-		}
-	]
-}
-```
-**V1 Notes**:
-- filename: The name of the processed PDF file.
-- metadata: metadata about the file.
-- pages: list of dictionaries containing:
-  - predicted_class: The class name of the predicted calss (e.g. "Boreprofile")
-  - page_number: The page number (1-indexed).
-  - page_metadata: metadata about the current page.
-
-
-**General Notes:**
-
-- The classifier supports batch input of multiple reports.
-- Input must be preprocessed: PDFs should already have OCR. 
-- Classification is multi-class with a single label per page. Future updates may support multiple-labels.
-- Classification is extended to classify pages into **geo_profile**, **table**, **diagram** on the **v1** endpoint
----
 ## Data
 The dataset is stored in the S3 bucket `stijnvermeeren-assets-data`, under the `single_pages/` folder. 
 It contains categorized subfolders per class.
