@@ -179,7 +179,6 @@ def display_colors(filtered_colors: Counter, h_bins: int, s_bins: int, v_bins: i
         s_bins (int): Number of bins for saturation.
         v_bins (int): Number of bins for value/brightness.
     """
-
     from matplotlib import pyplot as plt
     from matplotlib.colors import hsv_to_rgb
 
