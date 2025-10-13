@@ -6,8 +6,6 @@ from dataclasses import dataclass
 
 import numpy as np
 import pymupdf
-from matplotlib import pyplot as plt
-from matplotlib.colors import hsv_to_rgb, rgb_to_hsv
 from PIL import Image
 
 logger = logging.getLogger(__name__)
@@ -117,6 +115,8 @@ def get_color_proportion(
     Returns:
         Counter: color code (in hsv discretized) and proportion of page covered
     """
+    from matplotlib.colors import rgb_to_hsv
+
     pix = page.get_pixmap(matrix=pymupdf.Matrix(scale, scale), colorspace=pymupdf.csRGB)
 
     # Convert to numpy array and map to HSV
@@ -179,6 +179,10 @@ def display_colors(filtered_colors: Counter, h_bins: int, s_bins: int, v_bins: i
         s_bins (int): Number of bins for saturation.
         v_bins (int): Number of bins for value/brightness.
     """
+
+    from matplotlib import pyplot as plt
+    from matplotlib.colors import hsv_to_rgb
+
     rgb_counter = Counter()
     for (h_bin, s_bin, v_bin), count in filtered_colors.items():
         h = min((h_bin + 0.5) / h_bins, 1.0)
