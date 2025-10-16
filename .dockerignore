@@ -6,3 +6,31 @@
 /docker-compose.yml
 /Dockerfile
 /README.md
+/.dockerignore
+.DS_Store
+
+# Python cache and build artifacts
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ML Artifacts and Experiment Tracking 
+mlruns/
+mlartifacts/
+
+# Data files
+data/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
