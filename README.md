@@ -149,15 +149,15 @@ Requirements: Python 3.10(recommended), OCR'ed PDFs.
 ```bash
 python -m venv venv
 source venv/bin/activate
-pip install -e '.[all]'
 ```
 ### 2. Install dependencies
+For basic runtime API install based dependencies:
 ```bash
 pip install .
 ```
 For development, install optional tools with:
 ```bash
-pip install '.[deep-learning,test,lint,experiment-tracking]'
+pip install '.[all]'
 ```
 Make sure you have `fasttext-predict` installed instead of `fasttext` (see 5. Setup FastText Language Detection).
 
@@ -165,7 +165,7 @@ Make sure you have `fasttext-predict` installed instead of `fasttext` (see 5. Se
 ```bash
 cp .env.template .env
 ```
-For development: 
+For development:
 - Set `MLFLOW_TRACKING=True` in `.env` file for experiment tracking.
 
 ### 4. (Optional) Use a pre-trained model:
