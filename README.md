@@ -149,6 +149,7 @@ Requirements: Python 3.10(recommended), OCR'ed PDFs.
 ```bash
 python -m venv venv
 source venv/bin/activate
+pip install -e '.[all]'
 ```
 ### 2. Install dependencies
 ```bash
@@ -208,6 +209,41 @@ If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified t
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
+---
+## Start the FastAPI server
+
+To test the API locally run the following commant: 
+
+```bash
+uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
+```
+
+This will start the server on port 8000 of the localhost and enable automatic reloading whenever changes are made to the code.
+
+---
+
+## Build docker image
+
+To test the docker image locally you can build the image using the following command:
+
+```bash
+docker build -t assets-api . -f Dockerfile
+```
+
+This command will build the Docker image with the tag `assets-api`.
+
+Verify that the Docker image has been successfully built by running the following command:
+
+```bash
+docker images
+```
+
+To run the Docker container, use the following command, and remember to add your AWS credentials in the `.env` file:
+
+```bash
+docker run -p 8000:8000 -v $(pwd)/.env:/app/.env.api:ro assets-api
+```
+
 ---
 
 ## AWS Setup for pixtral Classifier
