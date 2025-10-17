@@ -151,12 +151,13 @@ python -m venv venv
 source venv/bin/activate
 ```
 ### 2. Install dependencies
+For basic runtime API install based dependencies:
 ```bash
 pip install .
 ```
 For development, install optional tools with:
 ```bash
-pip install '.[deep-learning,test,lint,experiment-tracking]'
+pip install '.[all]'
 ```
 Make sure you have `fasttext-predict` installed instead of `fasttext` (see 5. Setup FastText Language Detection).
 
@@ -164,7 +165,7 @@ Make sure you have `fasttext-predict` installed instead of `fasttext` (see 5. Se
 ```bash
 cp .env.template .env
 ```
-For development: 
+For development:
 - Set `MLFLOW_TRACKING=True` in `.env` file for experiment tracking.
 
 ### 4. (Optional) Use a pre-trained model:
@@ -208,6 +209,41 @@ If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified t
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
+---
+## Start the FastAPI server
+
+To test the API locally run the following commant: 
+
+```bash
+uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
+```
+
+This will start the server on port 8000 of the localhost and enable automatic reloading whenever changes are made to the code.
+
+---
+
+## Build docker image
+
+To test the docker image locally you can build the image using the following command:
+
+```bash
+docker build -t assets-api . -f Dockerfile
+```
+
+This command will build the Docker image with the tag `assets-api`.
+
+Verify that the Docker image has been successfully built by running the following command:
+
+```bash
+docker images
+```
+
+To run the Docker container, use the following command, and remember to add your AWS credentials in the `.env` file:
+
+```bash
+docker run -p 8000:8000 -v $(pwd)/.env:/app/.env.api:ro assets-api
+```
+
 ---
 
 ## AWS Setup for pixtral Classifier
