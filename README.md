@@ -409,11 +409,10 @@ python main.py -i data/single_pages/ -g data/gt_single_pages.json -c treebased -
 #### Stacked force plot (Local importance)
 This plot is computed for a single input page and shows one subplot per class.
 Each subplot is a force plot for that class, where the contribution of each feature to the class logit (log-odds) is shown.
-The model predicts the class with the highest logit (shown with *(predicted)* on the plot). The features represented in blue negativelly contributed
-the the output, and the ones in red positevelly influenced the decision.
+The model predicts the class with the highest logit (shown with *(predicted)* on the plot). The features represented in blue negatively contributed to the model output, and the ones in red positively influenced the decision.
 
 #### Waterfall plot (Local importance)
-This plot is computed for a single input page and for one class only (typically the predicted class). It is essentially a detailled version of the previous force plot for a specific class and shows the individual contribution of each feature to the class logit, along with the value of the feature for this input.
+This plot is computed for a single input page and for one class only (typically the predicted class). It is essentially a detailed version of the previous force plot for a specific class and shows the individual contribution of each feature to the class logit, along with the value of the feature for this input.
 This allows to see which features drove the model to choose this class over others.
 
 

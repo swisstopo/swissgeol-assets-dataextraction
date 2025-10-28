@@ -173,7 +173,7 @@ if __name__ == "__main__":
         "-x",
         "--explain-model",
         action="store_true",
-        help="Generates explanability plots for the model's decisions.",
+        help="Generates explainability plots for the model's decisions.",
     )
     args = parser.parse_args()
 
