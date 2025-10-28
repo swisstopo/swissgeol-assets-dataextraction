@@ -13,6 +13,7 @@ from xgboost import XGBClassifier
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
 from models.treebased.basetrainer import TreeBasedTrainer
+from models.treebased.model_explanation import explain_model
 from src.models.feature_engineering import get_features
 from src.utils import get_pdf_files, read_params
 
@@ -204,6 +205,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
             trainer.prepare_model()
 
         trainer.train()
+        explain_model(trainer.model, trainer.X_train, trainer.id2label)
         trainer.save_model()
 
         y_pred = trainer.model.predict(X_val)
