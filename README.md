@@ -38,13 +38,13 @@ Each page is categorized into one of the following:
 
 Extended classes in available in V1 version are mapped to `unknown` when running the V0 API version.
 
-### V1 version 
+### V1 version
 The V1 version containes extended classes from v0 and Each page is categorized into one of the following:
 
-1. `Text` - Continuous text page.  
-2. `Boreprofile` - Boreholes. 
-3. `Maps` - Geological or topographic maps.  
-4. `TitlePage` - Title pages of original reports.  
+1. `Text` - Continuous text page.
+2. `Boreprofile` - Boreholes.
+3. `Maps` - Geological or topographic maps.
+4. `TitlePage` - Title pages of original reports.
 5. `GeoProfile` - Geological cross-sections or longitudinal profiles.
 6. `Table` -  Tabular numeric/textual data.
 7. `Diagram` - Scientific 2D graphs or plots.
@@ -91,9 +91,9 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 - `filename`: The name of the processed PDF file.
 - `metadata`: metadata about the file.
 - `pages`: list of dictionaries containing:
-  - `page`: The page number (1-indexed). 
+  - `page`: The page number (1-indexed).
   - `classification`: Classification of a current page:
-    - 1: class was assigned to the page. 
+    - 1: class was assigned to the page.
     - 0: class was not assigned.
   - `metadata`: metadata about the current page.
 
@@ -137,7 +137,7 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 **General Notes:**
 
 - The classifier supports batch input of multiple reports.
-- Input must be preprocessed: PDFs should already have OCR. 
+- Input must be preprocessed: PDFs should already have OCR.
 - Classification is multi-class with a single label per page. Future updates may support multiple-labels.
 
 
@@ -210,9 +210,45 @@ If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified t
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
 ---
-## Start the FastAPI server
+## Run the API locally
 
-To test the API locally run the following commant: 
+If you want to run the API on your own local documents instead of AWS S3, enable the local S3 mode and spin up MinIO (see below).
+
+### MinIO setup (optional)
+
+In your .env file, activate the local mode flag:
+
+```bash
+# Use local S3 (MinIO) instead of AWS
+USE_LOCAL=True
+
+# Bucket and prefix used by the API
+S3_BUCKET="my-bucket"			# choose your own
+S3_FOLDER="my-folder/"			# choose your own
+
+# Local MinIO connection
+LOCAL_S3_ENDPOINT="http://localhost:9000"
+LOCAL_S3_ACCESS_KEY="admin"     # choose your own
+LOCAL_S3_SECRET_KEY="admin123"  # choose your own
+```
+
+Replace `${LOCAL_S3_ACCESS_KEY}` / `${LOCAL_S3_ACCESS_KEY}` with the values set in .env.
+
+```bash
+docker run -d --name minio \
+  -p 9000:9000 -p 9001:9001 \
+  -e MINIO_ROOT_USER=${LOCAL_S3_ACCESS_KEY} \
+  -e MINIO_ROOT_PASSWORD=${LOCAL_S3_SECRET_KEY} \
+  -v "$(pwd)/minio/data:/data" \
+  quay.io/minio/minio server /data --console-address ":9001"
+```
+
+Open the [MiniIO UI](http://localhost:9001) console and log in using the credentials defined in your `.env` file (`${LOCAL_S3_ACCESS_KEY}` / `${LOCAL_S3_SECRET_KEY}`). From the web interface, create a bucket named `${S3_BUCKET}`, then create a folder inside it called `${S3_FOLDER}`. Finally, upload your local PDF files to this folder. These files will then be available for the API when you run classification requests locally.
+
+
+### Run
+
+To test the API locally run the following commant:
 
 ```bash
 uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
