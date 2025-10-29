@@ -2,10 +2,10 @@ from collections.abc import Callable
 
 import pymupdf
 
-from models.treebased.model_explanation import explain_prediction
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.models.feature_engineering import get_features_from_page
 from src.models.treebased.model import TreeBasedModel
+from src.models.treebased.model_explanation import explain_prediction
 from src.page_classes import PageClasses
 from src.page_structure import PageContext
 
