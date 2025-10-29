@@ -23,9 +23,21 @@ Current API supports two endpoint versions **V1** with the latest changes (e.g.,
 
 The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
 
+
+
+
 ## Classes
 
 For each file a [response](#output-format) is compiled classifying the page into one of the defined page classes.
+
+## Model Information
+
+The API currently uses the treebased classifier as the default trained model.
+
+* Model type: "treebased"
+* Model path: models/stable/model.joblib
+
+This model was trained on data from `data/single_pages_split_new/train` and saved as `model.joblib`. It uses 17 input features to predict class.
 
 ### V0 version
 Each page is categorized into one of the following:
@@ -280,6 +292,21 @@ To run the Docker container, use the following command, and remember to add your
 docker run -p 8000:8000 -v $(pwd)/.env:/app/.env.api:ro assets-api
 ```
 
+You can now run a classification job on your own PDF (replace `${YOUR_OWN_FILENAME}.pdf` with your actual file name). Make sure this file exists in the configured S3 bucket and folder before starting the process.
+
+```
+# Run classification
+curl -X POST http://127.0.0.1:8000/v1/ \
+  -H "Content-Type: application/json" \
+  -d '{"file": "YOUR_OWN_FILENAME.pdf"}' -i
+
+# Collect results
+curl -X POST http://127.0.0.1:8000/v1/collect \
+  -H "Content-Type: application/json" \
+  -d '{"file": "YOUR_OWN_FILENAME.pdf"}' -i
+```
+
+
 ---
 
 ## AWS Setup for pixtral Classifier
@@ -294,7 +321,7 @@ To run classification using the Pixtral Large Model, you must configure your AWS
      ```
 
    2. **Manually via config files**
-   
+
      Create or edit the following files
      **~/.aws/config**
      ```
