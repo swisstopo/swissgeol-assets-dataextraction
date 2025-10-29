@@ -6,14 +6,15 @@ import uuid
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
 from starlette.responses import JSONResponse
 
+from api.app.shared.handlers import start_handler
+from api.app.shared.schemas import CollectPayload, StartPayload
+from api.app.shared.settings import ApiSettings, api_settings
+from api.app.v0.mapping import map_labels_for_v0
 from api.aws import aws
 from api.utils import task
-from api.utils.mapping import map_labels_for_v0
-from api.utils.schemas import CollectPayload, StartPayload
-from api.utils.settings import ApiSettings, api_settings
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from main import main as script
@@ -30,21 +31,7 @@ def start(
     settings: Annotated[ApiSettings, Depends(api_settings)],
     background_tasks: BackgroundTasks,
 ):
-    if not payload.file.endswith(".pdf"):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail={"message": "input must be a PDF file"})
-
-    aws_client = aws.connect(settings)
-    has_file = aws_client.exists_file(
-        settings.s3_bucket,
-        f"{settings.s3_folder}{payload.file}",
-    )
-    if not has_file:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, detail={"message": "file does not exist"}
-        )
-
-    task.start(payload.file, background_tasks, lambda: process(payload, aws_client, settings))
-    return Response(status_code=status.HTTP_204_NO_CONTENT)
+    return start_handler(payload, settings, background_tasks, process)
 
 
 @router.post("/collect")

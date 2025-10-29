@@ -1,44 +1,5 @@
 from pydantic import BaseModel, ConfigDict, Field
-
-from api.utils.mapping import predicted_class_v1
-
-
-class ErrorResponse(BaseModel):
-    """Error response model."""
-
-    detail: str
-
-
-class StartPayload(BaseModel):
-    """Payload model for initiating a new document processing task."""
-
-    file: str = Field(min_length=5)
-
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,  # This allows using non-standard types like Path
-        json_schema_extra={
-            "example": {"file": "10122_1.pdf"},
-        },
-    )
-
-
-class StartResponse(BaseModel):
-    """Response returned when a task has been successfully started."""
-
-    message: str
-
-
-class CollectPayload(BaseModel):
-    """Payload model for retrieving results of a processed document."""
-
-    file: str = Field(min_length=1)
-
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,  # This allows using non-standard types like Path
-        json_schema_extra={
-            "example": {"file": "10122_1.pdf"},
-        },
-    )
+from pydantic.alias_generators import to_pascal
 
 
 class MetaDataSchema(BaseModel):
@@ -128,3 +89,14 @@ class CollectResponse(BaseModel):
     def create_response(cls, predictions: list[dict]):
         """Currently the api only handles requests with one file, `predictions` is a list of only one element."""
         return cls(has_finished=True, data=[PredictionSchema.from_prediction(pred) for pred in predictions])
+
+
+class ErrorResponse(BaseModel):
+    """Error response model."""
+
+    detail: str
+
+
+def predicted_class_v1(classification: dict) -> str:
+    """Parse the predicted class from a one-hot encoded classification dictionary."""
+    return next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")
