@@ -24,6 +24,8 @@ app = FastAPI()
 @app.post(
     "/",
     status_code=204,
+    summary="Start Page Classification",
+    description="Starts the Page Classification process for a file as background task that completes asynchronously.",
     responses={
         400: {"model": ErrorResponse, "description": "Bad request (must be a PDF file)"},
         422: {"model": ErrorResponse, "description": "File does not exist in S3"},
@@ -39,6 +41,11 @@ def start(
 
 @app.post(
     "/collect",
+    summary="Collect Page Classification Results",
+    description="""
+        Collects the results of the Page Classification process for a given file. If the process is still running, 
+        it indicates that the results are not yet available.
+    """,
     response_model=CollectResponse,
     responses={
         422: {"model": ErrorResponse, "description": "Classification not running for this file"},

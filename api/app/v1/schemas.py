@@ -36,7 +36,7 @@ class PagePrediction(BaseModel):
     @classmethod
     def from_prediction(cls, prediction: dict):
         return cls(
-            predicted_class=predicted_class_v1(prediction["classification"]),
+            predicted_class=predicted_class(prediction["classification"]),
             page_number=prediction["page"],
             page_metadata=PageMetaDataSchema.from_prediction(prediction["metadata"]),
         )
@@ -97,6 +97,6 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-def predicted_class_v1(classification: dict) -> str:
+def predicted_class(classification: dict) -> str:
     """Parse the predicted class from a one-hot encoded classification dictionary."""
     return next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")

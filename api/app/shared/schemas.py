@@ -1,4 +1,4 @@
-"""SThese models can be used in various versions of the API and therefore need to always be backward compatible."""
+"""These models can be used in various versions of the API and therefore need to always be backward compatible."""
 
 from pydantic import BaseModel, ConfigDict, Field
 

@@ -25,7 +25,11 @@ logging.getLogger().setLevel(logging.INFO)
 router = APIRouter()
 
 
-@router.post("/")
+@router.post(
+    "/",
+    summary="Start Page Classification",
+    description="Starts the Page Classification process for a file as background task that completes asynchronously.",
+)
 def start(
     payload: StartPayload,
     settings: Annotated[ApiSettings, Depends(api_settings)],
@@ -34,7 +38,14 @@ def start(
     return start_handler(payload, settings, background_tasks, process)
 
 
-@router.post("/collect")
+@router.post(
+    "/collect",
+    summary="Collect Page Classification Results",
+    description="""
+        Collects the results of the Page Classification process for a given file. If the process is still running, 
+        it indicates that the results are not yet available.
+    """,
+)
 def collect(
     payload: CollectPayload,
 ):
