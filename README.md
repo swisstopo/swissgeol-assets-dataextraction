@@ -209,7 +209,6 @@ If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified t
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
----
 ## Start the FastAPI server
 
 To test the API locally run the following commant: 
@@ -338,7 +337,11 @@ If you're training an XGBoost model on macOS, you may encounter issues related t
 ```bash
 brew install libomp
 ```
----
+
+#### Model explainability (with treebased models)
+
+See [this file](src/models/treebased/README.md) for details about model explainability and SHAP-based interpretation for tree-based models.
+
 ## Pre-Commit
 We use pre-commit hooks to format our code in a unified way.
 
