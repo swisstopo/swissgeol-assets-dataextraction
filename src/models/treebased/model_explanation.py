@@ -1,18 +1,34 @@
 import io
+import logging
 import os
 import tempfile
 
-import mlflow
 import numpy as np
-import shap
-from matplotlib import pyplot as plt
-from PIL import Image
+from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
 from src.utils import read_params
 
 xg_boost_config = read_params("config/xgboost_config.yml")
+
+load_dotenv()
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+
+logger = logging.getLogger(__name__)
+
+EXPLANATION_DEPENDENCIES = False
+try:
+    import matplotlib.pyplot as plt
+    import shap
+    from PIL import Image
+
+    if mlflow_tracking:
+        import mlflow
+
+    EXPLANATION_DEPENDENCIES = True
+except ImportError:
+    pass
 
 
 def explain_prediction(
@@ -31,6 +47,8 @@ def explain_prediction(
         page_name (str): The name of the page being explained.
         id2label (dict[int, str]): Mapping from class IDs to class labels.
     """
+    if not verify_dependencies_and_flags():
+        return
     with tempfile.TemporaryDirectory() as tmpdir:
         feature_names = xg_boost_config["feature_names"]
         explainer = shap.TreeExplainer(model, feature_names=feature_names)
@@ -88,6 +106,8 @@ def explain_model(model: XGBClassifier | RandomForestClassifier, X_train: list[l
         X_train (list[list[float]]): The training features data used for the model.
         id2label (dict[int, str]): Mapping from class IDs to class labels.
     """
+    if not verify_dependencies_and_flags():
+        return
     with tempfile.TemporaryDirectory() as tmpdir:
         feature_names = xg_boost_config["feature_names"]
         explainer = shap.TreeExplainer(model, feature_names=feature_names)
@@ -138,3 +158,23 @@ def log_plt_fig_to_mlflow(local_dir: str, name: str, artifact_path: str, dpi=200
     plt.savefig(fig_path, dpi=dpi, bbox_inches="tight", pad_inches=pad_inches)
     plt.close()
     mlflow.log_artifact(fig_path, artifact_path)
+
+
+def verify_dependencies_and_flags():
+    """Verifies that the necessary dependencies are installed and MLflow tracking is enabled.
+
+    Returns:
+        bool: True if dependencies are met and MLflow tracking is enabled, False otherwise.
+    """
+    if not EXPLANATION_DEPENDENCIES:
+        logger.warning(
+            "Model explanation requested but dependencies not available. Install with: pip install '.[dev]'"
+        )
+        return False
+    if not mlflow_tracking:
+        logger.warning(
+            "Explanation plots are only saved to MLflow. To view them, enable MLflow by setting the environment"
+            "variable MLFLOW_TRACKING=True."
+        )
+        return False
+    return True
