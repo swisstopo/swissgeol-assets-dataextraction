@@ -2,9 +2,9 @@ import io
 import os
 import tempfile
 
-import mlflow
 import numpy as np
 import shap
+from dotenv import load_dotenv
 from matplotlib import pyplot as plt
 from PIL import Image
 from sklearn.ensemble import RandomForestClassifier
@@ -13,6 +13,12 @@ from xgboost import XGBClassifier
 from src.utils import read_params
 
 xg_boost_config = read_params("config/xgboost_config.yml")
+
+load_dotenv()
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+
+if mlflow_tracking:
+    import mlflow
 
 
 def explain_prediction(
@@ -31,6 +37,8 @@ def explain_prediction(
         page_name (str): The name of the page being explained.
         id2label (dict[int, str]): Mapping from class IDs to class labels.
     """
+    if not mlflow_tracking:
+        return
     with tempfile.TemporaryDirectory() as tmpdir:
         feature_names = xg_boost_config["feature_names"]
         explainer = shap.TreeExplainer(model, feature_names=feature_names)
@@ -88,6 +96,8 @@ def explain_model(model: XGBClassifier | RandomForestClassifier, X_train: list[l
         X_train (list[list[float]]): The training features data used for the model.
         id2label (dict[int, str]): Mapping from class IDs to class labels.
     """
+    if not mlflow_tracking:
+        return
     with tempfile.TemporaryDirectory() as tmpdir:
         feature_names = xg_boost_config["feature_names"]
         explainer = shap.TreeExplainer(model, feature_names=feature_names)
