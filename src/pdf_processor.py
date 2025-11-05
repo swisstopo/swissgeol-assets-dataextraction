@@ -1,4 +1,5 @@
 import logging
+import os
 from collections import defaultdict
 from pathlib import Path
 
@@ -6,6 +7,7 @@ import pymupdf
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
+from src.classifiers.classifier_types import Classifier
 from src.language_detection.detect_language import (
     extract_cleaned_text,
     predict_language,
@@ -14,12 +16,14 @@ from src.language_detection.detect_language import (
     summarize_language_metadata,
 )
 from src.language_detection.pages_to_ignore import is_belegblatt
-from src.page_graphics import extract_page_graphics
+from src.page_graphics import extract_page_graphics, get_color_proportion
 from src.page_structure import PageAnalysis, PageContext
 from src.text_objects import create_text_blocks, create_text_lines, extract_words
 from src.utils import is_digitally_born
 
 logger = logging.getLogger(__name__)
+
+ENABLE_COLOR_PROPORTION = os.getenv("ENABLE_COLOR_PROPORTION", "false").lower() == "true"
 
 
 class PDFProcessor:
@@ -32,15 +36,35 @@ class PDFProcessor:
         classifier: An instance of a classifier that implements the `determine_class` method.
     """
 
-    def __init__(self, classifier):
+    def __init__(self, classifier: Classifier):
         self.classifier = classifier
 
-    def classify_page(
-        self,
-        page: pymupdf.Page,
-        page_number: int,
-        language: str,
-    ) -> PageAnalysis:
+    @staticmethod
+    def build_full_context(page: pymupdf.Page, page_number: int, language: str) -> PageContext:
+        is_digital = is_digitally_born(page)
+        words = extract_words(page, page_number)
+        lines = create_text_lines(page, page_number)
+        text_blocks = create_text_blocks(lines)
+        drawings, image_rects = extract_page_graphics(page, is_digital)
+        page_rect = get_page_bbox(page)
+        text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
+        color_proportion = get_color_proportion(page) if ENABLE_COLOR_PROPORTION else None
+
+        return PageContext(
+            lines=lines,
+            words=words,
+            text_blocks=text_blocks,
+            language=language,
+            page_rect=page_rect,
+            text_rect=text_rect,
+            geometric_lines=[],
+            is_digital=is_digital,
+            drawings=drawings,
+            image_rects=image_rects,
+            color_proportion=color_proportion,
+        )
+
+    def classify_page(self, page: pymupdf.Page, page_number: int, language: str) -> PageAnalysis:
         """Classifies single pages into available PageClasses (Text, Boreprofile, Map, Title Page or Unknown).
 
         Args:
@@ -52,31 +76,13 @@ class PDFProcessor:
             PageAnalysis object with page classification.
         """
         analysis = PageAnalysis(page_number)
-        is_digital = is_digitally_born(page)
 
-        words = extract_words(page, page_number)
-        lines = create_text_lines(page, page_number)
-        text_blocks = create_text_blocks(lines)
-        drawings, image_rects = extract_page_graphics(page, is_digital)
-        page_rect = get_page_bbox(page)
-        text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
+        def ctx_builder():
+            return self.build_full_context(page=page, page_number=page_number, language=language)
 
-        context = PageContext(
-            lines=lines,
-            words=words,
-            text_blocks=text_blocks,
-            language=language,
-            page_rect=page_rect,
-            text_rect=text_rect,
-            geometric_lines=[],
-            is_digital=is_digital,
-            drawings=drawings,
-            image_rects=image_rects,
-        )
+        page_class = self.classifier.determine_class(page=page, page_number=page_number, context_builder=ctx_builder)
 
-        page_class = self.classifier.determine_class(page=page, context=context, page_number=page_number)
         analysis.set_class(page_class)
-
         return analysis
 
     def process(self, file_path: Path) -> dict:

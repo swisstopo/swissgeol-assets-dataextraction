@@ -7,13 +7,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
-from src.evaluation import evaluate_results
 from src.pdf_processor import PDFProcessor
 from src.utils import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 
 if mlflow_tracking:
     import mlflow
@@ -68,6 +67,7 @@ def main(
     model_path: str = None,
     classifier_name: str = "baseline",
     write_result: bool = False,
+    explain_model: bool = False,
 ):
     """Run the page classification pipeline on input documents.
 
@@ -76,7 +76,8 @@ def main(
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
         model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
-        write_result (bool, optional): If True, writes results to JSON file. Defaults to False.
+        write_result (bool): If True, writes results to prediction.json.
+        explain_model (bool): If True, generates plots to explain the model's choices.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -96,8 +97,7 @@ def main(
 
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type, model_path, matching_params)
-
+    classifier = create_classifier(classifier_type, model_path, matching_params, explain_model)
     logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
@@ -116,6 +116,8 @@ def main(
             json.dump(results, json_file, indent=4)
 
     if ground_truth_path:
+        from src.evaluation import evaluate_results
+
         evaluate_results(results, ground_truth_path)
 
     if mlflow_tracking:
@@ -160,11 +162,30 @@ if __name__ == "__main__":
         required=False,
         help="Path to pretrained LayoutLMv3 or Tree Based model for classification.",
     )
-
+    parser.add_argument(
+        "-w",
+        "--write-results",
+        action=argparse.BooleanOptionalAction,
+        default=False,
+        help="Writes classification results to prediction.json file.",
+    )
+    parser.add_argument(
+        "-x",
+        "--explain-model",
+        action="store_true",
+        help="Generates explainability plots for the model's decisions.",
+    )
     args = parser.parse_args()
 
     # Check if model_path is required based on classifier
     if args.classifier.lower() in ["layoutlmv3", "treebased"] and not args.model_path:
         parser.error(f"--model_path is required when using classifier '{args.classifier}'")
 
-    main(args.input_path, args.ground_truth_path, args.model_path, args.classifier)
+    main(
+        input_path=args.input_path,
+        ground_truth_path=args.ground_truth_path,
+        model_path=args.model_path,
+        classifier_name=args.classifier,
+        write_result=args.write_results,
+        explain_model=args.explain_model,
+    )

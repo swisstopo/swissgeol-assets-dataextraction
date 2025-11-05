@@ -4,7 +4,8 @@
 /evaluation/
 /mlruns/
 /mlartifacts/
-/models/FastText
+/models/*
+!/models/stable
 /build/
 
 # Jupyter notebook checkpoints
@@ -16,7 +17,7 @@ __pycache__/
 
 # Virtual environments
 env/
-.venv/
+venv/
 
 # IDE config
 .idea/
@@ -33,3 +34,5 @@ env/
 .DS_Store
 
 /tmp
+uv.lock
+*.iml

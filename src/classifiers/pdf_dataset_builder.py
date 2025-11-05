@@ -184,10 +184,10 @@ def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int
     label_lookup = {}
     for entry in gt_data:
         filename = entry["filename"]
-        for classification in entry["classification"]:
-            page = classification["Page"]
-            for label_name, value in classification.items():
-                if label_name != "Page" and value == 1:
+        for pages in entry["pages"]:
+            page = pages["page"]
+            for label_name, value in pages["classification"].items():
+                if value == 1:
                     try:
                         label_id = label2id[label_name]
                         label_lookup[(filename, page)] = label_id

@@ -12,16 +12,20 @@ WORKDIR /app
 
 COPY pyproject.toml ./
 
-RUN python -m pip install --root-user-action=ignore --no-build-isolation --upgrade pip setuptools wheel \
- && pip install --use-pep517 --root-user-action=ignore --quiet --prefix=/install .
+# Install production dependencies only
+RUN python -m pip install --root-user-action=ignore --no-cache-dir --upgrade pip setuptools wheel \
+ && pip install --use-pep517 --root-user-action=ignore --no-cache-dir --prefix=/install .
 
+# Download FastText model
 RUN mkdir -p /models/FastText \
- && wget -O /models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
+ && wget -q -O /models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
 
 
 FROM python:3.13-slim-bookworm AS runtime
 
 ENV FASTTEXT_MODEL_PATH="models/FastText/lid.176.bin"
+ENV MLFLOW_TRACKING="False"
+ENV TMP_PATH=/tmp
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgl1-mesa-glx \
@@ -36,7 +40,12 @@ WORKDIR /app
 COPY --from=builder /install /usr/local
 
 COPY --from=builder /models ./models
-COPY . .
+COPY src/ ./src/
+COPY api/ ./api/
+COPY config/ ./config/
+COPY models/ ./models/
+COPY prompts/ ./prompts/
+COPY main.py ./
 
 RUN useradd --create-home --shell /bin/bash app \
  && chown -R app:app /app

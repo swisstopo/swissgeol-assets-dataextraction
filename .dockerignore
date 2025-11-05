@@ -1,8 +1,0 @@
-/.github
-/.venv
-/tmp
-/.env
-/.env.*
-/docker-compose.yml
-/Dockerfile
-/README.md

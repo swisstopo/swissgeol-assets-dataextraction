@@ -322,3 +322,93 @@ title_page:
   it:
     - rapporto
     - progetto
+
+geo_profile:
+  en:
+    - geological cross-section
+    - geological section
+    - geological profile
+    - cross-section
+    - vertical section
+  de:
+    - längsprofil
+    - längenprofil
+    - geologischer schnitt
+    - geologisches profil
+    - vertikalschnitt
+  fr:
+    - coupe géologique
+    - profil géologique
+    - section géologique
+    - coupe en profondeur
+    - coupe verticale
+    - coupe longitudinale
+  it:
+    - sezione geologica
+    - profilo geologico
+    - sezione verticale
+    - taglio geologico
+
+
+diagram:
+  en:
+    - diagram
+    - curve
+    - distribution
+    - histogram
+    - summation curve
+    - cumulative curve
+    - grading curve
+  de:
+    - kurve
+    - diagramm
+    - kornverteilung
+    - histogramm
+    - summationskurve
+    - körnungslinie
+    - verteilungskurve
+  fr:
+    - diagramme
+    - courbe
+    - distribution
+    - histogramme
+    - courbe de sommation
+    - courbe granulométrique
+  it:
+    - diagramma
+    - curva
+    - distribuzione
+    - istogramma
+    - curva cumulativa
+    - curva granulometrica
+
+units:
+  - m
+  - cm
+  - mm
+  - µm
+  - nm
+  - km
+  - g
+  - kg
+  - mg
+  - t
+  - mol
+  - mol/l
+  - mol/m3
+  - kg/m3
+  - g/cm3
+  - °c
+  - k
+  - pa
+  - kpa
+  - mpa
+  - bar
+  - l
+  - ml
+  - l/s
+  - m/s
+  - s
+  - sec
+  - h
+  - ora

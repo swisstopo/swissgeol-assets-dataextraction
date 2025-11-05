@@ -5,7 +5,7 @@ from botocore.exceptions import ClientError
 from mypy_boto3_s3 import S3ServiceResource
 from mypy_boto3_s3.service_resource import Bucket
 
-from utils.settings import ApiSettings
+from api.app.shared.settings import ApiSettings
 
 
 @dataclass

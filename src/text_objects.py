@@ -7,11 +7,12 @@ From:
 
 from collections import defaultdict
 from collections.abc import Callable
+from dataclasses import dataclass, field
 from typing import TypeVar
 
 import pymupdf
 
-from src.bounding_box import merge_bounding_boxes
+from src.bounding_box import _y_center, merge_bounding_boxes
 
 T = TypeVar("T")
 
@@ -25,7 +26,7 @@ class TextWord:
         self.page_number = page
 
     def __repr__(self) -> str:
-        return f"TextWord({self.rect}, {self.text})"
+        return f"TextWord({self.text},{self.rect},)"
 
 
 def extract_words(page, page_number):
@@ -52,8 +53,9 @@ class TextLine:
         self.font_size = self.compute_font_size()
 
     def __repr__(self) -> str:
-        return f"TextLine({self.rect},{self.line_text()})"
+        return f"TextLine({self.rect},{self.line_text})"
 
+    @property
     def line_text(self):
         return " ".join([word.text for word in self.words])
 
@@ -167,7 +169,7 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
     return blocks
 
 
-def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: int = 10) -> list[list[T]]:
+def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: float = 10.0) -> list[list[T]]:
     """Cluster text elements based on coordinates of bounding box.
 
     Args:
@@ -200,3 +202,121 @@ def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], toler
     clusters = list(grouped.values())
 
     return clusters
+
+
+def cluster_connected_components(items: list[T], is_connected: Callable[[T, T], bool]) -> list[list[T]]:
+    """Generic BFS clustering of items into connected components.
+
+    Each item is connected to others if `is_connected(a, b)` returns True.
+    Items that can be reached transitively form one cluster.
+
+    Args:
+        items: List of objects to cluster.
+        is_connected: Predicate that decides whether two items are connected.
+
+    Returns:
+        List of clusters, where each cluster is a list of connected items.
+    """
+    n = len(items)
+    visited = [False] * n
+    components: list[list[T]] = []
+
+    for i in range(n):
+        if visited[i]:
+            continue
+        # BFS
+        queue = [i]
+        visited[i] = True
+        component = [items[i]]
+        while queue:
+            u = queue.pop()
+            for v in range(n):
+                if visited[v] or v == u:
+                    continue
+                if is_connected(items[u], items[v]):
+                    visited[v] = True
+                    queue.append(v)
+                    component.append(items[v])
+        components.append(component)
+
+    return components
+
+
+@dataclass
+class TextColumn:
+    """A vertical column of text, composed of multiple TextWords."""
+
+    words: list[TextWord]
+
+    @property
+    def rect(self):
+        return merge_bounding_boxes([w.rect for w in self.words])
+
+    def __repr__(self):
+        return f"TextColumn({[word.text for word in self.words]},{self.rect},)"
+
+    def noise(self, all_words) -> float:
+        """Metric that shows how noisy a column is.
+
+        It's the ratio between actual column entries and non-column words overlapping with the column bounding box.
+        Best noise = 1 (intersecting words = self.words). More intersecting words will lead to a higher ratio.
+        """
+        column_bbox = self.rect
+        intersecting_words = [word for word in all_words if column_bbox.intersects(word.rect)]
+        ratio = len(intersecting_words) / len(self.words)
+        return ratio
+
+
+@dataclass
+class TextTable:
+    """A table composed of multiple aligned TextColumns."""
+
+    columns: list[TextColumn]
+    words: list[TextWord] = field(init=False)
+
+    def __post_init__(self):
+        self.words = [word for col in self.columns for word in col.words]
+
+    @property
+    def rect(self) -> pymupdf.Rect:
+        """Computes bounding box of text table."""
+        return merge_bounding_boxes([c.rect for c in self.columns if c.rect is not None])
+
+    def height_coverage(self, page_height: float) -> float:
+        """Fraction of page height covered by text tables bounding box."""
+        return self.rect.height / page_height
+
+    def text_coverage(self, all_words: list[TextWord]) -> float:
+        """Fraction of words belonging to the table relative to all words on the page."""
+        if not all_words:
+            return 0.0
+        coverage = sum(len(col.words) for col in self.columns) / len(all_words)
+        return coverage
+
+    @property
+    def confidence(self):
+        """Confidence based on row alignment across columns.
+
+        Steps:
+        - Collect row centers from all columns.
+        - Merge centers within a tolerance (rows aligning across columns).
+        - Confidence = 1 -  (#merged rows) / (total entries).
+        """
+        if not self.columns:
+            return 0.0
+
+        def _same_row(w1: TextWord, w2: TextWord, tolerance: float = 3.0):
+            w1_center, w2_center = _y_center(w1.rect), _y_center(w2.rect)
+            return abs(w1_center - w2_center) <= tolerance
+
+        merged_rows = cluster_connected_components(self.words, _same_row)
+
+        total_entries = len(self.words)
+        if total_entries == 0:
+            return 0.0
+
+        # fewer merged rows relative to total entries -> better alignment
+        merged_count = len(merged_rows)
+        q_rows = 1.0 - (merged_count / total_entries)
+
+        return q_rows

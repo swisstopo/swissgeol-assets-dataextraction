@@ -91,12 +91,15 @@ class TreeBasedTrainer(abc.ABC):
         precision, recall, f1, _ = precision_recall_fscore_support(
             self.y_val, y_pred, average="micro", zero_division=0
         )
-        return {"precision_micro": precision, "recall_micro": recall, "f1_micro": f1}
+        _, _, f1_macro, _ = precision_recall_fscore_support(self.y_val, y_pred, average="macro", zero_division=0)
+        return {"precision_micro": precision, "recall_micro": recall, "f1_micro": f1, "f1_macro": f1_macro}
 
     def save_model(self, filename: str = "model.joblib"):
         """Saves the trained model to the specified file."""
         path = self.model_dir / filename
         joblib.dump(self.model, path)
+        signature = mlflow.models.infer_signature(self.X_train[:1], self.model.predict(self.X_train[:1]))
+        mlflow.sklearn.log_model(self.model, name=self.model_name, signature=signature)
         return path
 
     def plot_and_log_feature_importance(self):

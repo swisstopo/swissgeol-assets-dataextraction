@@ -1,11 +1,15 @@
 import math
+from collections.abc import Callable
 
 import numpy as np
 import pymupdf
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.identifiers.boreprofile import identify_boreprofile, keywords_in_figure_description
+from src.identifiers.diagram import identify_diagram
+from src.identifiers.geo_profile import identify_geo_profile
 from src.identifiers.map import identify_map
+from src.identifiers.table import identify_table
 from src.identifiers.text import identify_text
 from src.identifiers.title_page import identify_title_page
 from src.line_detection import extract_geometric_lines
@@ -32,8 +36,17 @@ class RuleBasedClassifier(Classifier):
         if self._detect_boreprofile(page, context):
             return PageClasses.BOREPROFILE
 
+        if self._detect_geo_profile(page, context):
+            return PageClasses.GEO_PROFILE
+
         if self._detect_map(page, context):
             return PageClasses.MAP
+
+        if identify_diagram(context, self.matching_params):
+            return PageClasses.DIAGRAM
+
+        if self._detect_table(page, context):
+            return PageClasses.TABLE
 
         if identify_title_page(context, self.matching_params):
             return PageClasses.TITLE_PAGE
@@ -46,6 +59,16 @@ class RuleBasedClassifier(Classifier):
     def _detect_boreprofile(self, page: pymupdf.Page, context: PageContext) -> bool:
         return identify_boreprofile(context, self.matching_params)
 
+    def _detect_geo_profile(self, page: pymupdf.Page, context: PageContext) -> bool:
+        """Determines whether a page should be classified as a geo profile page.
+
+        Geo profile detection relies on Line detection, which gets delayed until here.
+        Short lines (often from text artifacts) are filtered out when text is present.
+        """
+        if not context.geometric_lines:
+            self._extract_geometric_lines(context, page)
+        return identify_geo_profile(context, self.matching_params)
+
     def _detect_map(self, page: pymupdf.Page, context: PageContext) -> bool:
         """Determines whether a page should be classified as a map page.
 
@@ -53,17 +76,40 @@ class RuleBasedClassifier(Classifier):
         Short lines (often from text artifacts) are filtered out when text is present.
         """
         if not context.geometric_lines:
-            geometric_lines = extract_geometric_lines(page)
-
-            if len(context.words) > 7:
-                mean_font_size = np.mean([line.font_size for line in context.lines])
-                min_line_length = mean_font_size * math.sqrt(2)
-
-                geometric_lines = [line for line in geometric_lines if line.length > min_line_length]
-
-            context.geometric_lines = geometric_lines
+            self._extract_geometric_lines(context, page)
 
         return identify_map(context, self.matching_params)
+
+    def _detect_table(self, page: pymupdf.Page, context: PageContext) -> bool:
+        """Determines whether a page should be classified as a map page.
+
+        Table detection relies on Line detection, which gets delayed until here.
+        Short lines (often from text artifacts) are filtered out when text is present.
+        """
+        if not context.geometric_lines:
+            self._extract_geometric_lines(context, page)
+
+        return identify_table(context)
+
+    def _extract_geometric_lines(self, context: PageContext, page: pymupdf.Page):
+        """Extracts and filters geometric lines from the page.
+
+        Args:
+            context (PageContext): The context of the page containing text and other information.
+            page (pymupdf.Page): The page from which to extract geometric lines.
+
+        Returns:
+            None: The function modifies the context in place by setting the geometric_lines attribute.
+        """
+        geometric_lines = extract_geometric_lines(page)
+
+        if len(context.words) > 7:
+            mean_font_size = np.mean([line.font_size for line in context.lines])
+            min_line_length = mean_font_size * math.sqrt(2)
+
+            geometric_lines = [line for line in geometric_lines if line.length > min_line_length]
+
+        context.geometric_lines = geometric_lines
 
 
 class ScannedRuleBasedClassifier(RuleBasedClassifier):
@@ -112,7 +158,8 @@ class BaselineClassifier(Classifier):
         self.scanned = ScannedRuleBasedClassifier(matching_params)
         self.digital = DigitalRuleBasedClassifier(matching_params)
 
-    def determine_class(self, page: pymupdf.Page, context: PageContext, **kwargs) -> PageClasses:
+    def determine_class(self, page: pymupdf.Page, context_builder: Callable[[], PageContext], **kwargs) -> PageClasses:
+        context = context_builder()
         if context.is_digital:
-            return self.digital.determine_class(page, context)
-        return self.scanned.determine_class(page, context)
+            return self.digital.determine_class(page, context, **kwargs)
+        return self.scanned.determine_class(page, context, **kwargs)

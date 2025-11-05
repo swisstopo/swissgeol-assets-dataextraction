@@ -1,102 +1,178 @@
 # Page Classification for Geological Documents in Assets
 
-## **Purpose** 
+## Purpose
 
 This repository provides a classification pipeline to categorize PDF pages 
 from geological reports into document classes, with the goal of supporting document
-understanding and metadata extraction in the [Assets](https://assets.swissgeol.ch/) platform.
+understanding and metadata extraction in the [Assets](https://assets.swissgeol.ch/) platform. The solution can be used as a standalone API.
 
-This classification helps to map individual pages in a document,
-which ultimately should facilitate the identification of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
+This classification helps to map individual pages in a document, which ultimately should facilitate the identification 
+of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and 
+boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
+
+## API endpoints
+Current API supports two endpoint versions **V1** with the latest changes (e.g., extended classes and different [response schema](#output-format)) and **V0** for backwards compatability.
+
+**Endpoints for V0:**
+ - `/` - main document selection endpoint
+ - `/collect` - response collection
+
+ **Endpoints for V1:**
+ - `/v1` - main document selection endpoint
+ - `/v1/collect` - response collection
+
+The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
 
 ## Classes
 
+For each file a [response](#output-format) is compiled classifying the page into one of the defined page classes.
+
+### V0 version
 Each page is categorized into one of the following:
 
-1. **Text Pages** - Continuous flowing text.  
-2. **Borehole Profiles** - Boreholes, longitudinal profiles, and dynamic probing logs.  
-3. **Maps** - Geological or topographic maps.  
-4. **Title Pages** - Report cover/title pages (currently not fully implemented).  
-5. **Unknown** - Other content like tables, mixed pages, graphs, and summary sheets.
+1. `Text` - Continuous text page.
+2. `Boreprofile` - Boreholes.
+3. `Maps` - Geological or topographic maps.
+4. `Title_Page` - Title pages of original reports.
+5. `Unknown` - Everything else.
 
-## Data
+Extended classes in available in V1 version are mapped to `unknown` when running the V0 API version.
 
-### Dataset Source
+### V1 version 
+The V1 version containes extended classes from v0 and Each page is categorized into one of the following:
 
-The dataset is stored in the S3 bucket `stijnvermeeren-assets-data`, under the `single_pages/` folder. It contains categorized subfolders:
+1. `Text` - Continuous text page.  
+2. `Boreprofile` - Boreholes. 
+3. `Maps` - Geological or topographic maps.  
+4. `TitlePage` - Title pages of original reports.  
+5. `GeoProfile` - Geological cross-sections or longitudinal profiles.
+6. `Table` -  Tabular numeric/textual data.
+7. `Diagram` - Scientific 2D graphs or plots.
+8. `Unknown` - Everything else.
 
-| Folder         | Description                                                                                             |
-|----------------|---------------------------------------------------------------------------------------------------------|
-| `maps/`        | Pages with maps                                                                                         |
-| `boreprofile/` | Borehole-related profiles (e.g., boreholes, longitudinal profiles, probing logs)                        |
-| `title_page/`  | Cover/title pages from reports                                                                          |
-| `text/`        | Continuous text pages                                                                                   |
-| `unknown/`     | Other pages: tables, graphs, mixed layouts, summary sheets (e.g. Infogeol summary pages)                |
 
-In addition, boreprofile data from the `zurich` and `geoquat/validation` folders used in the [swissgeol-boreholes-dataextraction](https://github.com/swisstopo/swissgeol-boreholes-dataextraction) repository and stored in the S3 bucket `stijnvermeeren-boreholes-data` can be classified and compared using existing ground truth.
+## Output Format
+`data/prediction.json` (if `-w`/`--write_result`) or returned as a Python object.
+#### Example Output (v0)
+```json
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "input.pdf",
+			"metadata": {
+				"page_count": 1,
+				"languages": [
+					"de"
+				]
+			},
+			"pages": [
+				{
+					"page": 1,
+					"classification": {
+						"Text": 0,
+						"Boreprofile": 1,
+						"Maps": 0,
+						"Title_Page": 0,
+						"Unknown": 0
+					},
+					"metadata": {
+						"language": "de",
+						"is_frontpage": false
+					}
+				}
+			]
+		}
+	]
+}
+```
 
-### Ground Truth
+**V0 Notes**:
+- `filename`: The name of the processed PDF file.
+- `metadata`: metadata about the file.
+- `pages`: list of dictionaries containing:
+  - `page`: The page number (1-indexed). 
+  - `classification`: Classification of a current page:
+    - 1: class was assigned to the page. 
+    - 0: class was not assigned.
+  - `metadata`: metadata about the current page.
 
-- Classification output: `data/prediction.json`  
-- Single-page ground truths: `data/gt_single_pages.json`  
-- External evaluation sets:
-  - Zurich: `data/gt_zurich.json`
-  - GeoQuat: `data/gt_geoquat.json`
 
-## Repository Structure
+#### Example Output (v1)
+```json
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "742_6.pdf",
+			"metadata": {
+				"page_count": 1,
+				"languages": [
+					"de"
+				]
+			},
+			"pages": [
+				{
+					"predicted_class": "Boreprofile",
+					"page_number": 1,
+					"page_metadata": {
+						"language": "de",
+						"is_frontpage": false
+					}
+				}
+			]
+		}
+	]
+}
+```
+**V1 Notes**:
+- `filename`: The name of the processed PDF file.
+- `metadata`: metadata about the file.
+- `pages`: list of dictionaries containing:
+  - `predicted_class`: The class name of the predicted class (e.g. "Boreprofile"). All possible classes are listed above in the section "Classes".
+  - `page_number`: The page number (1-indexed).
+  - `page_metadata`: metadata about the current page.
 
-- `config/`: YAML configuration files for models and keyword matching
-- `data/`
-    - `single_pages/`: Input data split by class
-    - `single_pages_split/`: Training/validation split created by `split_data.py`
-    -  `prediction.json`: Output predictions
-    - `gt_*.json`: Ground truth files
-- `evaluation/`: Evaluation outputs, metrics and visualization
-- `language-detection`: Language detection module
-- `models/`: Trained model folders (e.g. LayoutLMv3, TreeBased)
-- `prompts/`: Prompt templates for pixtral classification
-- `src/`: Utility scripts and core logic 
-- `tests/`: Unit tests
-- `main.py`: Entry point for classification
-- `pyproject.toml`
-- `setup.py`
-- `.env.template`: Template for .env file
-- `README.md`
 
-## How to run Classifier
+**General Notes:**
+
+- The classifier supports batch input of multiple reports.
+- Input must be preprocessed: PDFs should already have OCR. 
+- Classification is multi-class with a single label per page. Future updates may support multiple-labels.
+
+
+---
+## Development quick start
+Requirements: Python 3.10(recommended), OCR'ed PDFs.
 
 ### 1. Create and activate a virtual environment
 ```bash
 python -m venv venv
 source venv/bin/activate
 ```
-
 ### 2. Install dependencies
+For basic runtime API install based dependencies:
 ```bash
 pip install .
 ```
 For development, install optional tools with:
 ```bash
-pip install '.[deep-learning,test,lint,experiment-tracking]'
+pip install '.[all]'
 ```
-Make sure you have `fasttext-predict` installed instead of `fasttext` (see 6. Setup FastText Language Detection).
+Make sure you have `fasttext-predict` installed instead of `fasttext` (see 5. Setup FastText Language Detection).
 
-### 3. Copy the provided environment variable template and specify your paths:
+### 3. Copy .env.template and specify your paths:
 ```bash
 cp .env.template .env
 ```
-For development and if you want to track your experiments, set `MLFLOW_TRACKING=True` in `.env` file.
-### 4. (Optional) Start the MLflow UI
+For development:
+- Set `MLFLOW_TRACKING=True` in `.env` file for experiment tracking.
 
-For development: Start MLflow UI (optional, for experiment tracking):
-```
-mlflow ui
-```
-### 5. (Optional) Use a pre-trained model:
+### 4. (Optional) Use a pre-trained model:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
 - Option B: Train your own model as described in [Train your Model](#train-your-model).
 
-### 6. Setup FastText Language Detection
+### 5. Setup FastText Language Detection
 
 This project uses [fasttext-predict](https://github.com/searxng/fasttext-predict/), a lightweight, dependency-free wrapper exposing only the predict method.
 We use this because [FastText](https://github.com/facebookresearch/fastText) is archived.
@@ -105,8 +181,16 @@ Download the FastText language identification model lid.176.bin form [this websi
 mkdir -p models/FastText
 curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
 ```
-In your `.env` file, set  the `FASTTEXT_MODEL_PATH` variable to your model path
+Set in `.env`:
+```
+ FASTTEXT_MODEL_PATH=models/FastText/lid.176.bin
+```
+### 6. (Optional) Start the MLflow UI
 
+For development: Start MLflow UI:
+```
+mlflow ui
+```
 ### 7. Run the classification:
 ```bash
 python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
@@ -125,69 +209,41 @@ If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified t
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
+## Start the FastAPI server
 
-## Train your Model
-To train your own model, first split your dataset into training and validation:
+To test the API locally run the following commant: 
+
 ```bash
-python scripts/split_data.py
+uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
 ```
-This will create:
+
+This will start the server on port 8000 of the localhost and enable automatic reloading whenever changes are made to the code.
+
+---
+
+## Build docker image
+
+To test the docker image locally you can build the image using the following command:
+
 ```bash
-data/single_pages_split/train/
-data/single_pages_split/val/
+docker build -t assets-api . -f Dockerfile
 ```
-You can then train either:
-- `layoutlmv3`: Fine-tuning the layoulmv3 model
-- `treebased`: Train a RandomForest or XGBoost model
 
-Training logs and metrics will be tracked via MLflow.
+This command will build the Docker image with the tag `assets-api`.
 
-### Train LayoutLMv3
+Verify that the Docker image has been successfully built by running the following command:
 
-To train a LayoutLMv3 model, run the training script directly:
 ```bash
-python src.models.layoutlmv3.train.py
-    --config_file_path config/layoutlmv3_config.yml
-    --out_directory models/layoutlmv3_output 
-    [--model_checkpoint models/layoutlmv3_pretrained_checkpoint]
+docker images
 ```
-**Arguments**:
-- config_file_path: Path to the YAML configuration file with model parameters and dataset paths.
-- out_directory: Directory where the trained model will be saved.
-- model_checkpoint (optional): Path to a pre-trained model checkpoint. If not provided, the model will be initialized from the Hugging Face hub based on the config.
 
-This training script supports freezing/unfreezing specific layers and uses the Hugging Face Trainer API under the hood.
+To run the Docker container, use the following command, and remember to add your AWS credentials in the `.env` file:
 
-### Train TreeBased Models (RandomForest or XGBoost)
-To train a RandomForest or XGBoost classifier, use:
 ```bash
-python src.models.treebased.train.py \
-    --config_file_path config/xgboost_config.yml \
-    --out_directory models/xgboost_model
+docker run -p 8000:8000 -v $(pwd)/.env:/app/.env.api:ro assets-api
 ```
-- config_file_path: Path to the YAML config specifying hyperparameters and feature extraction settings.
-- out_directory: Output path for the trained model.
 
-If you're training an XGBoost model on macOS, you may encounter issues related to OpenMP. To resolve this, install the OpenMP library using Homebrew:
-```bash
-brew install libomp
-```
-## Pre-Commit
-We use pre-commit hooks to format our code in a unified way.
-
-Pre-commit comes in the venv environment (installed as described above). After activating the environment you have to install pre-commit  in your terminal by running:
-```bash
-pre-commit install
-```
-This needs to be done only once.
-
-After installing pre-commit, it will trigger 'hooks' upon each `git commit -m ...` command. The hooks will be applied on all the files in the commit. A hook is nothing but a script specified in `.pre-commit-config.yaml`.
-
-We use [ruffs](https://github.com/astral-sh/ruff) [pre-commit package](https://github.com/astral-sh/ruff-pre-commit) for linting and formatting. It will apply the same formating as the vscode Ruff extension would (v0.12.0).
-
-If you want to skip the hooks, you can use `git commit -m "..." --no-verify`.
-
-More information about pre-commit can be found [here](https://pre-commit.com).
+---
 
 ## AWS Setup for pixtral Classifier
 
@@ -216,79 +272,90 @@ To run classification using the Pixtral Large Model, you must configure your AWS
      aws_secret_access_key=YOUR_SECRET_KEY
      ```
 
+## Data
+The dataset is stored in the S3 bucket `stijnvermeeren-assets-data`, under the `single_pages/` folder. 
+It contains categorized subfolders per class.
+In addition, boreprofile data from the `zurich` and `geoquat/validation` folders used in the [swissgeol-boreholes-dataextraction](https://github.com/swisstopo/swissgeol-boreholes-dataextraction) repository and stored in the S3 bucket `stijnvermeeren-boreholes-data` can be classified and compared using existing ground truth.
 
-## Output Format
-The script processes PDF pages and outputs predictions in `data/predictions.json`. 
-The output is structured as a list of metadata and page predictions per file. 
-Page predications "pages" is a list of classification results per page and metadata per page (language) .
-#### Example Output
-```json
-[
-    {
-        "filename": "1858.pdf",
-        "metadata": {
-            "page_count": 3,
-            "languages": ["de", "fr"]
-        },
-        "pages": [
-            {
-                "page": 1,
-                "classification": {
-                    "Text": 1,
-                    "Boreprofile": 0,
-                    "Maps": 0,
-                    "Title_Page": 0,
-                    "Unknown": 0
-                },
-                "metadata": {
-                    "language": "de",
-                    "is_frontpage": false
-                }
-            },
-            {
-                "page": 2,
-                "classification": {
-                    "Text": 0,
-                    "Boreprofile": 1,
-                    "Maps": 0,
-                    "Title_Page": 0,
-                    "Unknown": 0
-                },
-                "metadata": {
-                    "language": "fr",
-                    "is_frontpage": false
-                }
-            },
-            {
-                "page": 3,
-                "classification": {
-                    "Text": 1,
-                    "Boreprofile": 0,
-                    "Maps": 0,
-                    "Title_Page": 0,
-                    "Unknown": 0
-                },
-                "metadata": {
-                    "language": null,
-                    "is_frontpage": false
-                }
-            }
-        ]
-    }
-]
+### Ground Truth
+- Single-page ground truths: `data/gt_single_pages.json`  
+- External evaluation sets:
+  - Zurich: `data/gt_zurich.json`
+  - GeoQuat: `data/gt_geoquat.json`
+---
 
+## Repository Structure
+
+- `config/`: YAML configs (models, matching, prediction profiles)
+- `data/` : input data,  predictions and ground truths
+- `evaluation/`: Evaluation and metrics
+- `models/`: Models (e.g. FastText, LayoutLMv3, TreeBased)
+- `prompts/`: Pixtral prompts
+- `src/`: Utility scripts and core logic 
+- `tests/`: Unit tests
+- `main.py`: CLI entry point
+- `api/`: API
+---
+
+## Train your Model
+### Split data
+Split data into train and validation set.
+```bash
+python scripts/split_data.py
+# creates:
+# data/single_pages_split/train/
+# data/single_pages_split/val/
 ```
-**Explanation**:
-- filename: The name of the processed PDF file.
-- classification: A list of dictionaries, each representing the classification of  a PDF page of the report.
-  - Each dictionary contains:
-  - Page: The page number (1-indexed). 
-  - One key per possible class (e.g., Text, Boreprofile, Maps, Title_Page, Unknown) with binary values:
-    - 1: class was assigned to the page. 
-    - 0: class was not assigned.
+### Train LayoutLMv3
 
-**Further Notes:**
-- The classifier supports batch input of multiple reports.
-- Output is returned as a standard Python list of dictionaries and can be serialized directly as JSON.
-- Input must be preprocessed: PDFs should already have OCR. 
-- Classification is currently multi-class with a single label per page. Future updates may support multiple-labels.
+To train a LayoutLMv3 model, run:
+```bash
+python -m src.models.layoutlmv3.train \
+    --config-file-path config/layoutlmv3_config.yaml \
+    --out-directory models/layoutlmv3_output \
+    # Optional argument:
+    --model-checkpoint models/layoutlmv3_pretrained_checkpoint
+```
+**Arguments**:
+- `config_file_path`: Path to the YAML configuration file with model parameters and dataset paths.
+- `out_directory`: Directory where the trained model will be saved.
+- `model_checkpoint` (optional): Path to a pre-trained model checkpoint. If not provided, the model will be initialized from the Hugging Face hub based on the config.
+
+The script supports freezing/unfreezing specific layers and uses the Hugging Face Trainer API under the hood.
+
+### Train TreeBased (RandomForest or  XGBoost)
+To train a RandomForest or XGBoost classifier, use:
+```bash
+python -m src.models.treebased.train \
+    --config-file-path config/xgboost_config.yml \
+    --out-directory models/xgboost_model
+```
+- `config_file_path`: Path to the YAML config specifying hyperparameters and feature extraction settings.
+- `out_directory`: Output path for the trained model.
+
+If you're training an XGBoost model on macOS, you may encounter issues related to OpenMP. To resolve this, install the OpenMP library using Homebrew:
+```bash
+brew install libomp
+```
+
+#### Model explainability (with treebased models)
+
+See [this file](src/models/treebased/README.md) for details about model explainability and SHAP-based interpretation for tree-based models.
+
+## Pre-Commit
+We use pre-commit hooks to format our code in a unified way.
+
+Pre-commit comes in the venv environment (installed as described above). After activating the environment you have to install pre-commit  in your terminal by running:
+```bash
+pre-commit install
+```
+This needs to be done only once.
+
+After installing pre-commit, it will trigger 'hooks' upon each `git commit -m ...` command. The hooks will be applied on all the files in the commit. A hook is nothing but a script specified in `.pre-commit-config.yaml`.
+
+We use [ruffs](https://github.com/astral-sh/ruff) [pre-commit package](https://github.com/astral-sh/ruff-pre-commit) for linting and formatting. It will apply the same formating as the vscode Ruff extension would (v0.12.0).
+
+If you want to skip the hooks, you can use `git commit -m "..." --no-verify`.
+
+More information about pre-commit can be found [here](https://pre-commit.com).
+

@@ -1,0 +1,116 @@
+import logging
+import os
+import shutil
+import sys
+import uuid
+from pathlib import Path
+from typing import Annotated
+
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from starlette.responses import JSONResponse
+
+from api.app.shared.handlers import start_handler
+from api.app.shared.schemas import CollectPayload, StartPayload
+from api.app.shared.settings import ApiSettings, api_settings
+from api.app.v0.mapping import map_labels_for_v0
+from api.aws import aws
+from api.utils import task
+
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from main import main as script
+
+logging.basicConfig()
+logging.getLogger().setLevel(logging.INFO)
+
+router = APIRouter()
+
+
+@router.post(
+    "/",
+    summary="Start Page Classification",
+    description="Starts the Page Classification process for a file as background task that completes asynchronously.",
+)
+def start(
+    payload: StartPayload,
+    settings: Annotated[ApiSettings, Depends(api_settings)],
+    background_tasks: BackgroundTasks,
+):
+    return start_handler(payload, settings, background_tasks, process)
+
+
+@router.post(
+    "/collect",
+    summary="Collect Page Classification Results",
+    description="""
+        Collects the results of the Page Classification process for a given file. If the process is still running, 
+        it indicates that the results are not yet available.
+    """,
+)
+def collect(
+    payload: CollectPayload,
+):
+    result = task.collect_result(payload.file)
+    if result is None and not task.has_task(payload.file):
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={"message": "Page Classification is not running for this file"},
+        )
+
+    has_finished = result is not None
+    if not has_finished:
+        logging.info(f"Processing of '{payload.file}' has not yet finished.")
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "has_finished": False,
+                "data": None,
+            },
+        )
+
+    if result.ok:
+        logging.info(f"Processing of '{payload.file}' has been successful.")
+        return JSONResponse(
+            status_code=status.HTTP_200_OK,
+            content={
+                "has_finished": True,
+                "data": result.value,
+            },
+        )
+
+    logging.info(f"Processing of '{payload.file}' has failed.")
+    return JSONResponse(
+        status_code=status.HTTP_200_OK,
+        content={
+            "has_finished": True,
+            "error": "Internal Server Error",
+        },
+    )
+
+
+def process(
+    payload: StartPayload,
+    aws_client: aws.Client,
+    settings: Annotated[ApiSettings, Depends(api_settings)],
+):
+    task_id = f"{uuid.uuid4()}"
+    tmp_dir = Path(settings.tmp_path) / task_id
+    os.makedirs(tmp_dir, exist_ok=True)
+
+    input_path = tmp_dir / "input.pdf"
+
+    aws.load_file(
+        aws_client.bucket(settings.s3_bucket),
+        f"{settings.s3_folder}{payload.file}",
+        str(input_path),
+    )
+
+    result = script(
+        input_path=tmp_dir,
+        classifier_name="treebased",
+        model_path="models/stable/model.joblib",
+        write_result=False,
+    )
+
+    result = [map_labels_for_v0(doc) for doc in result]
+    shutil.rmtree(tmp_dir)
+    return result
