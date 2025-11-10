@@ -4,7 +4,6 @@ import os
 import time
 from pathlib import Path
 
-import mlflow
 import pymupdf
 from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
@@ -13,6 +12,7 @@ from xgboost import XGBClassifier
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
 from models.treebased.basetrainer import TreeBasedTrainer
+from models.treebased.model_explanation import explain_model
 from src.models.feature_engineering import get_features
 from src.utils import get_pdf_files, read_params
 
@@ -20,6 +20,9 @@ logger = logging.getLogger(__name__)
 
 load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+
+if mlflow_tracking:
+    import mlflow
 
 MATCHING_PARAMS_PATH = "config/matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
@@ -157,7 +160,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
         tuning (bool): Whether to perform hyperparameter tuning. Default is False.
     """
     if not mlflow_tracking:
-        print("MLflow tracking is disabled. Set MLFLOW_TRACKING=True in .env to enable it.")
+        raise RuntimeError("MLflow tracking is disabled. Set MLFLOW_TRACKING=True in .env to enable it.")
 
     mlflow.set_experiment("Classifier Training")
 
@@ -204,6 +207,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
             trainer.prepare_model()
 
         trainer.train()
+        explain_model(trainer.model, trainer.X_train, trainer.id2label)
         trainer.save_model()
 
         y_pred = trainer.model.predict(X_val)
