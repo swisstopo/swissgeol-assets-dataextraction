@@ -1,26 +1,19 @@
 import logging
 import math
-import os
 import re
 
-import fasttext
 import pymupdf
+import swissgeol_doc_processing as swiss
 from dotenv import load_dotenv
 
 load_dotenv()
-
-# Global model for detector empty if not used
-detector = None
-model_path = os.getenv("FASTTEXT_MODEL_PATH")
-if not model_path or not os.path.isfile(model_path):
-    raise FileNotFoundError(f"FASTTEXT model path is invalid or missing: {model_path}")
 
 logger = logging.getLogger(__name__)
 
 SUPPORTED_LANGUAGES = ["de", "fr", "it", "en"]
 DEFAULT_LANGUAGE = "de"
-METADATA_THRESHOLD = 0.7
-CLASSIFICATION_THRESHOLD = 0.4
+MIN_WORDS_PER_LANG = 4
+MIN_WORDS_PER_PAGE = 50
 
 
 def extract_cleaned_text(page: pymupdf.Page) -> tuple[str, int]:
@@ -56,99 +49,90 @@ def extract_cleaned_text(page: pymupdf.Page) -> tuple[str, int]:
     return text_for_detection, word_count_not_short
 
 
-def predict_language(text: str) -> list[tuple[str, float]]:
-    """Returns list of (language_code, score) tuples from FastText."""
-    if not text.strip():
-        return []
+def predict_language(text: str | None) -> str | None:
+    """Detected language code.
 
-    # Check if model already load globaly
-    global detector
-    if detector is None:
-        detector = fasttext.load_model(model_path)
+    Args:
+        text (str | None): Text used for detection.
+
+    Returns:
+        str | None: Detected language.
+    """
+    if not text or not text.strip():
+        return None
 
     try:
-        labels, scores = detector.predict(text.lower(), k=5)
-        return [(label.replace("__label__", ""), score) for label, score in zip(labels, scores, strict=False)]
+        # If detected language is none of supported, return none
+        return swiss.language_detection.detect_language_of_text(
+            text=text.lower(), default_language=None, supported_languages=SUPPORTED_LANGUAGES
+        )
     except Exception as e:
         logger.error(f"Language detection error: {e}")
-        return []
+        return None
 
 
 def select_classification_language(
-    predictions: list[tuple[str, float]], word_count: int, supported_languages: list[str] = None
+    prediction: str | None, word_count: int, supported_languages: list[str] = None
 ) -> str:
     """Returns the best classification language, falling back to default if no valid match is found.
 
     Args:
-        predictions: List of (language_code, score)
-        word_count: Non-trivial word count on the page
-        supported_languages: Allowed language codes (defaults to SUPPORTED_LANGUAGES)
+        prediction (str | None): Predicted language.
+        word_count (int): Non-trivial word count on the page.
+        supported_languages (list[str]): Allowed language codes (defaults to SUPPORTED_LANGUAGES).
 
     Returns:
-        Language code (str)
+        str: Language code
     """
     if supported_languages is None:
         supported_languages = SUPPORTED_LANGUAGES
 
-    threshold = CLASSIFICATION_THRESHOLD
     fallback = DEFAULT_LANGUAGE
 
-    if word_count < 4:
+    if word_count < MIN_WORDS_PER_LANG:
         logger.info(f"[Classification] Too few words ({word_count}). Fallback to '{fallback}'.")
         return fallback
 
-    for lang, score in predictions:
-        if score >= threshold and lang in supported_languages:
-            return lang
+    if prediction in supported_languages:
+        return prediction
+    else:
+        logger.info(f"[Classification] No valid prediction. Fallback to '{fallback}'.")
+        return fallback
 
-    logger.info(f"[Classification] No valid prediction above threshold {threshold}. Fallback to '{fallback}'.")
-    return fallback
 
-
-def select_metadata_language(
-    predictions: list[tuple[str, float]],
+def track_metadata_language(
+    lang: str,
     word_count: int,
     is_frontpage: bool,
     page_number: int,
     scores: dict[str, float],
     long_counts: dict[str, int],
 ) -> str | None:
-    """Selects metadata language and updates aggregated score trackers.
+    """Track metadata language and updates aggregated score trackers.
 
     Args:
-        predictions: List of (language, score)
-        word_count: Count of non-trivial words
-        is_frontpage: Whether the page is a Belegblatt/front page
-        page_number: Page index (1-based)
-        scores: Aggregated log(word_count)/page_number for each language
-        long_counts: Count of pages > 50 words per language
-
-    Returns:
-        Metadata language (or None if no confident prediction)
+        lang (str): Language
+        word_count (int): Count of non-trivial words
+        is_frontpage (bool): Whether the page is a Belegblatt/front page
+        page_number (int): Page index (1-based)
+        scores (dict[str, float]): Aggregated log(word_count)/page_number for each language
+        long_counts (dict[str, int]): Count of pages > MIN_WORDS_PER_PAGE words per language
     """
-    threshold = METADATA_THRESHOLD
+    if word_count < MIN_WORDS_PER_LANG:
+        logger.info(f"[Metadata] Too few words ({word_count}).")
+        return
 
-    if word_count < 4:
-        logger.info(f"[Metadata] Too few words ({word_count}). Returning None.")
-        return None
-
-    for lang, score in predictions:
-        if score >= threshold:
-            if not is_frontpage:
-                scores[lang] += math.log(word_count) / page_number
-                if word_count > 50:
-                    long_counts[lang] += 1
-            return lang
-
-    logger.info(f"[Metadata] No language above threshold {threshold}. Returning None.")
-    return None
+    if not is_frontpage:
+        scores[lang] += math.log(word_count) / page_number
+        if word_count > MIN_WORDS_PER_PAGE:
+            long_counts[lang] += 1
 
 
 def summarize_language_metadata(scores: dict[str, float], long_counts: dict[str, int], page_count: int) -> dict:
     """Summarizes detected languages for the PDF.
 
     - Selects the language with the highest aggregated score (based on weighted word counts).
-    - Adds additional languages if they appear in at least 2 long pages (>50 words).
+    - Adds additional languages if they appear in at least 2 long pages (>MIN_WORDS_PER_PAGE words).
 
     Returns:
         A dictionary with page_count and list of dominant languages.

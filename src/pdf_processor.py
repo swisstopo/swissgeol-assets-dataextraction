@@ -12,8 +12,8 @@ from src.language_detection.detect_language import (
     extract_cleaned_text,
     predict_language,
     select_classification_language,
-    select_metadata_language,
     summarize_language_metadata,
+    track_metadata_language,
 )
 from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_graphics import extract_page_graphics, get_color_proportion
@@ -108,8 +108,8 @@ class PDFProcessor:
                 is_frontpage = is_belegblatt(page.get_text())
                 language_prediction = predict_language(clean_text)
 
-                metadata_language = select_metadata_language(
-                    predictions=language_prediction,
+                track_metadata_language(
+                    lang=language_prediction,
                     word_count=word_count,
                     is_frontpage=is_frontpage,
                     page_number=page_number,
@@ -124,7 +124,7 @@ class PDFProcessor:
                     {
                         "page": page_number,
                         "classification": classification.to_classification_dict(),
-                        "metadata": {"language": metadata_language, "is_frontpage": is_frontpage},
+                        "metadata": {"language": language_prediction, "is_frontpage": is_frontpage},
                     }
                 )
 
