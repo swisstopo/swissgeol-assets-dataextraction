@@ -7,7 +7,7 @@ name = "swissgeol-assets-dataextraction"
 version = "0.1.0"
 description = "Python project for geological document analysis."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11,<3.14"
 
 # Production-only dependencies for API runtime
 dependencies = [
