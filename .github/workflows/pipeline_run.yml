@@ -7,7 +7,6 @@ on:
 
 env:
   MLFLOW_TRACKING: "False"
-  FASTTEXT_MODEL_PATH: models/FastText/lid.176.bin
 
 jobs:
   pipeline_run:
@@ -22,8 +21,5 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install .
-          echo "Download FastText model"
-          mkdir -p models/FastText
-          curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
           echo "Running pipeline with baseline classifier"
           python main.py -i examples/example_pdf.pdf -c baseline
