@@ -260,7 +260,7 @@ Open the [MiniIO UI](http://localhost:9001) console and log in using the credent
 
 ### Run
 
-To test the API locally run the following commant:
+To test the API locally run the following command:
 
 ```bash
 uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
