@@ -34,7 +34,6 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 
-COPY --from=builder /models ./models
 COPY src/ ./src/
 COPY api/ ./api/
 COPY config/ ./config/
