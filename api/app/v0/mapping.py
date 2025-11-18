@@ -1,5 +1,4 @@
 # stable keys -> API keys
-from pydantic.alias_generators import to_pascal
 
 from src.predictions.compat import map_to_stable_labels
 
@@ -23,8 +22,3 @@ def map_labels_for_v0(doc: dict) -> dict:
         cls = {V0_APP_LABELS.get(key, key): value for key, value in cls.items()}  # rename only
         pages.append({**p, "classification": cls})
     return {**doc, "pages": pages}
-
-
-def predicted_class_v1(classification: dict) -> str:
-    """Parse the predicted class from a one-hot encoded classification dictionary."""
-    return next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")

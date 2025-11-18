@@ -18,6 +18,7 @@ __pycache__/
 # Virtual environments
 env/
 venv/
+minio
 
 # IDE config
 .idea/
@@ -34,3 +35,5 @@ venv/
 .DS_Store
 
 /tmp
+uv.lock
+*.iml
