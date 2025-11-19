@@ -1,6 +1,8 @@
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
+from src.page_classes import PageClasses
+
 
 class MetaDataSchema(BaseModel):
     """Schema for document-level metadata including page count and languages."""
@@ -29,7 +31,7 @@ class PageMetaDataSchema(BaseModel):
 class PagePrediction(BaseModel):
     """Schema for individual page prediction results including class, number and metadata."""
 
-    predicted_class: str
+    predicted_class: PageClasses
     page_number: int = Field(gt=0, description="Page number must be greater than 0")
     page_metadata: PageMetaDataSchema
 
@@ -97,6 +99,10 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-def predicted_class(classification: dict) -> str:
+def predicted_class(classification: dict) -> PageClasses:
     """Parse the predicted class from a one-hot encoded classification dictionary."""
-    return next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")
+    value = next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")
+    try:
+        return PageClasses(value.lower())  # match your enum values
+    except ValueError:
+        return PageClasses.UNKNOWN

@@ -1,17 +1,18 @@
 import pytest
 
-from api.utils.mapping import parse_predicted_class
+from api.app.v1.schemas import predicted_class
+from src.page_classes import PageClasses
 
 
 @pytest.mark.parametrize(
     "classes,expected",
     [
-        ({"text": 0, "boreprofile": 1, "map": 0, "title_page": 0, "unknown": 0}, "Boreprofile"),
-        ({"text": 0, "boreprofile": 0, "map": 1, "title_page": 0, "unknown": 0}, "Map"),
-        ({"text": 0, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, "Unknown"),
-        ({"TEXTTT": 1, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, "TEXTTT"),
+        ({"text": 0, "boreprofile": 1, "map": 0, "title_page": 0, "unknown": 0}, PageClasses.BOREPROFILE),
+        ({"text": 0, "boreprofile": 0, "map": 1, "title_page": 0, "unknown": 0}, PageClasses.MAP),
+        ({"text": 0, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, PageClasses.UNKNOWN),
+        ({"TEXTTT": 1, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, PageClasses.UNKNOWN),
     ],
 )
 def test_mapping_to_stable_labels(classes, expected):
-    page_pred = parse_predicted_class(classes)
+    page_pred = predicted_class(classes)
     assert page_pred == expected
