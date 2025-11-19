@@ -107,7 +107,7 @@ def track_metadata_language(
     page_number: int,
     scores: dict[str, float],
     long_counts: dict[str, int],
-) -> str | None:
+) -> None:
     """Track metadata language and updates aggregated score trackers.
 
     Args:
