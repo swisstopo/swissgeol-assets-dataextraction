@@ -1,5 +1,4 @@
 from pydantic import BaseModel, ConfigDict, Field
-from pydantic.alias_generators import to_pascal
 
 from src.page_classes import PageClasses
 
@@ -99,10 +98,13 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-def predicted_class(classification: dict) -> PageClasses:
-    """Parse the predicted class from a one-hot encoded classification dictionary."""
-    value = next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")
+def predicted_class(classification: dict[str:int]) -> PageClasses:
+    """Parse the predicted class from a one-hot encoded classification dictionary.
+
+    The values of the dict are the sting representation of each class in the PageClasses enum.
+    """
+    value = next((k for k, v in classification.items() if v == 1), PageClasses.UNKNOWN.value)
     try:
-        return PageClasses(value.lower())  # match your enum values
+        return PageClasses(value)
     except ValueError:
         return PageClasses.UNKNOWN
