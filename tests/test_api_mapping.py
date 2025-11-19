@@ -1,6 +1,6 @@
 import pytest
 
-from api.utils.mapping import parse_predicted_class
+from api.app.v1.schemas import predicted_class
 
 
 @pytest.mark.parametrize(
@@ -13,5 +13,5 @@ from api.utils.mapping import parse_predicted_class
     ],
 )
 def test_predicted_class(classes, expected):
-    page_pred = parse_predicted_class(classes)
+    page_pred = predicted_class(classes)
     assert page_pred == expected
