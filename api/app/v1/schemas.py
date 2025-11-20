@@ -1,6 +1,18 @@
+from enum import Enum
+from typing import TypeAlias
+
 from pydantic import BaseModel, ConfigDict, Field
+from pydantic.alias_generators import to_pascal
 
 from src.page_classes import PageClasses
+
+# dynamically created Enum to expose PascalCase class names to the API.
+PascalPageClasses = Enum(
+    "PascalPageClasses",
+    {name: to_pascal(value) for name, value in PageClasses.__members__.items()},
+    type=str,
+)
+PascalPageClasses: TypeAlias = PascalPageClasses  # pyright: ignore[reportInvalidTypeForm]
 
 
 class MetaDataSchema(BaseModel):
@@ -30,7 +42,7 @@ class PageMetaDataSchema(BaseModel):
 class PagePrediction(BaseModel):
     """Schema for individual page prediction results including class, number and metadata."""
 
-    predicted_class: PageClasses
+    predicted_class: PascalPageClasses
     page_number: int = Field(gt=0, description="Page number must be greater than 0")
     page_metadata: PageMetaDataSchema
 
@@ -98,13 +110,13 @@ class ErrorResponse(BaseModel):
     detail: str
 
 
-def predicted_class(classification: dict[str:int]) -> PageClasses:
+def predicted_class(classification: dict[str:int]) -> PascalPageClasses:
     """Parse the predicted class from a one-hot encoded classification dictionary.
 
     The values of the dict are the sting representation of each class in the PageClasses enum.
     """
-    value = next((k for k, v in classification.items() if v == 1), PageClasses.UNKNOWN.value)
+    value = next((k for k, v in classification.items() if v == 1), "unknown")
     try:
-        return PageClasses(value)
+        return PascalPageClasses(to_pascal(value))
     except ValueError:
-        return PageClasses.UNKNOWN
+        return PascalPageClasses.UNKNOWN
