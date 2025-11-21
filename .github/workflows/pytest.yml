@@ -3,13 +3,12 @@ name: pytest
 on:
   push:
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: write
   checks: write
   pull-requests: write
-
 
 jobs:
   test:
@@ -29,6 +28,7 @@ jobs:
 
       - name: Run tests with coverage
         run: |
+          set -o pipefail
           pytest --junitxml=pytest.xml --cov-report=term-missing:skip-covered --cov=src tests/ | tee pytest-coverage.txt
 
       - name: Pytest coverage comment
@@ -36,4 +36,3 @@ jobs:
         with:
           pytest-coverage-path: ./pytest-coverage.txt
           junitxml-path: ./pytest.xml
-
