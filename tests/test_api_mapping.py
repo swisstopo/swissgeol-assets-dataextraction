@@ -17,7 +17,7 @@ def test_mapping_to_stable_labels(classes: dict[str, int], expected: PascalPageC
 
     Args:
         classes (dict[str, int]): Predicted class map.
-        expected (PageClasses): Expected page class enum.
+        expected (PascalPageClasses): Expected page class enum.
     """
     page_pred = predicted_class(classes)
     assert page_pred == expected
