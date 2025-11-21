@@ -3,7 +3,7 @@
 from enum import Enum
 
 
-class PageClasses(Enum):
+class PageClasses(str, Enum):
     """Enum for classifying pages into page types."""
 
     TEXT = "text"

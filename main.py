@@ -67,6 +67,7 @@ def main(
     model_path: str = None,
     classifier_name: str = "baseline",
     write_result: bool = False,
+    explain_model: bool = False,
 ):
     """Run the page classification pipeline on input documents.
 
@@ -76,6 +77,7 @@ def main(
         model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
         write_result (bool): If True, writes results to prediction.json.
+        explain_model (bool): If True, generates plots to explain the model's choices.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -95,8 +97,7 @@ def main(
 
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type, model_path, matching_params)
-
+    classifier = create_classifier(classifier_type, model_path, matching_params, explain_model)
     logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
@@ -168,6 +169,12 @@ if __name__ == "__main__":
         default=False,
         help="Writes classification results to prediction.json file.",
     )
+    parser.add_argument(
+        "-x",
+        "--explain-model",
+        action="store_true",
+        help="Generates explainability plots for the model's decisions.",
+    )
     args = parser.parse_args()
 
     # Check if model_path is required based on classifier
@@ -180,4 +187,5 @@ if __name__ == "__main__":
         model_path=args.model_path,
         classifier_name=args.classifier,
         write_result=args.write_results,
+        explain_model=args.explain_model,
     )

@@ -23,9 +23,21 @@ Current API supports two endpoint versions **V1** with the latest changes (e.g.,
 
 The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
 
+
+
+
 ## Classes
 
 For each file a [response](#output-format) is compiled classifying the page into one of the defined page classes.
+
+## Model Information
+
+The API currently uses the treebased classifier as the default trained model.
+
+* Model type: "treebased"
+* Model path: models/stable/model.joblib
+
+This model was trained on data from `data/single_pages_split_new/train` and saved as `model.joblib`. It uses 17 input features to predict class.
 
 ### V0 version
 Each page is categorized into one of the following:
@@ -38,13 +50,13 @@ Each page is categorized into one of the following:
 
 Extended classes in available in V1 version are mapped to `unknown` when running the V0 API version.
 
-### V1 version 
+### V1 version
 The V1 version containes extended classes from v0 and Each page is categorized into one of the following:
 
-1. `Text` - Continuous text page.  
-2. `Boreprofile` - Boreholes. 
-3. `Maps` - Geological or topographic maps.  
-4. `TitlePage` - Title pages of original reports.  
+1. `Text` - Continuous text page.
+2. `Boreprofile` - Boreholes.
+3. `Maps` - Geological or topographic maps.
+4. `TitlePage` - Title pages of original reports.
 5. `GeoProfile` - Geological cross-sections or longitudinal profiles.
 6. `Table` -  Tabular numeric/textual data.
 7. `Diagram` - Scientific 2D graphs or plots.
@@ -91,9 +103,9 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 - `filename`: The name of the processed PDF file.
 - `metadata`: metadata about the file.
 - `pages`: list of dictionaries containing:
-  - `page`: The page number (1-indexed). 
+  - `page`: The page number (1-indexed).
   - `classification`: Classification of a current page:
-    - 1: class was assigned to the page. 
+    - 1: class was assigned to the page.
     - 0: class was not assigned.
   - `metadata`: metadata about the current page.
 
@@ -137,7 +149,7 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 **General Notes:**
 
 - The classifier supports batch input of multiple reports.
-- Input must be preprocessed: PDFs should already have OCR. 
+- Input must be preprocessed: PDFs should already have OCR.
 - Classification is multi-class with a single label per page. Future updates may support multiple-labels.
 
 
@@ -196,9 +208,45 @@ If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified t
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
 ```
 ---
-## Start the FastAPI server
+## Run the API locally
 
-To test the API locally run the following commant: 
+If you want to run the API on your own local documents instead of AWS S3, enable the local S3 mode and spin up MinIO (see below).
+
+### MinIO setup (optional)
+
+In your .env file, activate the local mode flag:
+
+```bash
+# Use local S3 (MinIO) instead of AWS
+USE_LOCAL=True
+
+# Bucket and prefix used by the API
+S3_BUCKET="my-bucket"			# choose your own
+S3_FOLDER="my-folder/"			# choose your own
+
+# Local MinIO connection
+LOCAL_S3_ENDPOINT="http://localhost:9000"
+LOCAL_S3_ACCESS_KEY="admin"     # choose your own
+LOCAL_S3_SECRET_KEY="admin123"  # choose your own
+```
+
+Replace `${LOCAL_S3_ACCESS_KEY}` / `${LOCAL_S3_ACCESS_KEY}` with the values set in .env.
+
+```bash
+docker run -d --name minio \
+  -p 9000:9000 -p 9001:9001 \
+  -e MINIO_ROOT_USER=${LOCAL_S3_ACCESS_KEY} \
+  -e MINIO_ROOT_PASSWORD=${LOCAL_S3_SECRET_KEY} \
+  -v "$(pwd)/minio/data:/data" \
+  quay.io/minio/minio server /data --console-address ":9001"
+```
+
+Open the [MiniIO UI](http://localhost:9001) console and log in using the credentials defined in your `.env` file (`${LOCAL_S3_ACCESS_KEY}` / `${LOCAL_S3_SECRET_KEY}`). From the web interface, create a bucket named `${S3_BUCKET}`, then create a folder inside it called `${S3_FOLDER}`. Finally, upload your local PDF files to this folder. These files will then be available for the API when you run classification requests locally.
+
+
+### Run
+
+To test the API locally run the following command:
 
 ```bash
 uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
@@ -230,6 +278,21 @@ To run the Docker container, use the following command, and remember to add your
 docker run -p 8000:8000 -v $(pwd)/.env:/app/.env.api:ro assets-api
 ```
 
+You can now run a classification job on your own PDF (replace `${YOUR_OWN_FILENAME}.pdf` with your actual file name). Make sure this file exists in the configured S3 bucket and folder before starting the process.
+
+```
+# Run classification
+curl -X POST http://127.0.0.1:8000/v1/ \
+  -H "Content-Type: application/json" \
+  -d '{"file": "YOUR_OWN_FILENAME.pdf"}' -i
+
+# Collect results
+curl -X POST http://127.0.0.1:8000/v1/collect \
+  -H "Content-Type: application/json" \
+  -d '{"file": "YOUR_OWN_FILENAME.pdf"}' -i
+```
+
+
 ---
 
 ## AWS Setup for pixtral Classifier
@@ -244,7 +307,7 @@ To run classification using the Pixtral Large Model, you must configure your AWS
      ```
 
    2. **Manually via config files**
-   
+
      Create or edit the following files
      **~/.aws/config**
      ```
@@ -324,7 +387,11 @@ If you're training an XGBoost model on macOS, you may encounter issues related t
 ```bash
 brew install libomp
 ```
----
+
+#### Model explainability (with treebased models)
+
+See [this file](src/models/treebased/README.md) for details about model explainability and SHAP-based interpretation for tree-based models.
+
 ## Pre-Commit
 We use pre-commit hooks to format our code in a unified way.
 
