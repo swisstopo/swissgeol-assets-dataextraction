@@ -16,14 +16,9 @@ COPY pyproject.toml ./
 RUN python -m pip install --root-user-action=ignore --no-cache-dir --upgrade pip setuptools wheel \
  && pip install --use-pep517 --root-user-action=ignore --no-cache-dir --prefix=/install .
 
-# Download FastText model
-RUN mkdir -p /models/FastText \
- && wget -q -O /models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
-
 
 FROM python:3.13-slim-bookworm AS runtime
 
-ENV FASTTEXT_MODEL_PATH="models/FastText/lid.176.bin"
 ENV MLFLOW_TRACKING="False"
 ENV TMP_PATH=/tmp
 
@@ -39,7 +34,6 @@ WORKDIR /app
 
 COPY --from=builder /install /usr/local
 
-COPY --from=builder /models ./models
 COPY src/ ./src/
 COPY api/ ./api/
 COPY config/ ./config/

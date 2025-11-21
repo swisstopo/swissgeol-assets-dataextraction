@@ -171,7 +171,6 @@ For development, install optional tools with:
 ```bash
 pip install '.[all]'
 ```
-Make sure you have `fasttext-predict` installed instead of `fasttext` (see 5. Setup FastText Language Detection).
 
 ### 3. Copy .env.template and specify your paths:
 ```bash
@@ -184,26 +183,13 @@ For development:
 - Option A: Download a pre-trained model from the [S3 bucket: stijnvermeeren-assets-data ](https://eu-central-1.console.aws.amazon.com/s3/buckets/stijnvermeeren-assets-data?region=eu-central-1&bucketType=general&tab=objects).
 - Option B: Train your own model as described in [Train your Model](#train-your-model).
 
-### 5. Setup FastText Language Detection
-
-This project uses [fasttext-predict](https://github.com/searxng/fasttext-predict/), a lightweight, dependency-free wrapper exposing only the predict method.
-We use this because [FastText](https://github.com/facebookresearch/fastText) is archived.
-Download the FastText language identification model lid.176.bin form [this website](https://fasttext.cc/docs/en/language-identification.html):
-```
-mkdir -p models/FastText
-curl -o models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
-```
-Set in `.env`:
-```
- FASTTEXT_MODEL_PATH=models/FastText/lid.176.bin
-```
-### 6. (Optional) Start the MLflow UI
+### 5. (Optional) Start the MLflow UI
 
 For development: Start MLflow UI:
 ```
 mlflow ui
 ```
-### 7. Run the classification:
+### 6. Run the classification:
 ```bash
 python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
 ```
@@ -353,7 +339,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `config/`: YAML configs (models, matching, prediction profiles)
 - `data/` : input data,  predictions and ground truths
 - `evaluation/`: Evaluation and metrics
-- `models/`: Models (e.g. FastText, LayoutLMv3, TreeBased)
+- `models/`: Models (e.g. LayoutLMv3, TreeBased)
 - `prompts/`: Pixtral prompts
 - `src/`: Utility scripts and core logic 
 - `tests/`: Unit tests
