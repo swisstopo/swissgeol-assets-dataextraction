@@ -13,6 +13,12 @@ from src.page_classes import PageClasses
         ({"TEXTTT": 1, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, PageClasses.UNKNOWN),
     ],
 )
-def test_mapping_to_stable_labels(classes, expected):
+def test_mapping_to_stable_labels(classes: dict[str, int], expected: PageClasses):
+    """Test label stable mapping.
+
+    Args:
+        classes (dict[str, int]): Predicted class map.
+        expected (PageClasses): Expected page class enum.
+    """
     page_pred = predicted_class(classes)
-    assert page_pred == expected
+    assert page_pred.name == expected.name
