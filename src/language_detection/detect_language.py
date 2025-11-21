@@ -3,7 +3,7 @@ import math
 import re
 
 import pymupdf
-import swissgeol_doc_processing as swiss
+import swissgeol_doc_processing as swissgeol
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -63,8 +63,8 @@ def predict_language(text: str | None) -> str | None:
 
     try:
         # If detected language is none of supported, return none
-        return swiss.language_detection.detect_language_of_text(
-            text=text.lower(), default_language=None, supported_languages=SUPPORTED_LANGUAGES
+        return swissgeol.language_detection.detect_language_of_text(
+            text=text.lower(), default_language=DEFAULT_LANGUAGE, supported_languages=SUPPORTED_LANGUAGES
         )
     except Exception as e:
         logger.error(f"Language detection error: {e}")
