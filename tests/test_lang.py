@@ -16,7 +16,7 @@ from src.language_detection.detect_language import (
         ("Ceci est un test pour vérifier la langue du texte.", "fr"),
         ("Questo è un test per verificare la lingua del testo.", "it"),
         # Non-supported languages
-        ("Hoc est experimentum ad linguam textus probandam.", None),
+        ("Hoc est experimentum ad linguam textus probandam.", "de"),
         # Empty input
         (None, None),
     ],
