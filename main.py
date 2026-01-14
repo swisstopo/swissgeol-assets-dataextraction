@@ -103,6 +103,7 @@ def main(
     # Processed PDFs
     processor = PDFProcessor(classifier)
     results = processor.process_batch(pdf_files)
+    results = [result.model_dump() for result in results]
 
     if not results:
         logger.warning("No data to save.")
