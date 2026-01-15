@@ -2,9 +2,10 @@ import logging
 import os
 from collections import defaultdict
 from pathlib import Path
+from typing import Literal
 
 import pymupdf
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, model_validator
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
@@ -31,12 +32,16 @@ ENABLE_COLOR_PROPORTION = os.getenv("ENABLE_COLOR_PROPORTION", "false").lower() 
 class PDFProcessorPageMetadata(BaseModel):
     """Processed pagee metadata."""
 
+    model_config = ConfigDict(extra="forbid")
+
     is_frontpage: bool
-    language: str
+    language: str | None
 
 
 class PDFProcessorDocumentMetadata(BaseModel):
     """Processed document metadata."""
+
+    model_config = ConfigDict(extra="forbid")
 
     page_count: int
     languages: list[str]
@@ -45,13 +50,29 @@ class PDFProcessorDocumentMetadata(BaseModel):
 class PDFProcessorPage(BaseModel):
     """Processed PDF page entity."""
 
+    model_config = ConfigDict(extra="forbid")
+
     page: int
-    classification: dict[PageClasses, int]
+    classification: dict[PageClasses, Literal[0, 1]]
     metadata: PDFProcessorPageMetadata
+
+    @model_validator(mode="after")
+    def classification_must_cover_all_classes(self):
+        """Ensures all page classes are predicted in model."""
+        expected = set(PageClasses)
+        received = set(self.classification.keys())
+
+        missing = expected - received
+        if missing:
+            raise ValueError(f"classification is missing PageClasses: {[m.value for m in missing]}")
+
+        return self
 
 
 class PDFProcessorDocument(BaseModel):
     """PDF object structure."""
+
+    model_config = ConfigDict(extra="forbid")
 
     filename: str
     metadata: PDFProcessorDocumentMetadata

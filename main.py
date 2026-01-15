@@ -63,12 +63,12 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
 
 def main(
     input_path: str,
-    ground_truth_path: str = None,
-    model_path: str = None,
+    ground_truth_path: str | None = None,
+    model_path: str | None = None,
     classifier_name: str = "baseline",
     write_result: bool = False,
     explain_model: bool = False,
-):
+) -> list[PDFProcessor] | None:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -78,6 +78,9 @@ def main(
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
         write_result (bool): If True, writes results to prediction.json.
         explain_model (bool): If True, generates plots to explain the model's choices.
+
+    Return:
+        list[PDFProcessor] | None: Result of processed entities if write_result is False, else None.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -103,7 +106,6 @@ def main(
     # Processed PDFs
     processor = PDFProcessor(classifier)
     results = processor.process_batch(pdf_files)
-    results = [result.model_dump() for result in results]
 
     if not results:
         logger.warning("No data to save.")
@@ -113,13 +115,18 @@ def main(
     if write_result:
         output_file = Path("data") / "prediction.json"
         output_file.parent.mkdir(parents=True, exist_ok=True)
-        with output_file.open("w") as json_file:
-            json.dump(results, json_file, indent=4)
+        output_file.write_text(
+            json.dumps(
+                [r.model_dump() for r in results],
+                indent=4,
+            ),
+            encoding="utf-8",
+        )
 
     if ground_truth_path:
         from src.evaluation import evaluate_results
 
-        evaluate_results(results, ground_truth_path)
+        evaluate_results([result.model_dump() for result in results], ground_truth_path)
 
     if mlflow_tracking:
         mlflow.end_run()
