@@ -2,11 +2,13 @@ import argparse
 import json
 import logging
 import os
+from itertools import groupby
 from pathlib import Path
 
 from dotenv import load_dotenv
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
+from src.page_structure import ProcessedEntities
 from src.pdf_processor import PDFProcessor
 from src.utils import get_pdf_files, read_params
 
@@ -61,6 +63,24 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
+def group_consecutive(values: list[int]) -> list[list[int]]:
+    """Group sorted integers into consecutive sequences.
+
+    Args:
+        values: Sorted list of integers.
+
+    Returns:
+        A list of lists, where each sublist contains consecutive integers.
+    """
+    return [
+        list(group)
+        for _, group in groupby(
+            values,
+            key=lambda x, c=iter(range(len(values))): x - next(c),
+        )
+    ]
+
+
 def main(
     input_path: str,
     ground_truth_path: str | None = None,
@@ -68,7 +88,7 @@ def main(
     classifier_name: str = "baseline",
     write_result: bool = False,
     explain_model: bool = False,
-) -> list[PDFProcessor] | None:
+) -> list[ProcessedEntities] | None:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -80,7 +100,7 @@ def main(
         explain_model (bool): If True, generates plots to explain the model's choices.
 
     Return:
-        list[PDFProcessor] | None: Result of processed entities if write_result is False, else None.
+        list[ProcessedEntities] | None: Result of processed entities if write_result is False, else None.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -105,9 +125,28 @@ def main(
 
     # Processed PDFs
     processor = PDFProcessor(classifier)
-    results = processor.process_batch(pdf_files)
+    results_pages = processor.process_batch(pdf_files)
 
-    if not results:
+    # Group pages based on type
+    results_entities: list[ProcessedEntities] = []
+    for result in results_pages:
+        for (pages_type, lang), pages in result.group_pages_by_type():
+            # Get pages sequences
+            results_entities.extend(
+                [
+                    ProcessedEntities(
+                        start_page=min(pages_group),
+                        end_page=max(pages_group),
+                        lang=lang,
+                        classification=pages_type,
+                        data=None,
+                    )
+                    for pages_group in group_consecutive([page.page for page in pages])
+                ]
+            )
+
+    # Process pages individually based on detected content
+    if not results_pages:
         logger.warning("No data to save.")
         return
 
@@ -117,7 +156,7 @@ def main(
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(
             json.dumps(
-                [r.model_dump() for r in results],
+                [r.model_dump() for r in results_pages],
                 indent=4,
             ),
             encoding="utf-8",
@@ -126,13 +165,13 @@ def main(
     if ground_truth_path:
         from src.evaluation import evaluate_results
 
-        evaluate_results([result.model_dump() for result in results], ground_truth_path)
+        evaluate_results([result.model_dump() for result in results_pages], ground_truth_path)
 
     if mlflow_tracking:
         mlflow.end_run()
 
     if not write_result:
-        return results
+        return results_entities
 
 
 if __name__ == "__main__":

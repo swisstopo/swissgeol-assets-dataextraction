@@ -1,7 +1,10 @@
 from collections import Counter
+from collections.abc import Generator
 from dataclasses import dataclass
+from itertools import groupby
 
 import pymupdf
+from pydantic import BaseModel, ConfigDict
 
 from src.geometric_objects import Line
 from src.page_classes import PageClasses
@@ -25,16 +28,59 @@ class PageContext:
     color_proportion: Counter | None = None
 
 
-class PageAnalysis:
-    """Stores the classification result for a single page."""
+class ProcessorPageMetadata(BaseModel):
+    """Processed pagee metadata."""
 
-    def __init__(self, page_number: int):
-        self.page_number = page_number
-        self.classification: dict[PageClasses, int] = {cls: 0 for cls in PageClasses}
+    model_config = ConfigDict(extra="forbid")
 
-    def set_class(self, label: PageClasses):
-        self.classification[label] = 1
+    is_frontpage: bool
+    language: str | None
 
-    def to_classification_dict(self):
-        """Only exports classification and page number to dict."""
-        return {cls.value: val for cls, val in self.classification.items()}
+
+class ProcessorDocumentMetadata(BaseModel):
+    """Processed document metadata."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    page_count: int
+    languages: list[str]
+
+
+class ProcessorPage(BaseModel):
+    """Processed PDF page entity."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    page: int
+    classification: PageClasses
+    metadata: ProcessorPageMetadata
+
+
+class ProcessorDocument(BaseModel):
+    """PDF object structure."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    filename: str
+    metadata: ProcessorDocumentMetadata
+    pages: list[ProcessorPage]
+
+    def group_pages_by_type(
+        self,
+    ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]:
+        # Get detected classes for each page
+        def key_fn(x: PageClasses) -> tuple[PageClasses, str | None]:
+            return x.classification, x.metadata.language
+
+        for key, group in groupby(self.pages, key=key_fn):
+            yield key, list(group)
+
+
+class ProcessedEntities(BaseModel):
+    """Processed page entities from PDF."""
+
+    start_page: int
+    end_page: int
+    lang: str | None
+    classification: PageClasses
+    data: None

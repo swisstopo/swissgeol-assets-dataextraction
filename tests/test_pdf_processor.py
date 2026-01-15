@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.pdf_processor import PDFProcessorDocument
+from src.page_structure import ProcessorDocument
 
 
 @pytest.mark.parametrize(
@@ -16,30 +16,12 @@ from src.pdf_processor import PDFProcessorDocument
                 "pages": [
                     {
                         "page": 1,
-                        "classification": {
-                            "text": 0,
-                            "boreprofile": 1,
-                            "map": 0,
-                            "geo_profile": 0,
-                            "title_page": 0,
-                            "diagram": 0,
-                            "table": 0,
-                            "unknown": 0,
-                        },
+                        "classification": "boreprofile",
                         "metadata": {"is_frontpage": True, "language": None},
                     },
                     {
                         "page": 2,
-                        "classification": {
-                            "text": 0,
-                            "boreprofile": 0,
-                            "map": 0,
-                            "geo_profile": 0,
-                            "title_page": 0,
-                            "diagram": 0,
-                            "table": 0,
-                            "unknown": 1,
-                        },
+                        "classification": "text",
                         "metadata": {"is_frontpage": False, "language": "de"},
                     },
                 ],
@@ -53,5 +35,5 @@ def test_document_schema(payload: dict) -> None:
     Args:
         payload (dict): Payload to parse.
     """
-    doc = PDFProcessorDocument.model_validate(payload)
+    doc = ProcessorDocument.model_validate(payload)
     assert len(doc.pages) == doc.metadata.page_count
