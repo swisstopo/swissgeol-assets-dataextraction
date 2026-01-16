@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from itertools import groupby
 
 import pymupdf
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, field_serializer
 
 from src.geometric_objects import Line
 from src.page_classes import PageClasses
@@ -55,6 +55,26 @@ class ProcessorPage(BaseModel):
     classification: PageClasses
     metadata: ProcessorPageMetadata
 
+    @field_serializer("classification")
+    def classification_onehot(self, v: PageClasses, info: FieldSerializationInfo):
+        """Change type of classification representation based on context.
+
+        If legacy is provided throught context ({"legacy": True}), model returns onehoe encoding. This is
+        done to support legacy of API.
+
+        Args:
+            v (PageClasses): Classification of object.
+            info (FieldSerializationInfo): Context that should contain legacy tag.
+
+        Returns:
+            PageClasses | dict[PageClasses, int]: _description_
+        """
+        legacy = bool(info.context and info.context.get("legacy"))
+        if legacy:
+            return {p.value: int(p == v) for p in set(PageClasses)}
+        else:
+            return v
+
 
 class ProcessorDocument(BaseModel):
     """PDF object structure."""
@@ -68,6 +88,13 @@ class ProcessorDocument(BaseModel):
     def group_pages_by_type(
         self,
     ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]:
+        """Group pages by classes and languages.
+
+        Yields:
+            Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]: Returns
+                a generator with grouped pages par class and language along with corresponding tags.
+        """
+
         # Get detected classes for each page
         def key_fn(x: PageClasses) -> tuple[PageClasses, str | None]:
             return x.classification, x.metadata.language
@@ -84,3 +111,13 @@ class ProcessedEntities(BaseModel):
     lang: str | None
     classification: PageClasses
     data: None
+
+
+class ProcessorDocumentEntities(BaseModel):
+    """Restructured document as entities."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    filename: str
+    metadata: ProcessorDocumentMetadata
+    entities: list[ProcessedEntities]

@@ -8,7 +8,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
-from src.page_structure import ProcessedEntities
+from src.page_structure import ProcessedEntities, ProcessorDocument, ProcessorDocumentEntities
 from src.pdf_processor import PDFProcessor
 from src.utils import get_pdf_files, read_params
 
@@ -81,6 +81,116 @@ def group_consecutive(values: list[int]) -> list[list[int]]:
     ]
 
 
+def forward_document(
+    pdf_files: list[Path],
+    matching_params: dict,
+    model_path: str | None = None,
+    classifier_name: str = "baseline",
+    explain_model: bool = False,
+) -> list[ProcessorDocument]:
+    """Infer document classes.
+
+    Args:
+        pdf_files (list[Path]): List fo documents to classify.
+        matching_params (dict): Dict of parameters for document processing.
+        model_path (str, optional): Path to pretrained LayoutLMv3 model.
+        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+        explain_model (bool): If True, generates plots to explain the model's choices.
+
+    Returns:
+        list[ProcessorDocument]: Classified documents.
+    """
+    # Set up classifier
+    classifier_type = ClassifierTypes.infer_type(classifier_name)
+    classifier = create_classifier(classifier_type, model_path, matching_params, explain_model)
+    logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
+
+    # Processed PDFs
+    processor = PDFProcessor(classifier)
+    return processor.process_batch(pdf_files)
+
+
+def forward_document_entities(
+    documents: list[ProcessorDocument],
+) -> list[ProcessorDocumentEntities]:
+    """Convert classified docuemnts pages to entities.
+
+    Args:
+        documents (list[ProcessorDocument]): List of documents to process.
+
+    Returns:
+       list[ProcessorDocumentEntities]: Processed documents entities
+    """
+    documents_entities: list[ProcessorDocumentEntities] = []
+    for document in documents:
+        # Reset list of entities for current document
+        results_entities: list[ProcessedEntities] = []
+        # Iterate over grouped entities types
+        for (pages_type, lang), pages in document.group_pages_by_type():
+            # Get pages sequences
+            results_entities.extend(
+                [
+                    ProcessedEntities(
+                        start_page=min(pages_group),
+                        end_page=max(pages_group),
+                        lang=lang,
+                        classification=pages_type,
+                        data=None,
+                    )
+                    # Group consecutive [1,2,10] -> [1,2], [10]
+                    for pages_group in group_consecutive([page.page for page in pages])
+                ]
+            )
+        # Create document from filename, metadata, entities
+        documents_entities.append(
+            ProcessorDocumentEntities(
+                filename=document.filename, metadata=document.metadata, entities=results_entities
+            )
+        )
+    return documents_entities
+
+
+def forward(
+    input_path: str,
+    matching_params: dict,
+    model_path: str | None = None,
+    classifier_name: str = "baseline",
+    explain_model: bool = False,
+) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
+    """Infer documents structures.
+
+    Args:
+        input_path (str): Path to directory with PDF pages or documents.
+        matching_params (dict): Dict of parameters for document processing.
+        model_path (str, optional): Path to pretrained LayoutLMv3 model.
+        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+        explain_model (bool): If True, generates plots to explain the model's choices.
+
+    Returns:
+        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]: Result of processed entities
+            * List of documents with per page classification
+            * List of documents with content parsed as (multi-)page entities.
+    """
+    # Load files
+    pdf_files = get_pdf_files(input_path)
+    if not pdf_files:
+        logger.error("No valid PDFs found.")
+        return [], []
+
+    # Run individual page classification
+    documents_pages = forward_document(
+        pdf_files=pdf_files,
+        matching_params=matching_params,
+        model_path=model_path,
+        classifier_name=classifier_name,
+        explain_model=explain_model,
+    )
+
+    # Extract pages entities
+    documents_entities = forward_document_entities(documents=documents_pages)
+    return documents_pages, documents_entities
+
+
 def main(
     input_path: str,
     ground_truth_path: str | None = None,
@@ -88,7 +198,7 @@ def main(
     classifier_name: str = "baseline",
     write_result: bool = False,
     explain_model: bool = False,
-) -> list[ProcessedEntities] | None:
+) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -100,78 +210,52 @@ def main(
         explain_model (bool): If True, generates plots to explain the model's choices.
 
     Return:
-        list[ProcessedEntities] | None: Result of processed entities if write_result is False, else None.
+        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]: Result of processed entities
+            * List of documents with per page classification
+            * List of documents with content parsed as (multi-)page entities.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
     """
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
-    pdf_files = get_pdf_files(input_path)
-    if not pdf_files:
-        logger.error("No valid PDFs found.")
-        return
-
     matching_params = read_params("config/matching_params.yml")
 
     # Start MLFlow tracking
     if mlflow_tracking:
         setup_mlflow(input_path, ground_truth_path, model_path, matching_params, classifier_name)
 
-    # Set up classifier
-    classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type, model_path, matching_params, explain_model)
-    logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
+    # Process pages
+    documents_pages, documents_entities = forward(
+        input_path=input_path,
+        matching_params=matching_params,
+        model_path=model_path,
+        classifier_name=classifier_name,
+        explain_model=explain_model,
+    )
 
-    # Processed PDFs
-    processor = PDFProcessor(classifier)
-    results_pages = processor.process_batch(pdf_files)
-
-    # Group pages based on type
-    results_entities: list[ProcessedEntities] = []
-    for result in results_pages:
-        for (pages_type, lang), pages in result.group_pages_by_type():
-            # Get pages sequences
-            results_entities.extend(
-                [
-                    ProcessedEntities(
-                        start_page=min(pages_group),
-                        end_page=max(pages_group),
-                        lang=lang,
-                        classification=pages_type,
-                        data=None,
-                    )
-                    for pages_group in group_consecutive([page.page for page in pages])
-                ]
-            )
-
-    # Process pages individually based on detected content
-    if not results_pages:
-        logger.warning("No data to save.")
-        return
-
-    # Save to JSON
+    # Check if data need to be saves
     if write_result:
         output_file = Path("data") / "prediction.json"
         output_file.parent.mkdir(parents=True, exist_ok=True)
         output_file.write_text(
-            json.dumps(
-                [r.model_dump() for r in results_pages],
-                indent=4,
-            ),
+            json.dumps([r.model_dump() for r in documents_pages], indent=4),
             encoding="utf-8",
         )
 
+    # Check if GT need to be computed
     if ground_truth_path:
         from src.evaluation import evaluate_results
 
-        evaluate_results([result.model_dump() for result in results_pages], ground_truth_path)
+        evaluate_results(
+            [result.model_dump(context={"legacy": True}) for result in documents_pages], ground_truth_path
+        )
 
+    # End mlflow tracking
     if mlflow_tracking:
         mlflow.end_run()
 
-    if not write_result:
-        return results_entities
+    return documents_pages, documents_entities
 
 
 if __name__ == "__main__":
