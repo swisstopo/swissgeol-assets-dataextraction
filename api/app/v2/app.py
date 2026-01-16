@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import tempfile
 import uuid
 from pathlib import Path
 from typing import Annotated
@@ -10,7 +11,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, 
 from api.app.shared.handlers import start_handler
 from api.app.shared.schemas import CollectPayload, ErrorResponse, StartPayload
 from api.app.shared.settings import ApiSettings, api_settings
-from api.app.v1.schemas import CollectResponse
+from api.app.v2.schemas import CollectResponse
 from api.aws import aws
 from api.utils import task
 from main import main as script
@@ -40,7 +41,7 @@ def start(
     "/collect",
     summary="Collect Page Classification Results",
     description="""
-        Collects the results of the Page Classification process for a given file. If the process is still running, 
+        Collects the results of the Page Classification process for a given file. If the process is still running,
         it indicates that the results are not yet available.
     """,
     response_model=CollectResponse,
@@ -91,23 +92,24 @@ def process(
         list[dict]: List of raw predictions from the classification pipeline. Note that these are raw pipeline outputs,
         class labels will be translated to their final form during response object construction.
     """
-    task_id = f"{uuid.uuid4()}"
-    tmp_dir = Path(settings.tmp_path) / task_id
-    os.makedirs(tmp_dir, exist_ok=True)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a file in the temp folder
+        input_path = os.path.join(temp_dir, payload.file)
 
-    input_path = tmp_dir / payload.file
+        # Laod file locally to be processed
+        aws.load_file(
+            aws_client.bucket(settings.s3_bucket),
+            f"{settings.s3_folder}{payload.file}",
+            input_path,
+        )
 
-    aws.load_file(
-        aws_client.bucket(settings.s3_bucket),
-        f"{settings.s3_folder}{payload.file}",
-        str(input_path),
-    )
+        # Process file in local directory
+        _, entities = script(
+            input_path=temp_dir,
+            classifier_name="treebased",
+            model_path="models/stable/model.joblib",
+            write_result=False,
+        )
 
-    documents, _ = script(
-        input_path=tmp_dir,
-        classifier_name="treebased",
-        model_path="models/stable/model.joblib",
-        write_result=False,
-    )
-    shutil.rmtree(tmp_dir)
-    return [doc.model_dump() for doc in documents]
+    # Return parsed entities
+    return [entity.model_dump() for entity in entities]

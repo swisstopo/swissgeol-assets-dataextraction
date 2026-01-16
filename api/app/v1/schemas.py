@@ -104,12 +104,6 @@ class CollectResponse(BaseModel):
         return cls(has_finished=True, data=[PredictionSchema.from_prediction(pred) for pred in predictions])
 
 
-class ErrorResponse(BaseModel):
-    """Error response model."""
-
-    detail: str
-
-
 def predicted_class(classification: PageClasses) -> PascalPageClasses:
     """Parse the predicted class from a one-hot encoded classification dictionary.
 
