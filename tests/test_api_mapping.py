@@ -1,15 +1,19 @@
 import pytest
 
-from api.app.v1.schemas import PascalPageClasses, predicted_class
+from api.app.v1.schemas import PageClasses, PascalPageClasses, predicted_class
 
 
 @pytest.mark.parametrize(
     "classes,expected",
     [
-        ({"text": 0, "boreprofile": 1, "map": 0, "title_page": 0, "unknown": 0}, PascalPageClasses.BOREPROFILE),
-        ({"text": 0, "boreprofile": 0, "map": 1, "title_page": 0, "unknown": 0}, PascalPageClasses.MAP),
-        ({"text": 0, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, PascalPageClasses.UNKNOWN),
-        ({"TEXTTT": 1, "boreprofile": 0, "map": 0, "title_page": 0, "unknown": 0}, PascalPageClasses.UNKNOWN),
+        (PageClasses.TEXT, PascalPageClasses.TEXT),
+        (PageClasses.BOREPROFILE, PascalPageClasses.BOREPROFILE),
+        (PageClasses.MAP, PascalPageClasses.MAP),
+        (PageClasses.GEO_PROFILE, PascalPageClasses.GEO_PROFILE),
+        (PageClasses.TITLE_PAGE, PascalPageClasses.TITLE_PAGE),
+        (PageClasses.DIAGRAM, PascalPageClasses.DIAGRAM),
+        (PageClasses.TABLE, PascalPageClasses.TABLE),
+        (PageClasses.UNKNOWN, PascalPageClasses.UNKNOWN),
     ],
 )
 def test_mapping_to_stable_labels(classes: dict[str, int], expected: PascalPageClasses):
