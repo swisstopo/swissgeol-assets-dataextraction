@@ -85,6 +85,27 @@ class ProcessorDocument(BaseModel):
     metadata: ProcessorDocumentMetadata
     pages: list[ProcessorPage]
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "filename": "foo.pdf",
+                "metadata": {"page_count": 2, "languages": ["fr", "de"]},
+                "pages": [
+                    {
+                        "page": 1,
+                        "classification": "boreprofile",
+                        "metadata": {"is_frontpage": True, "language": None},
+                    },
+                    {
+                        "page": 2,
+                        "classification": "text",
+                        "metadata": {"is_frontpage": False, "language": "de"},
+                    },
+                ],
+            }
+        },
+    )
+
     def group_pages_by_type(
         self,
     ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]:
@@ -103,13 +124,19 @@ class ProcessorDocument(BaseModel):
             yield key, list(group)
 
 
+class ProcessedEntitiesMetadata(BaseModel):
+    """Processed page entities metadata."""
+
+    page_start: int
+    page_end: int
+    language: str | None
+
+
 class ProcessedEntities(BaseModel):
     """Processed page entities from PDF."""
 
-    start_page: int
-    end_page: int
-    lang: str | None
     classification: PageClasses
+    metadata: ProcessedEntitiesMetadata
     data: None
 
 
@@ -121,3 +148,28 @@ class ProcessorDocumentEntities(BaseModel):
     filename: str
     metadata: ProcessorDocumentMetadata
     entities: list[ProcessedEntities]
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "filename": "foo.pdf",
+                "metadata": {"page_count": 2, "languages": ["fr", "de"]},
+                "entities": [
+                    {
+                        "start_page": 1,
+                        "end_page": 2,
+                        "lang": "de",
+                        "classification": "boreprofile",
+                        "data": None,
+                    },
+                    {
+                        "start_page": 3,
+                        "end_page": 5,
+                        "lang": "fr",
+                        "classification": "boreprofile",
+                        "data": None,
+                    },
+                ],
+            }
+        },
+    )

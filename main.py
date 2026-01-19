@@ -8,7 +8,12 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
-from src.page_structure import ProcessedEntities, ProcessorDocument, ProcessorDocumentEntities
+from src.page_structure import (
+    ProcessedEntities,
+    ProcessedEntitiesMetadata,
+    ProcessorDocument,
+    ProcessorDocumentEntities,
+)
 from src.pdf_processor import PDFProcessor
 from src.utils import get_pdf_files, read_params
 
@@ -131,9 +136,9 @@ def forward_document_entities(
             results_entities.extend(
                 [
                     ProcessedEntities(
-                        start_page=min(pages_group),
-                        end_page=max(pages_group),
-                        lang=lang,
+                        metadata=ProcessedEntitiesMetadata(
+                            page_start=min(pages_group), page_end=max(pages_group), language=lang
+                        ),
                         classification=pages_type,
                         data=None,
                     )

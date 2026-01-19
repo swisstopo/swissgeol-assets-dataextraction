@@ -1,6 +1,10 @@
 import pytest
 
-from api.app.v1.schemas import PageClasses, PascalPageClasses, predicted_class
+from api.app.shared.schemas import CollectPayload, StartPayload
+from api.app.v1.schemas import CollectResponse as CollectResponseV1
+from api.app.v1.schemas import PascalPageClasses, predicted_class
+from api.app.v2.schemas import CollectResponse as CollectResponseV2
+from src.page_classes import PageClasses
 
 
 @pytest.mark.parametrize(
@@ -25,3 +29,22 @@ def test_mapping_to_stable_labels(classes: dict[str, int], expected: PascalPageC
     """
     page_pred = predicted_class(classes)
     assert page_pred == expected
+
+
+def test_schemas_shared() -> None:
+    """Test shared api schemas."""
+    example = CollectPayload.model_json_schema().get("example", None)
+    assert CollectPayload.model_validate(example)
+
+    example = StartPayload.model_json_schema().get("example", None)
+    assert StartPayload.model_validate(example)
+
+
+def test_schemas_v1() -> None:
+    example = CollectResponseV1.model_json_schema().get("example", None)
+    assert CollectResponseV1.model_validate(example)
+
+
+def test_schemas_v2() -> None:
+    example = CollectResponseV2.model_json_schema().get("example", None)
+    assert CollectResponseV2.model_validate(example)

@@ -19,10 +19,12 @@ class CollectResponse(BaseModel):
                         "metadata": {"page_count": 3, "languages": ["de"]},
                         "entities": [
                             {
-                                "start_page": 1,
-                                "end_page": 3,
-                                "lang": "de",
                                 "classification": "boreprofile",
+                                "metadata": {
+                                    "page_start": 1,
+                                    "page_end": 3,
+                                    "language": "de",
+                                },
                                 "data": None,
                             },
                         ],
