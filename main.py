@@ -77,13 +77,7 @@ def group_consecutive(values: list[int]) -> list[list[int]]:
     Returns:
         A list of lists, where each sublist contains consecutive integers.
     """
-    return [
-        list(group)
-        for _, group in groupby(
-            values,
-            key=lambda x, c=iter(range(len(values))): x - next(c),
-        )
-    ]
+    return [[v for _, v in group] for _, group in groupby(enumerate(values), key=lambda iv: iv[1] - iv[0])]
 
 
 def forward_document(
