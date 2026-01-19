@@ -156,17 +156,21 @@ class ProcessorDocumentEntities(BaseModel):
                 "metadata": {"page_count": 2, "languages": ["fr", "de"]},
                 "entities": [
                     {
-                        "start_page": 1,
-                        "end_page": 2,
-                        "lang": "de",
                         "classification": "boreprofile",
+                        "metadata": {
+                            "page_start": 1,
+                            "page_end": 2,
+                            "language": "de",
+                        },
                         "data": None,
                     },
                     {
-                        "start_page": 3,
-                        "end_page": 5,
-                        "lang": "fr",
                         "classification": "boreprofile",
+                        "metadata": {
+                            "page_start": 3,
+                            "page_end": 5,
+                            "language": "fr",
+                        },
                         "data": None,
                     },
                 ],
