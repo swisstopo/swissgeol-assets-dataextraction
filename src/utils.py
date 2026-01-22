@@ -6,7 +6,7 @@ import pymupdf
 import yaml
 from dotenv import load_dotenv
 
-from src.text_objects import TextLine
+from swissgeol_doc_processing.text.textline import TextLine
 
 load_dotenv()
 
@@ -22,7 +22,7 @@ def is_digitally_born(page: pymupdf.Page) -> bool:
 
 def is_description(line: TextLine, matching_params: dict):
     """Check if the words in line matches with matching parameters."""
-    line_text = line.line_text.lower()
+    line_text = line.text.lower()
     return any(line_text.find(word) > -1 for word in matching_params["including_expressions"]) and not any(
         line_text.find(word) > -1 for word in matching_params["excluding_expressions"]
     )

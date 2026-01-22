@@ -6,27 +6,39 @@ train_folder_path: "data/single_pages_splits/train"
 val_folder_path: "data/single_pages_splits/val"
 ground_truth_file_path: "data/gt_single_pages.json"
 
-# Feature names to track
+# Feature names to track (27 features total)
 feature_names:
+  # Text/word features (6)
   - Words Per Line
-  - Text zone Density
+  - Text Zone Density
   - Mean Left
   - Text Width
-  - Line Count
   - Indent Std Dev
   - Capitalization Ratio
-  - Has Sidebar
-  - Has Borehole Keyword
-  - Num Valid Material Descriptions
+  # Map features (5)
   - Num Map Keyword Lines
   - Grid Line Length Sum
   - Non Grid Line Length Sum
   - Line Angle Entropy
-  - Line score
+  - Line Score
+  # Geo profile and diagram features (4)
   - Num Geo Profile Keywords
   - Num Unit Keyword
-  - Y scale ok
-  - X scale ok
+  - Y Scale OK
+  - X Scale OK
+  # Borehole features (12)
+  - Num Valid Borehole Descriptions
+  - Num Strip Logs
+  - Num Tables
+  - Num Boreholes
+  - Num Sidebar Candidates
+  - Num Good Sidebars
+  - Best Sidebar Score
+  - Sidebar Types Found
+  - Average Sidebar Noise
+  - Num All Geometric Lines
+  - Num Long Or Horizontal Lines
+  - Text Line Count
 
 # Model hyperparameters
 hyperparameters:

@@ -4,9 +4,10 @@ import numpy as np
 import regex
 from scipy.stats import entropy
 
-from src.geometric_objects import Line
 from src.page_structure import PageContext
-from src.text_objects import TextLine, TextWord, cluster_text_elements
+from src.text_objects import cluster_text_elements
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
 from src.utils import is_description
 
 logger = logging.getLogger(__name__)
@@ -148,7 +149,7 @@ def split_lines_by_orientation(geometric_lines: list[Line]):
     grid, non_grid = [], []
 
     for line in geometric_lines:
-        if is_grid_angle(line.line_angle, tolerance=2.0):
+        if is_grid_angle(line.angle, tolerance=2.0):
             grid.append(line.length)
         else:
             non_grid.append(line.length)
@@ -180,7 +181,7 @@ def map_lines_score(geometric_lines: list[Line]) -> float:
     if not geometric_lines:
         return 0.0
 
-    angles = [line.line_angle for line in geometric_lines]
+    angles = [line.angle for line in geometric_lines]
 
     # Grid/non-grid splitting of lines
     grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
