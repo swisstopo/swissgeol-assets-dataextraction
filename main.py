@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.page_structure import (
     ProcessedEntities,
-    ProcessedEntitiesMetadata,
     ProcessorDocument,
     ProcessorDocumentEntities,
 )
@@ -130,11 +129,10 @@ def forward_document_entities(
             results_entities.extend(
                 [
                     ProcessedEntities(
-                        metadata=ProcessedEntitiesMetadata(
-                            page_start=min(pages_group), page_end=max(pages_group), language=lang
-                        ),
                         classification=pages_type,
-                        data=None,
+                        page_start=min(pages_group),
+                        page_end=max(pages_group),
+                        language=lang,
                     )
                     # Group consecutive [1,2,10] -> [1,2], [10]
                     for pages_group in group_consecutive([page.page for page in pages])
@@ -143,9 +141,13 @@ def forward_document_entities(
         # Create document from filename, metadata, entities
         documents_entities.append(
             ProcessorDocumentEntities(
-                filename=document.filename, metadata=document.metadata, entities=results_entities
+                filename=document.filename,
+                page_count=document.metadata.page_count,
+                languages=document.metadata.languages,
+                entities=results_entities,
             )
         )
+
     return documents_entities
 
 

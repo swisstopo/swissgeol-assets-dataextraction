@@ -124,20 +124,13 @@ class ProcessorDocument(BaseModel):
             yield key, list(group)
 
 
-class ProcessedEntitiesMetadata(BaseModel):
-    """Processed page entities metadata."""
-
-    page_start: int
-    page_end: int
-    language: str | None
-
-
 class ProcessedEntities(BaseModel):
     """Processed page entities from PDF."""
 
     classification: PageClasses
-    metadata: ProcessedEntitiesMetadata
-    data: None
+    page_start: int
+    page_end: int
+    language: str | None
 
 
 class ProcessorDocumentEntities(BaseModel):
@@ -146,32 +139,22 @@ class ProcessorDocumentEntities(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     filename: str
-    metadata: ProcessorDocumentMetadata
+    page_count: int
+    languages: list[str]
     entities: list[ProcessedEntities]
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "filename": "foo.pdf",
-                "metadata": {"page_count": 2, "languages": ["fr", "de"]},
+                "filename": "input.pdf",
+                "page_count": 3,
+                "languages": ["de"],
                 "entities": [
                     {
                         "classification": "boreprofile",
-                        "metadata": {
-                            "page_start": 1,
-                            "page_end": 2,
-                            "language": "de",
-                        },
-                        "data": None,
-                    },
-                    {
-                        "classification": "boreprofile",
-                        "metadata": {
-                            "page_start": 3,
-                            "page_end": 5,
-                            "language": "fr",
-                        },
-                        "data": None,
+                        "page_start": 1,
+                        "page_end": 3,
+                        "language": "de",
                     },
                 ],
             }

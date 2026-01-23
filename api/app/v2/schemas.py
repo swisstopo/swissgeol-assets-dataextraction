@@ -16,16 +16,14 @@ class CollectResponse(BaseModel):
                 "data": [
                     {
                         "filename": "input.pdf",
-                        "metadata": {"page_count": 3, "languages": ["de"]},
+                        "page_count": 3,
+                        "languages": ["de"],
                         "entities": [
                             {
                                 "classification": "boreprofile",
-                                "metadata": {
-                                    "page_start": 1,
-                                    "page_end": 3,
-                                    "language": "de",
-                                },
-                                "data": None,
+                                "page_start": 1,
+                                "page_end": 3,
+                                "language": "de",
                             },
                         ],
                     }

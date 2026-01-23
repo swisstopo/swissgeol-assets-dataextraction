@@ -64,7 +64,7 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 
 
 ## Output Format
-`data/prediction.json` (if `-w`/`--write_result`) or returned as a Python object.
+
 #### Example Output (v0)
 ```json
 {
@@ -146,7 +146,43 @@ The V1 version containes extended classes from v0 and Each page is categorized i
   - `page_metadata`: metadata about the current page.
 
 
-**General Notes:**
+#### Example Output (v2)
+# TODO: Add test functions
+# TODO: Check that files are deleted after usage
+# TODO: Check aggregation with large document 35016
+
+```json
+{
+	"has_finished": true,
+	"data": [
+		{
+			"filename": "input.pdf",					// Name of the file
+			"page_count": 3,							// Number of pages
+			"languages": [								// Detected languages
+				"de"
+			],
+			"entities": [								// List of elements present in file
+				{
+					"classification": "boreprofile",	// Type of element (PageClasses)
+					"page_start": 1,					// Starting page
+					"page_end": 3,						// Ending page
+					"language": "de",			    	// Detected language
+				},
+			],
+		}
+	],
+}
+```
+**V1 Notes**:
+- `filename`: The name of the processed PDF file.
+- `metadata`: metadata about the file.
+- `pages`: list of dictionaries containing:
+  - `predicted_class`: The class name of the predicted class (e.g. "Boreprofile"). All possible classes are listed above in the section "Classes".
+  - `page_number`: The page number (1-indexed).
+  - `page_metadata`: metadata about the current page.
+
+
+#### General Notes
 
 - The classifier supports batch input of multiple reports.
 - Input must be preprocessed: PDFs should already have OCR.
