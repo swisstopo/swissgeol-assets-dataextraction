@@ -131,7 +131,7 @@ class PDFProcessor:
         return ProcessorDocument(
             filename=file_path.name,
             metadata=metadata,
-            pages=[p.model_dump() for p in pages],
+            pages=pages,
         )
 
     def process_batch(self, pdf_files: list[Path]) -> list[ProcessorDocument]:

@@ -61,7 +61,7 @@ def collect(payload: CollectPayload) -> CollectResponse:
 
     if result.ok:
         logging.info(f"Processing of '{payload.file}' has been successful.")
-        return CollectResponse.create_response(result.value)
+        return CollectResponse.create_response(result.value[0])
 
     logging.error(f"Processing of '{payload.file}' has failed.")
     raise HTTPException(
