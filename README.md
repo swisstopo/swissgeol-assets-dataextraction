@@ -147,9 +147,6 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 
 
 #### Example Output (v2)
-# TODO: Add test functions
-# TODO: Check that files are deleted after usage
-# TODO: Check aggregation with large document 35016
 
 ```json
 {
@@ -173,13 +170,6 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 	],
 }
 ```
-**V1 Notes**:
-- `filename`: The name of the processed PDF file.
-- `metadata`: metadata about the file.
-- `pages`: list of dictionaries containing:
-  - `predicted_class`: The class name of the predicted class (e.g. "Boreprofile"). All possible classes are listed above in the section "Classes".
-  - `page_number`: The page number (1-indexed).
-  - `page_metadata`: metadata about the current page.
 
 
 #### General Notes

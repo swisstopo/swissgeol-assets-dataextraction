@@ -111,7 +111,7 @@ def forward_document(
 def forward_document_entities(
     documents: list[ProcessorDocument],
 ) -> list[ProcessorDocumentEntities]:
-    """Convert classified docuemnts pages to entities.
+    """Convert classified documents pages to entities.
 
     Args:
         documents (list[ProcessorDocument]): List of documents to process.
@@ -126,6 +126,7 @@ def forward_document_entities(
         # Iterate over grouped entities types
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
+            pages_id = sorted([page.page for page in pages])
             results_entities.extend(
                 [
                     ProcessedEntities(
@@ -135,7 +136,7 @@ def forward_document_entities(
                         language=lang,
                     )
                     # Group consecutive [1,2,10] -> [1,2], [10]
-                    for pages_group in group_consecutive([page.page for page in pages])
+                    for pages_group in group_consecutive(pages_id)
                 ]
             )
         # Create document from filename, metadata, entities
@@ -235,7 +236,7 @@ def main(
         explain_model=explain_model,
     )
 
-    # Check if data need to be saves
+    # Check if data need to be saved
     if write_result:
         output_file = Path("data") / "prediction.json"
         output_file.parent.mkdir(parents=True, exist_ok=True)

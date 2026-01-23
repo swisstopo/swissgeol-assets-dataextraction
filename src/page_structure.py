@@ -29,7 +29,7 @@ class PageContext:
 
 
 class ProcessorPageMetadata(BaseModel):
-    """Processed pagee metadata."""
+    """Processed page metadata."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -59,7 +59,7 @@ class ProcessorPage(BaseModel):
     def classification_onehot(self, v: PageClasses, info: FieldSerializationInfo):
         """Change type of classification representation based on context.
 
-        If legacy is provided throught context ({"legacy": True}), model returns onehoe encoding. This is
+        If legacy is provided throught context ({"legacy": True}), model returns onehot encoding. This is
         done to support legacy of API.
 
         Args:
@@ -117,7 +117,7 @@ class ProcessorDocument(BaseModel):
         """
 
         # Get detected classes for each page
-        def key_fn(x: PageClasses) -> tuple[PageClasses, str | None]:
+        def key_fn(x: ProcessorPage) -> tuple[PageClasses, str | None]:
             return x.classification, x.metadata.language
 
         for key, group in groupby(self.pages, key=key_fn):
