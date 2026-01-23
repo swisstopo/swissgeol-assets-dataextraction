@@ -101,11 +101,12 @@ def process(
         )
 
         # Process file in local directory
-        _, entities = script(
+        entities = script(
             input_path=temp_dir,
             classifier_name="treebased",
             model_path="models/stable/model.joblib",
             write_result=False,
+            return_entities=True,
         )
 
     # Return parsed entities

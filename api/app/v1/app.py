@@ -103,11 +103,12 @@ def process(
         str(input_path),
     )
 
-    documents, _ = script(
+    documents = script(
         input_path=tmp_dir,
         classifier_name="treebased",
         model_path="models/stable/model.joblib",
         write_result=False,
+        return_entities=False,
     )
     shutil.rmtree(tmp_dir)
     return [doc.model_dump() for doc in documents]

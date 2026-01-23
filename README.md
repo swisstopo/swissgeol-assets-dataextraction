@@ -151,23 +151,21 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 ```json
 {
 	"has_finished": true,
-	"data": [
-		{
-			"filename": "input.pdf",					// Name of the file
-			"page_count": 3,							// Number of pages
-			"languages": [								// Detected languages
-				"de"
-			],
-			"entities": [								// List of elements present in file
-				{
-					"classification": "boreprofile",	// Type of element (PageClasses)
-					"page_start": 1,					// Starting page
-					"page_end": 3,						// Ending page
-					"language": "de",			    	// Detected language
-				},
-			],
-		}
-	],
+	"data":{
+		"filename": "input.pdf",					// Name of the file
+		"page_count": 3,							// Number of pages
+		"languages": [								// Detected languages
+			"de"
+		],
+		"entities": [								// List of elements present in file
+			{
+				"classification": "boreprofile",	// Type of element (PageClasses)
+				"page_start": 1,					// Starting page
+				"page_end": 3,						// Ending page
+				"language": "de"			    	// Detected language
+			}
+		]
+	}
 }
 ```
 

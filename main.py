@@ -152,47 +152,6 @@ def forward_document_entities(
     return documents_entities
 
 
-def forward(
-    input_path: str,
-    matching_params: dict,
-    model_path: str | None = None,
-    classifier_name: str = "baseline",
-    explain_model: bool = False,
-) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
-    """Infer documents structures.
-
-    Args:
-        input_path (str): Path to directory with PDF pages or documents.
-        matching_params (dict): Dict of parameters for document processing.
-        model_path (str, optional): Path to pretrained LayoutLMv3 model.
-        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
-        explain_model (bool): If True, generates plots to explain the model's choices.
-
-    Returns:
-        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]: Result of processed entities
-            * List of documents with per page classification
-            * List of documents with content parsed as (multi-)page entities.
-    """
-    # Load files
-    pdf_files = get_pdf_files(input_path)
-    if not pdf_files:
-        logger.error("No valid PDFs found.")
-        return [], []
-
-    # Run individual page classification
-    documents_pages = forward_document(
-        pdf_files=pdf_files,
-        matching_params=matching_params,
-        model_path=model_path,
-        classifier_name=classifier_name,
-        explain_model=explain_model,
-    )
-
-    # Extract pages entities
-    documents_entities = forward_document_entities(documents=documents_pages)
-    return documents_pages, documents_entities
-
-
 def main(
     input_path: str,
     ground_truth_path: str | None = None,
@@ -200,7 +159,8 @@ def main(
     classifier_name: str = "baseline",
     write_result: bool = False,
     explain_model: bool = False,
-) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
+    return_entities: bool = False,
+) -> tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -210,11 +170,13 @@ def main(
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
         write_result (bool): If True, writes results to prediction.json.
         explain_model (bool): If True, generates plots to explain the model's choices.
+        return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Return:
-        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]: Result of processed entities
-            * List of documents with per page classification
-            * List of documents with content parsed as (multi-)page entities.
+        tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+            * A list of `ProcessorDocument` containing per-page classifications, or
+            * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
+            when `return_entities=True`.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -228,8 +190,14 @@ def main(
         setup_mlflow(input_path, ground_truth_path, model_path, matching_params, classifier_name)
 
     # Process pages
-    documents_pages, documents_entities = forward(
-        input_path=input_path,
+    pdf_files = get_pdf_files(input_path)
+    if not pdf_files:
+        logger.error("No valid PDFs found.")
+        return [], []
+
+    # Run individual page classification
+    documents_pages = forward_document(
+        pdf_files=pdf_files,
         matching_params=matching_params,
         model_path=model_path,
         classifier_name=classifier_name,
@@ -257,7 +225,10 @@ def main(
     if mlflow_tracking:
         mlflow.end_run()
 
-    return documents_pages, documents_entities
+    if not return_entities:
+        return documents_pages
+    else:
+        return forward_document_entities(documents=documents_pages)
 
 
 if __name__ == "__main__":
