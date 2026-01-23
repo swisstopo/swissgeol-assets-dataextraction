@@ -74,7 +74,7 @@ class PDFProcessor:
             language: language of page content
 
         Returns:
-            PageClasses: Classifierd page type.
+            PageClasses: Classified page type.
         """
 
         def ctx_builder():
@@ -89,8 +89,8 @@ class PDFProcessor:
             file_path: Path to the PDF file to be processed.
 
         Returns:
-            PDFProcessorDocument: An object that respect document structure. It contains the filename, metadata,
-                and a list of classified pages and their metadata.
+            PDFProcessorDocument: An object that respects the document structure. It contains the filename,
+                metadata, and a list of classified pages and their metadata.
         """
         if not file_path.is_file() or file_path.suffix.lower() != ".pdf":
             logging.error(f"Invalid file path: {file_path}. Must be a valid PDF file.")

@@ -32,5 +32,5 @@ class CollectResponse(BaseModel):
 
     @classmethod
     def create_response(cls, prediction: dict):
-        """Creates response from prediction."""
+        """Creates response from a prediction."""
         return cls(has_finished=True, data=ProcessorDocumentEntities.model_validate(prediction))

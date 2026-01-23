@@ -20,7 +20,7 @@ app = FastAPI()
     "/",
     status_code=204,
     summary="Start Page Classification",
-    description="Starts the Page Classification process for a file as background task that completes asynchronously.",
+    description="Starts the page classification process for a file as an asynchronous background task.",
     responses={
         400: {"model": ErrorResponse, "description": "Bad request (must be a PDF file)"},
         422: {"model": ErrorResponse, "description": "File does not exist in S3"},
@@ -52,7 +52,7 @@ def collect(payload: CollectPayload) -> CollectResponse:
     if result is None and not task.has_task(payload.file):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={"message": "Page Classification is not running for this file"},
+            detail={"message": "Page classification is not running for this file"},
         )
 
     if result is None:
@@ -60,7 +60,7 @@ def collect(payload: CollectPayload) -> CollectResponse:
         return CollectResponse(has_finished=False, data=None)
 
     if result.ok:
-        logging.info(f"Processing of '{payload.file}' has been successful.")
+        logging.info(f"Processing of '{payload.file}'was successful.")
         return CollectResponse.create_response(result.value[0])
 
     logging.error(f"Processing of '{payload.file}' has failed.")
@@ -86,14 +86,14 @@ def process(
         settings: API settings including S3 bucket, folder, and temp path configurations
 
     Returns:
-        list[dict]: List of raw predictions from the classification pipeline. Note that these are raw pipeline outputs,
-        class labels will be translated to their final form during response object construction.
+        list[dict]: List of raw predictions from the classification pipeline. Note that these are raw pipeline outputs.
+            Class labels will be translated to their final form during response object construction.
     """
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a file in the temp folder
         input_path = os.path.join(temp_dir, payload.file)
 
-        # Laod file locally to be processed
+        # Load file locally to be processed
         aws.load_file(
             aws_client.bucket(settings.s3_bucket),
             f"{settings.s3_folder}{payload.file}",

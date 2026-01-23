@@ -59,8 +59,8 @@ class ProcessorPage(BaseModel):
     def classification_onehot(self, v: PageClasses, info: FieldSerializationInfo):
         """Change type of classification representation based on context.
 
-        If legacy is provided throught context ({"legacy": True}), model returns onehot encoding. This is
-        done to support legacy of API.
+        If legacy is provided through context ({"legacy": True}), model returns one-hot encoding. This is
+        done to support the legacy of API.
 
         Args:
             v (PageClasses): Classification of object.
@@ -109,14 +109,14 @@ class ProcessorDocument(BaseModel):
     def group_pages_by_type(
         self,
     ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]:
-        """Group pages by classes and languages.
+        """Group pages by class and language.
 
         Yields:
             Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]: Returns
-                a generator with grouped pages par class and language along with corresponding tags.
+                a generator with grouped pages per class and language along with corresponding tags.
         """
 
-        # Get detected classes for each page
+        # Get the detected class for each page
         def key_fn(x: ProcessorPage) -> tuple[PageClasses, str | None]:
             return x.classification, x.metadata.language
 

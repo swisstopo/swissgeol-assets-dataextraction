@@ -4,11 +4,7 @@ from src.page_structure import ProcessorDocument, ProcessorDocumentEntities
 
 
 def test_document_schema() -> None:
-    """Test document parsing model.
-
-    Args:
-        payload (dict): Payload to parse.
-    """
+    """Test document parsing models."""
     example = ProcessorDocument.model_json_schema().get("example", None)
     assert ProcessorDocument.model_validate(example)
 

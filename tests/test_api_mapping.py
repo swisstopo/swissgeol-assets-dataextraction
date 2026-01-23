@@ -20,11 +20,11 @@ from src.page_classes import PageClasses
         (PageClasses.UNKNOWN, PascalPageClasses.UNKNOWN),
     ],
 )
-def test_mapping_to_stable_labels(classes: dict[str, int], expected: PascalPageClasses):
+def test_mapping_to_stable_label(classes: PageClasses, expected: PascalPageClasses):
     """Test label stable mapping.
 
     Args:
-        classes (dict[str, int]): Predicted class map.
+        classes (PageClasses): Predicted class map.
         expected (PascalPageClasses): Expected page class enum.
     """
     page_pred = predicted_class(classes)
@@ -32,7 +32,7 @@ def test_mapping_to_stable_labels(classes: dict[str, int], expected: PascalPageC
 
 
 def test_schemas_shared() -> None:
-    """Test shared api schemas."""
+    """Test shared API schemas."""
     example = CollectPayload.model_json_schema().get("example", None)
     assert CollectPayload.model_validate(example)
 
