@@ -148,7 +148,7 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 
 #### Example Output (v2)
 
-```json
+```jsonc
 {
 	"has_finished": true,
 	"data":{
