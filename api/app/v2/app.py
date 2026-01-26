@@ -1,8 +1,6 @@
 import logging
 import os
-import shutil
-import uuid
-from pathlib import Path
+import tempfile
 from typing import Annotated
 
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
@@ -10,7 +8,7 @@ from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, 
 from api.app.shared.handlers import start_handler
 from api.app.shared.schemas import CollectPayload, ErrorResponse, StartPayload
 from api.app.shared.settings import ApiSettings, api_settings
-from api.app.v1.schemas import CollectResponse
+from api.app.v2.schemas import CollectResponse
 from api.aws import aws
 from api.utils import task
 from main import main as script
@@ -22,7 +20,7 @@ app = FastAPI()
     "/",
     status_code=204,
     summary="Start Page Classification",
-    description="Starts the Page Classification process for a file as background task that completes asynchronously.",
+    description="Starts the page classification process for a file as an asynchronous background task.",
     responses={
         400: {"model": ErrorResponse, "description": "Bad request (must be a PDF file)"},
         422: {"model": ErrorResponse, "description": "File does not exist in S3"},
@@ -40,7 +38,7 @@ def start(
     "/collect",
     summary="Collect Page Classification Results",
     description="""
-        Collects the results of the Page Classification process for a given file. If the process is still running, 
+        Collects the results of the Page Classification process for a given file. If the process is still running,
         it indicates that the results are not yet available.
     """,
     response_model=CollectResponse,
@@ -54,7 +52,7 @@ def collect(payload: CollectPayload) -> CollectResponse:
     if result is None and not task.has_task(payload.file):
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail={"message": "Page Classification is not running for this file"},
+            detail={"message": "Page classification is not running for this file"},
         )
 
     if result is None:
@@ -62,8 +60,8 @@ def collect(payload: CollectPayload) -> CollectResponse:
         return CollectResponse(has_finished=False, data=None)
 
     if result.ok:
-        logging.info(f"Processing of '{payload.file}' has been successful.")
-        return CollectResponse.create_response(result.value)
+        logging.info(f"Processing of '{payload.file}'was successful.")
+        return CollectResponse.create_response(result.value[0])
 
     logging.error(f"Processing of '{payload.file}' has failed.")
     raise HTTPException(
@@ -88,27 +86,28 @@ def process(
         settings: API settings including S3 bucket, folder, and temp path configurations
 
     Returns:
-        list[dict]: List of raw predictions from the classification pipeline. Note that these are raw pipeline outputs,
-        class labels will be translated to their final form during response object construction.
+        list[dict]: List of raw predictions from the classification pipeline. Note that these are raw pipeline outputs.
+            Class labels will be translated to their final form during response object construction.
     """
-    task_id = f"{uuid.uuid4()}"
-    tmp_dir = Path(settings.tmp_path) / task_id
-    os.makedirs(tmp_dir, exist_ok=True)
+    with tempfile.TemporaryDirectory() as temp_dir:
+        # Create a file in the temp folder
+        input_path = os.path.join(temp_dir, payload.file)
 
-    input_path = tmp_dir / payload.file
+        # Load file locally to be processed
+        aws.load_file(
+            aws_client.bucket(settings.s3_bucket),
+            f"{settings.s3_folder}{payload.file}",
+            input_path,
+        )
 
-    aws.load_file(
-        aws_client.bucket(settings.s3_bucket),
-        f"{settings.s3_folder}{payload.file}",
-        str(input_path),
-    )
+        # Process file in local directory
+        entities = script(
+            input_path=temp_dir,
+            classifier_name="treebased",
+            model_path="models/stable/model.joblib",
+            write_result=False,
+            return_entities=True,
+        )
 
-    documents = script(
-        input_path=tmp_dir,
-        classifier_name="treebased",
-        model_path="models/stable/model.joblib",
-        write_result=False,
-        return_entities=False,
-    )
-    shutil.rmtree(tmp_dir)
-    return [doc.model_dump() for doc in documents]
+    # Return parsed entities
+    return [entity.model_dump() for entity in entities]

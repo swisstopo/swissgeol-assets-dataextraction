@@ -3,6 +3,12 @@
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ErrorResponse(BaseModel):
+    """Error response model."""
+
+    detail: str
+
+
 class StartPayload(BaseModel):
     """Payload model for initiating a new document processing task."""
 
