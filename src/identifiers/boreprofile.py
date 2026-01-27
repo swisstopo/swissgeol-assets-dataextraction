@@ -3,11 +3,12 @@ import re
 from dataclasses import dataclass
 
 import pymupdf
+from swissgeol_doc_processing.text.textline import TextWord
 
 from src.keyword_finding import find_figure_description
 from src.material_description import detect_material_description
 from src.page_structure import PageContext
-from src.text_objects import TextWord, cluster_text_elements
+from src.text_objects import cluster_text_elements
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +117,7 @@ def keywords_in_figure_description(ctx: PageContext, matching_params) -> list[st
 
     matched_lines = []
     for line in caption_lines:
-        text = line.line_text.lower()
+        text = line.text.lower()
 
         if all(any(keyword in text for keyword in group) for group in keyword_groups):
             matched_lines.append(line)

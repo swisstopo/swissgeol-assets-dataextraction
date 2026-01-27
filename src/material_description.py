@@ -5,8 +5,9 @@ The same including and excluding matching parameters used.
 """
 
 import pymupdf
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
-from src.text_objects import TextLine, TextWord, cluster_text_elements
+from src.text_objects import cluster_text_elements
 from src.utils import is_description
 
 
@@ -22,7 +23,7 @@ class MaterialDescription:
 
     def __repr__(self):
         return (
-            f"MaterialDescription( lines = {[line.line_text for line in self.text_lines]}, "
+            f"MaterialDescription( lines = {[line.text for line in self.text]}, "
             f"rect = {self.rect}, noise={self.noise} )"
         )
 

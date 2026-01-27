@@ -4,6 +4,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import pymupdf
+from swissgeol_doc_processing.text.extract_text import extract_text_lines
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
@@ -18,7 +19,7 @@ from src.language_detection.detect_language import (
 from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_graphics import extract_page_graphics, get_color_proportion
 from src.page_structure import PageAnalysis, PageContext
-from src.text_objects import create_text_blocks, create_text_lines, extract_words
+from src.text_objects import create_text_blocks, extract_words
 from src.utils import is_digitally_born
 
 logger = logging.getLogger(__name__)
@@ -43,7 +44,7 @@ class PDFProcessor:
     def build_full_context(page: pymupdf.Page, page_number: int, language: str) -> PageContext:
         is_digital = is_digitally_born(page)
         words = extract_words(page, page_number)
-        lines = create_text_lines(page, page_number)
+        lines = extract_text_lines(page)
         text_blocks = create_text_blocks(lines)
         drawings, image_rects = extract_page_graphics(page, is_digital)
         page_rect = get_page_bbox(page)

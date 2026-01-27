@@ -231,7 +231,7 @@ def _separate_by_orientation(lines: list[Line], config_file: dict) -> list[Struc
     structure_lines = []
 
     for line in lines:
-        angle = abs(line.line_angle)
+        angle = abs(line.angle)
 
         # Horizontal lines (close to 0° or 180°)
         if angle <= angle_tolerance or angle >= (180 - angle_tolerance):

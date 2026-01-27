@@ -2,10 +2,11 @@ from collections import Counter
 from dataclasses import dataclass
 
 import pymupdf
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
-from src.geometric_objects import Line
 from src.page_classes import PageClasses
-from src.text_objects import TextBlock, TextLine, TextWord
+from src.text_objects import TextBlock
 
 
 @dataclass()

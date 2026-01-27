@@ -5,7 +5,6 @@ from pathlib import Path
 import pymupdf
 import yaml
 from dotenv import load_dotenv
-
 from swissgeol_doc_processing.text.textline import TextLine
 
 load_dotenv()

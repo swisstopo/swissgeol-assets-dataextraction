@@ -1,6 +1,5 @@
 import fitz
-
-from src.text_objects import TextLine, TextWord
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 
 def test_textline_with_valid_words():
@@ -11,7 +10,7 @@ def test_textline_with_valid_words():
     text_line = TextLine(words)
 
     # Assert
-    assert text_line.line_text == "Hello World"
+    assert text_line.text == "Hello World"
     assert text_line.rect == fitz.Rect(10, 20, 100, 30)
     assert text_line.page_number == 1
 

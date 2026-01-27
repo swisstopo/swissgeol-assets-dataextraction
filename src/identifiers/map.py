@@ -3,11 +3,11 @@ import logging
 import numpy as np
 import regex
 from scipy.stats import entropy
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.page_structure import PageContext
 from src.text_objects import cluster_text_elements
-from swissgeol_doc_processing.text.textline import TextLine, TextWord
-from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
 from src.utils import is_description
 
 logger = logging.getLogger(__name__)
