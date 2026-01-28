@@ -1,3 +1,73 @@
+block_line_ratio: 0.20
+min_block_clearance: 10
+left_line_length_threshold: 7
+duplicate_layer_threshold: 0.95
+min_num_layers: 2
+affinity_params:
+  a_above_b:
+    importance: 5.0
+    weights:
+      line_weight: 3.5
+      left_line_weight: 1.0
+      spacing_weight: 1.25
+      right_end_weight: 1.0
+      diagonal_weight: 1.25
+      gap_weight: 0.0
+      indentation_weight: 0.6
+  a_to_b:
+    importance: 2.0
+    weights:
+      line_weight: 1.0
+      left_line_weight: 1.0
+      spacing_weight: 1.0
+      right_end_weight: 1.0
+      diagonal_weight: 0.0
+      gap_weight: 0.0
+      indentation_weight: 0.0
+  layer_identifier:
+    importance: 0.66
+    weights:
+      line_weight: 0.2
+      left_line_weight: 0.2
+      spacing_weight: 1.0
+      right_end_weight: 0.6
+      diagonal_weight: 0.0
+      gap_weight: 0.0
+      indentation_weight: 0.0
+  spulprobe:
+    importance: 2.0
+    weights:
+      line_weight: 1.0
+      left_line_weight: 1.0
+      spacing_weight: 1.0
+      right_end_weight: 1.0
+      diagonal_weight: 0.0
+      gap_weight: 0.0
+      indentation_weight: 0.0
+  no_sidebar:
+    weights:
+      line_weight: 1.0
+      left_line_weight: 1.0
+      spacing_weight: 1.0
+      right_end_weight: 1.0
+      diagonal_weight: 1.0
+      gap_weight: 0.2
+      indentation_weight: 0.0
+empty_interval_penalty: 0.2
+
+
+material_description_column_width: 0.08
+
+depth_column_params:  # these params should be optimized as soon as there is reliable evaluation data
+  noise_count_threshold: 1.25
+  noise_count_offset: 2.5
+
+non_description_lines_ratio: 0.15
+
+default_language: de
+
+compound_split_threshold: 0.4
+
 table_of_contents:
   en:
     - table of contents
@@ -68,14 +138,19 @@ material_description:
   de:
     including_expressions:
       - sand
+      - sandig
       - silt
+      - siltig
+      - siltstein
       - kies
+      - kiesig
+      - ton
+      - tonig
       - asphalt
+      - asphaltdeckschicht # is not split by the compound splitter
       - humus
       - braun
-      - grau
       - weich
-      - hart
       - wurzel
       - belag
       - stein
@@ -83,37 +158,52 @@ material_description:
       - beton
       - kreide
       - mergel
-      - kernmaterial
+      - kern
+      - lehm
       - dito
+      - dolomit
+      - kristallin
+      - gneis
+      - kalke
+      - mikritisch
+      - laminiert
+      - grob
+      - auffüllung
+      - schlacke
     excluding_expressions:
       - herr
       - ende
       - profil
       - beschreibung
+      - materialbeschreibung
+      - kiesprospektion
       - signaturen
-      - mischprobe
+      - mischprobe # Should be reviewed, currently not used
       - projekt
       - ort
       - adresse
       - wetter
       - pumpversuch
       - kernbohrung
-      - bohrradius
+      - bohrradius # Should be reviewed, currently not used
+      - wasserzutritt
+      - Vollrohr
+      - Filterrohr
 
   fr:
     including_expressions:
       - sol
-      - végétal  # remove accents generally; ocr might be wrong
+      - végétal
       - dallage
       - terre
       - bitume
       - bitumineux
-      - grave d'infrastructure  # what happens if we remove this?
+      - grave d'infrastructure  # Should be reviewed, currently not used
       - sable
       - limon
       - gravier
       - asphalte
-      - humus  # hummus maybe?
+      - humus
       - brun
       - gris
       - grise
@@ -125,77 +215,34 @@ material_description:
       - revetement
       - pierre
       - beige
-      - beton
+      - béton
       - craie
       - marne
-      - materiau
-      - matrice sableuse
-      - enrobé  # accent --> check what happens if it's removed
-      - terrain
-      - remblais
-      - remblai
-      - molasse
+      - materiau # Should be reviewed, currently not used
+      - matrice sableuse # Should be reviewed, currently not used
+      - enrobé
       - phase
-      - formations
       - limoneuse
       - argileuse
       - argileux
-      - mousse
+      - mousse # Should be reviewed, currently not used
     excluding_expressions:
-      - monsieur
-      - fin
+      - monsieur # Should be reviewed, currently not used
       - profil
       - description
-      - signatures
-      - echantillon mixte
+      - signatures # Should be reviewed, currently not used
+      - echantillon mixte # Should be reviewed, currently not used
       - projet
       - lieu
       - adresse
       - temps
-      - essai de pompage
+      - essai de pompage # Should be reviewed, currently not used
       - carottage
-      - rayon de forage
+      - rayon de forage # Should be reviewed, currently not used
       - remarque
       - piezometre
       - profondeur
       - désignation
-
-  it:
-    including_expressions:
-      - sabbia
-      - limo
-      - ghiaia
-      - asfalto
-      - humus
-      - marrone
-      - grigio
-      - morbido
-      - duro
-      - radice
-      - rivestimento
-      - pietra
-      - beige
-      - cemento
-      - gesso
-      - marna
-      - materiale di carota
-      - idem
-
-    excluding_expressions:
-      - signore
-      - fine
-      - profilo
-      - descrizione
-      - legende
-      - campione misto
-      - progetto
-      - luogo
-      - indirizzo
-      - meteo
-      - prova di pompaggio
-      - carotaggio
-      - raggio di perforazione
-
 
   en:
     including_expressions:
@@ -223,7 +270,7 @@ material_description:
       - marl
       - core material
       - limestone
-      - ditto
+      - ditto # Should be reviewed, currently not used
       - alternation
       - leucosome
     excluding_expressions:
@@ -237,7 +284,7 @@ material_description:
       - location
       - address
       - weather
-      - pump test
+      - pump test # Should be reviewed, currently not used
       - core drilling
       - drilling radius
 
@@ -412,76 +459,6 @@ units:
   - sec
   - h
   - ora
-
-block_line_ratio: 0.20
-min_block_clearance: 10
-left_line_length_threshold: 7
-duplicate_layer_threshold: 0.95
-min_num_layers: 2
-affinity_params:
-  a_above_b:
-    importance: 5.0
-    weights:
-      line_weight: 3.5
-      left_line_weight: 1.0
-      spacing_weight: 1.25
-      right_end_weight: 1.0
-      diagonal_weight: 1.25
-      gap_weight: 0.0
-      indentation_weight: 0.6
-  a_to_b:
-    importance: 2.0
-    weights:
-      line_weight: 1.0
-      left_line_weight: 1.0
-      spacing_weight: 1.0
-      right_end_weight: 1.0
-      diagonal_weight: 0.0
-      gap_weight: 0.0
-      indentation_weight: 0.0
-  layer_identifier:
-    importance: 0.66
-    weights:
-      line_weight: 0.2
-      left_line_weight: 0.2
-      spacing_weight: 1.0
-      right_end_weight: 0.6
-      diagonal_weight: 0.0
-      gap_weight: 0.0
-      indentation_weight: 0.0
-  spulprobe:
-    importance: 2.0
-    weights:
-      line_weight: 1.0
-      left_line_weight: 1.0
-      spacing_weight: 1.0
-      right_end_weight: 1.0
-      diagonal_weight: 0.0
-      gap_weight: 0.0
-      indentation_weight: 0.0
-  no_sidebar:
-    weights:
-      line_weight: 1.0
-      left_line_weight: 1.0
-      spacing_weight: 1.0
-      right_end_weight: 1.0
-      diagonal_weight: 1.0
-      gap_weight: 0.2
-      indentation_weight: 0.0
-empty_interval_penalty: 0.2
-
-
-material_description_column_width: 0.08
-
-depth_column_params:  # these params should be optimized as soon as there is reliable evaluation data
-  noise_count_threshold: 1.25
-  noise_count_offset: 2.5
-
-non_description_lines_ratio: 0.15
-
-default_language: de
-
-compound_split_threshold: 0.4
 
 open_ended_depth_key:
   - ab
