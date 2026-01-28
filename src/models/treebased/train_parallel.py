@@ -11,8 +11,8 @@ import pymupdf
 from dotenv import load_dotenv
 from tqdm import tqdm
 
-from classifiers.pdf_dataset_builder import build_filename_to_label_map
-from models.treebased.model_explanation import explain_model
+from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
+from src.models.treebased.model_explanation import explain_model
 from src.models.feature_engineering import get_features
 
 # Reuse trainer classes from train.py to avoid duplication

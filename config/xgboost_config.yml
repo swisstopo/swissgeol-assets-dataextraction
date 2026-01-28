@@ -24,7 +24,7 @@ feature_names:
   - Num Unit Keyword
   - Y Scale OK
   - X Scale OK
-  # Borehole features (12)
+  # Borehole features (11)
   - Num Valid Borehole Descriptions
   - Num Strip Logs
   - Num Tables
@@ -35,13 +35,12 @@ feature_names:
   - Sidebar Types Found
   - Average Sidebar Noise
   - Num All Geometric Lines
-  - Num Long Or Horizontal Lines
   - Text Line Count
 
 
 hyperparameters:
   n_estimators: 600
-  max_depth: 5
+  max_depth: 6
   learning_rate: 0.05
   subsample: 0.8
   colsample_bytree: 1

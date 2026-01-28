@@ -88,7 +88,7 @@ def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params
         page, line_detection_params, striplog_detection_params, table_detection_params
     )
 
-    # Store geometric lines in context (now using swissgeol_doc_processing.Line)
+    # Store geometric lines in context
     ctx.geometric_lines = extraction_context.all_geometric_lines
 
     # Compute features with extraction_context for caching
@@ -100,7 +100,7 @@ def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params
         ctx.language,
         extraction_context.all_geometric_lines,
         matching_params,
-        extraction_context,  # Pass context for borehole feature caching
+        extraction_context,
     )
 
     return features
@@ -134,14 +134,13 @@ def compute_text_features(
         language: Detected language of the text (e.g., "de", "fr", "it").
         geometric_lines: Detected graphical line elements on the page.
         matching_params: Configuration dictionary for keyword and pattern matching.
-        classification_context: Optional ExtractionContext for caching intermediate results.
         extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
-        list: A list of 27 computed feature values for the page. If no text lines are found, returns a zero vector.
+        list: A list of 26 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
-        return [0.0] * 27  # Handle empty pages
+        return [0.0] * 26  # Handle empty pages (15 base + 11 borehole features)
 
     (
         word_per_line,
@@ -152,7 +151,6 @@ def compute_text_features(
         capital_ratio,
     ) = get_word_features(lines, text_blocks)
 
-    # num_valid_descriptions, has_sidebar, has_bh_keyword = get_borehole_features(lines, language, matching_params)
     borehole_feature_list = get_borehole_feature_list(
         page, page_index, language, matching_params, extraction_context=extraction_context
     )
@@ -216,7 +214,7 @@ def get_borehole_feature_list(
         extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
-        List of 12 feature values in consistent order for classification.
+        List of 11 feature values in consistent order for classification.
     """
     if line_detection_params is None:
         line_detection_params = read_params("line_detection_params.yml")
@@ -237,6 +235,7 @@ def get_borehole_feature_list(
         table_detection_params,
         striplog_detection_params,
         extraction_context,
+        extract_boreholes = True,
     )
     sidebar_info = borehole_features.get("sidebar_information", {})
 
@@ -250,7 +249,6 @@ def get_borehole_feature_list(
         float(sidebar_info.get("best_sidebar_score", 0.0)),
         float(sidebar_info.get("sidebar_types_found", 0)),
         float(sidebar_info.get("average_sidebar_noise", 0.0)),
-        float(borehole_features.get("number_all_geometric_lines", 0)),
         float(borehole_features.get("number_long_or_horizontal_lines", 0)),
         float(borehole_features.get("text_line_count", 0)),
     ]

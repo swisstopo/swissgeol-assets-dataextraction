@@ -288,6 +288,42 @@ material_description:
       - core drilling
       - drilling radius
 
+  it:
+    including_expressions:
+      - sabbia
+      - limo
+      - ghiaia
+      - asfalto
+      - humus
+      - marrone
+      - grigio
+      - morbido
+      - duro
+      - radice
+      - rivestimento
+      - pietra
+      - beige
+      - cemento
+      - gesso
+      - marna
+      - materiale di carota
+      - idem
+
+    excluding_expressions:
+      - signore
+      - fine
+      - profilo
+      - descrizione
+      - legende
+      - campione misto
+      - progetto
+      - luogo
+      - indirizzo
+      - meteo
+      - prova di pompaggio
+      - carotaggio
+      - raggio di perforazione
+
 map_terms:
   en:
     including_expressions:
