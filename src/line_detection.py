@@ -1,6 +1,6 @@
 """Line detection module.
 
-.. deprecated::
+deprecated::
     This module is deprecated outside of baseline classifier.
     Use swissgeol_doc_processing.geometry.line_detection instead.
 

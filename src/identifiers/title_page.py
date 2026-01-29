@@ -1,12 +1,12 @@
+"""deprecated:: This module is deprecated outside of baseline classifier."""
+
 import logging
 from collections.abc import Callable, Sequence
 from statistics import stdev
 
-from swissgeol_doc_processing.text.textline import TextLine
-
 from src.keyword_finding import DATE_PATTERNS, PHONE_PATTERNS, find_pattern
 from src.page_structure import PageContext
-from src.text_objects import cluster_connected_components
+from src.text_objects import TextLine, cluster_connected_components
 
 logger = logging.getLogger(__name__)
 

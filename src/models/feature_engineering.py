@@ -54,7 +54,7 @@ def get_features(
         ctx: Optional pre-built PageContext with cached extraction data.
 
     Returns:
-        list[float]: A list of 26 computed features.
+        list[float]: A list of 23 computed features.
     """
     if ctx is not None and ctx.extraction_context is not None:
         # INFERENCE PATH: Reuse cached data from PageContext
@@ -88,21 +88,6 @@ def get_features(
     return features
 
 
-def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params: dict) -> list[float]:
-    """Deprecated: Use get_features(page, page_number, matching_params, ctx) instead.
-
-    Computes features for an already processed page using its PageContext.
-    """
-    import warnings
-
-    warnings.warn(
-        "get_features_from_page() is deprecated. Use get_features() with ctx parameter.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return get_features(page, page.number + 1, matching_params, ctx)
-
-
 def compute_text_features(
     page: pymupdf.Page,
     page_index: int,
@@ -113,7 +98,7 @@ def compute_text_features(
     matching_params: dict,
     extraction_context: ExtractionContext | None = None,
 ) -> list[float]:
-    """Computes 26 numerical features used for tree-based page classification models.
+    """Computes 23 numerical features used for tree-based page classification models.
 
     (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
 
@@ -121,7 +106,7 @@ def compute_text_features(
     - Text/word features (6): words per line, density, position, width, indentation, capitalization
     - Map features (5): keyword lines, grid/non-grid line lengths, angle entropy, line score
     - Geo profile and diagram features (4): keywords, units, axis scales
-    - Borehole features (11): descriptions, strip logs, tables, boreholes, sidebars, geometric lines
+    - Borehole features (8): descriptions, strip logs, tables, boreholes, sidebars, geometric lines
 
     Args:
         page: The PDF page object.
@@ -134,10 +119,10 @@ def compute_text_features(
         extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
-        list: A list of 26 computed feature values for the page. If no text lines are found, returns a zero vector.
+        list: A list of 23 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
-        return [0.0] * 26  # Handle empty pages (15 base + 11 borehole features)
+        return [0.0] * 23  # Handle empty pages (15 base + 8 borehole features)
 
     (
         word_per_line,
@@ -190,8 +175,6 @@ def get_borehole_feature_list(
     matching_params: dict,
     line_detection_params: dict | None = None,
     name_detection_params: dict | None = None,
-    table_detection_params: dict | None = None,
-    striplog_detection_params: dict | None = None,
     extraction_context: ExtractionContext | None = None,
 ) -> list[float]:
     """Extract borehole-related features from a page as a list for classification.
@@ -206,21 +189,15 @@ def get_borehole_feature_list(
         matching_params: Parameters for keyword matching.
         line_detection_params: Optional parameters for line detection.
         name_detection_params: Optional parameters for name detection.
-        table_detection_params: Optional parameters for table detection.
-        striplog_detection_params: Optional parameters for strip log detection.
         extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
-        List of 11 feature values in consistent order for classification.
+        List of 8 feature values in consistent order for classification.
     """
     if line_detection_params is None:
         line_detection_params = read_params("line_detection_params.yml")
     if name_detection_params is None:
         name_detection_params = read_params("name_detection_params.yml")
-    if table_detection_params is None:
-        table_detection_params = read_params("table_detection_params.yml")
-    if striplog_detection_params is None:
-        striplog_detection_params = read_params("striplog_detection_params.yml")
 
     borehole_features = extract_page_features(
         page,
@@ -229,8 +206,6 @@ def get_borehole_feature_list(
         matching_params,
         line_detection_params,
         name_detection_params,
-        table_detection_params,
-        striplog_detection_params,
         extraction_context,
         extract_boreholes=True,
     )
@@ -241,11 +216,8 @@ def get_borehole_feature_list(
         float(borehole_features.number_of_strip_logs),
         float(borehole_features.number_of_tables),
         float(borehole_features.number_of_boreholes),
-        float(sidebar_info.number_of_sidebar_candidates),
         float(sidebar_info.number_of_good_sidebars),
         float(sidebar_info.best_sidebar_score),
-        float(sidebar_info.sidebar_types_found),
-        float(sidebar_info.average_sidebar_noise),
         float(borehole_features.number_long_or_horizontal_lines),
         float(borehole_features.text_line_count),
     ]

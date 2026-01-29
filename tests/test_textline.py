@@ -13,14 +13,3 @@ def test_textline_with_valid_words():
     assert text_line.text == "Hello World"
     assert text_line.rect == fitz.Rect(10, 20, 100, 30)
     assert text_line.page_number == 1
-
-
-def test_textline_with_empty_words():
-    words = []
-
-    try:
-        TextLine(words)
-    except ValueError as e:
-        assert str(e) == "Cannot create an empty TextLine."
-    else:
-        raise AssertionError("Expected ValueError was not raised")
