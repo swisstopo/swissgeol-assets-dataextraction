@@ -104,13 +104,14 @@ def process(
         str(input_path),
     )
 
-    result = script(
+    documents = script(
         input_path=tmp_dir,
         classifier_name="treebased",
         model_path="models/stable/model.joblib",
         write_result=False,
+        return_entities=False,
     )
 
-    result = [map_labels_for_v0(doc) for doc in result]
+    result = [map_labels_for_v0(doc.model_dump(context={"legacy": True})) for doc in documents]
     shutil.rmtree(tmp_dir)
     return result
