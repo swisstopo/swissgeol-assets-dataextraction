@@ -53,6 +53,7 @@ Each page is categorized into one of the following:
 
 ## Output Format
 
+The output of the pipeline is dependent of the version queried.
 
 #### Example Output (v1)
 ```jsonc
