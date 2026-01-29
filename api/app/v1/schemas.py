@@ -104,19 +104,12 @@ class CollectResponse(BaseModel):
         return cls(has_finished=True, data=[PredictionSchema.from_prediction(pred) for pred in predictions])
 
 
-class ErrorResponse(BaseModel):
-    """Error response model."""
-
-    detail: str
-
-
-def predicted_class(classification: dict[str:int]) -> PascalPageClasses:
+def predicted_class(classification: PageClasses) -> PascalPageClasses:
     """Parse the predicted class from a one-hot encoded classification dictionary.
 
     The values of the dict are the sting representation of each class in the PageClasses enum.
     """
-    value = next((k for k, v in classification.items() if v == 1), "unknown")
     try:
-        return PascalPageClasses(to_pascal(value))
+        return PascalPageClasses(to_pascal(classification))
     except ValueError:
         return PascalPageClasses.UNKNOWN
