@@ -36,7 +36,6 @@ feature_names:
   - Best Sidebar Score
   - Sidebar Types Found
   - Average Sidebar Noise
-  - Num All Geometric Lines
   - Num Long Or Horizontal Lines
   - Text Line Count
 

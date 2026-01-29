@@ -4,7 +4,12 @@ from collections import defaultdict
 from pathlib import Path
 
 import pymupdf
+from extraction.minimal_pipeline import ExtractionContext
+from swissgeol_doc_processing.geometry.line_detection import extract_lines
 from swissgeol_doc_processing.text.extract_text import extract_text_lines
+from swissgeol_doc_processing.utils.file_utils import read_params
+from swissgeol_doc_processing.utils.strip_log_detection import detect_strip_logs
+from swissgeol_doc_processing.utils.table_detection import detect_table_structures
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
@@ -51,6 +56,24 @@ class PDFProcessor:
         text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
         color_proportion = get_color_proportion(page) if ENABLE_COLOR_PROPORTION else None
 
+        # Build ExtractionContext once for reuse in feature extraction
+        line_detection_params = read_params("line_detection_params.yml")
+        striplog_detection_params = read_params("striplog_detection_params.yml")
+        table_detection_params = read_params("table_detection_params.yml")
+
+        long_or_horizontal_lines, all_geometric_lines = extract_lines(page, line_detection_params)
+        strip_logs = detect_strip_logs(page, lines, striplog_detection_params)
+        table_structures = detect_table_structures(page, long_or_horizontal_lines, lines, table_detection_params)
+
+        extraction_context = ExtractionContext(
+            text_lines=lines,
+            long_or_horizontal_lines=long_or_horizontal_lines,
+            all_geometric_lines=all_geometric_lines,
+            strip_logs=strip_logs,
+            table_structures=table_structures,
+            language=language,
+        )
+
         return PageContext(
             lines=lines,
             words=words,
@@ -58,11 +81,12 @@ class PDFProcessor:
             language=language,
             page_rect=page_rect,
             text_rect=text_rect,
-            geometric_lines=[],
+            geometric_lines=all_geometric_lines,
             is_digital=is_digital,
             drawings=drawings,
             image_rects=image_rects,
             color_proportion=color_proportion,
+            extraction_context=extraction_context,
         )
 
     def classify_page(self, page: pymupdf.Page, page_number: int, language: str) -> PageAnalysis:

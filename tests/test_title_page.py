@@ -1,7 +1,7 @@
 import pymupdf
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.identifiers.title_page import VERTICAL_SPACING_FACTOR, cluster_aligned_text_lines
-from src.text_objects import TextLine, TextWord
 
 
 def x0(line):

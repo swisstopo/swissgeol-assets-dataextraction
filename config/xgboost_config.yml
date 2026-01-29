@@ -4,7 +4,7 @@ train_folder_path: "data/single_pages_splits/train"
 val_folder_path: "data/single_pages_splits/val"
 ground_truth_file_path: "data/gt_single_pages.json"
 
-# Feature names to track (27 features total)
+# Feature names to track (26 features total)
 feature_names:
   # Text/word features (6)
   - Words Per Line

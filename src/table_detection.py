@@ -7,10 +7,10 @@ import logging
 from dataclasses import dataclass
 
 import pymupdf
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textline import TextLine
 
 from src.bounding_box import bbox_of_lines, rects_intersect
-from src.geometric_objects import Line
-from src.text_objects import TextLine
 from src.utils import read_params
 
 logger = logging.getLogger(__name__)

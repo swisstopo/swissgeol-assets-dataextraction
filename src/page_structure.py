@@ -1,12 +1,18 @@
+from __future__ import annotations
+
 from collections import Counter
 from dataclasses import dataclass
+from typing import TYPE_CHECKING
 
 import pymupdf
 from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.page_classes import PageClasses
-from src.text_objects import TextBlock
+
+if TYPE_CHECKING:
+    from extraction.minimal_pipeline import ExtractionContext
 
 
 @dataclass()
@@ -24,6 +30,7 @@ class PageContext:
     drawings: list
     image_rects: list
     color_proportion: Counter | None = None
+    extraction_context: ExtractionContext | None = None
 
 
 class PageAnalysis:

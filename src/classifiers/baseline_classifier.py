@@ -101,7 +101,11 @@ class RuleBasedClassifier(Classifier):
         Returns:
             None: The function modifies the context in place by setting the geometric_lines attribute.
         """
-        geometric_lines = extract_geometric_lines(page)
+        # Use cached geometric lines if available from ExtractionContext
+        if context.extraction_context and context.extraction_context.all_geometric_lines:
+            geometric_lines = list(context.extraction_context.all_geometric_lines)
+        else:
+            geometric_lines = extract_geometric_lines(page)
 
         if len(context.words) > 7:
             mean_font_size = np.mean([line.font_size for line in context.lines])
