@@ -24,17 +24,14 @@ It uses 26 input features to predict one of 8 possible classes:
   - Num Unit Keyword
   - Y Scale OK
   - X Scale OK
-  ### Borehole features (11)
+  ### Borehole features (8)
   - Num Valid Borehole Descriptions
   - Num Strip Logs
   - Num Tables
   - Num Boreholes
-  - Num Sidebar Candidates
   - Num Good Sidebars
   - Best Sidebar Score
-  - Sidebar Types Found
-  - Average Sidebar Noise
-  - Num All Geometric Lines
+  - Num Long or Horizontal Lines
   - Text Line Count
 
 # Version Notes

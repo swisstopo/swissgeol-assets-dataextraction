@@ -3,16 +3,14 @@ from __future__ import annotations
 from collections import Counter
 from collections.abc import Generator
 from dataclasses import dataclass
+from itertools import groupby
 from typing import TYPE_CHECKING
 
 import pymupdf
+from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, field_serializer
 from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
-from itertools import groupby
-
-import pymupdf
-from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, field_serializer
 
 from src.page_classes import PageClasses
 

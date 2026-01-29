@@ -24,7 +24,7 @@ from src.language_detection.detect_language import (
 from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_classes import PageClasses
 from src.page_graphics import extract_page_graphics, get_color_proportion
-from src.page_structure import PageAnalysis, PageContext
+from src.page_structure import PageContext, ProcessorDocument, ProcessorPage, ProcessorPageMetadata
 from src.text_objects import create_text_blocks, extract_words
 from src.utils import is_digitally_born
 
