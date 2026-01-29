@@ -1,9 +1,41 @@
 # Model Overview
 
 This model was trained on data from single_page_split_new/train and saved as model.joblib.
-It uses 17 input features to predict one of 8 possible classes:
+It uses 26 input features to predict one of 8 possible classes:
 
 "text", "boreprofile", "map", "title_page", "unknown", "geo_profile", "diagram", "table".
+
+## Features: 
+  ### Text/word features (6)
+  - Words Per Line
+  - Text Zone Density
+  - Mean Left
+  - Text Width
+  - Indent Std Dev
+  - Capitalization Ratio
+  ### Map features (5)
+  - Num Map Keyword Lines
+  - Grid Line Length Sum
+  - Non Grid Line Length Sum
+  - Line Angle Entropy
+  - Line Score
+  ### Geo profile and diagram features (4)
+  - Num Geo Profile Keywords
+  - Num Unit Keyword
+  - Y Scale OK
+  - X Scale OK
+  ### Borehole features (11)
+  - Num Valid Borehole Descriptions
+  - Num Strip Logs
+  - Num Tables
+  - Num Boreholes
+  - Num Sidebar Candidates
+  - Num Good Sidebars
+  - Best Sidebar Score
+  - Sidebar Types Found
+  - Average Sidebar Noise
+  - Num All Geometric Lines
+  - Text Line Count
 
 # Version Notes
 

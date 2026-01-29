@@ -1,23 +1,11 @@
 """Line detection module.
 
 .. deprecated::
-    This module is deprecated outside of . Use swissgeol_doc_processing.geometry.line_detection instead.
+    This module is deprecated outside of baseline classifier.
+    Use swissgeol_doc_processing.geometry.line_detection instead.
 
     The custom extract_geometric_lines() function has been replaced by the standardized
-    extract_lines() function from swissgeol_doc_processing. Currently this function is only used in
-    baseline_classsifier.py script
-
-    Migration Guide:
-        Old approach:
-            from src.line_detection import extract_geometric_lines
-            lines = extract_geometric_lines(page)
-
-        New approach:
-            from swissgeol_doc_processing.geometry.line_detection import extract_lines
-            from swissgeol_doc_processing.utils.file_utils import read_params
-
-            line_detection_params = read_params("line_detection_params.yml")
-            long_or_horizontal_lines, all_geometric_lines = extract_lines(page, line_detection_params)
+    extract_lines() function from swissgeol_doc_processing.
 """
 
 from __future__ import annotations
