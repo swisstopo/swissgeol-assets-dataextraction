@@ -5,9 +5,6 @@ It uses 17 input features to predict one of 8 possible classes:
 
 "text", "boreprofile", "map", "title_page", "unknown", "geo_profile", "diagram", "table".
 
-# Version Notes
-
-In the initial version (available on the v0 router with endpoint '/'), the classes "geo_profile", "diagram", and "table" are mapped to "unknown" after prediction.
 
 # Example usage
 ```

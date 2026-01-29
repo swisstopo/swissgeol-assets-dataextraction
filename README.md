@@ -8,7 +8,7 @@ understanding and metadata extraction in the [Assets](https://assets.swissgeol.c
 This classification helps to map individual pages in a document, which ultimately should facilitate the identification of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
 
 ## API endpoints
-Current API supports two endpoint versions **V1** with the current implementation and **V2** with developement features.
+Current API supports two endpoint versions **V1** with the current implementation and **V2** with development features.
 
 
 **Endpoints for V1:**
@@ -80,6 +80,7 @@ Each page is categorized into one of the following:
 		}
 	]
 }
+```
 
 
 #### Example Output (v2)
