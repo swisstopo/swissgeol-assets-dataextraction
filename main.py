@@ -7,7 +7,9 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from src.boreprofile.entity_parser import document_to_boreprofiles
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
+from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
     ProcessorDocument,
@@ -110,25 +112,31 @@ def forward_document(
 
 def forward_document_entities(
     documents: list[ProcessorDocument],
+    pdf_files: list[Path],
 ) -> list[ProcessorDocumentEntities]:
     """Convert classified documents pages to entities.
 
     Args:
-        documents (list[ProcessorDocument]): List of documents to process.
+        documents (list[ProcessorDocument]): List of documents to convert to entities.
+        pdf_files (list[Path]): List of path ti document.
 
     Returns:
        list[ProcessorDocumentEntities]: Processed documents entities
     """
     documents_entities: list[ProcessorDocumentEntities] = []
-    for document in documents:
+    for document, pdf_file in zip(documents, pdf_files, strict=True):
         # Reset list of entities for current document
         results_entities: list[ProcessedEntities] = []
         # Iterate over grouped entities types
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
             pages_id = sorted([page.page for page in pages])
-            results_entities.extend(
-                [
+            entities: list[ProcessedEntities] = []
+
+            if pages_type == PageClasses.BOREPROFILE:
+                entities = document_to_boreprofiles(pdf_file=pdf_file, pages_id=pages_id, lang=lang)
+            else:
+                entities = [
                     ProcessedEntities(
                         classification=pages_type,
                         page_start=min(pages_group),
@@ -138,7 +146,7 @@ def forward_document_entities(
                     # Group consecutive [1,2,10] -> [1,2], [10]
                     for pages_group in group_consecutive(pages_id)
                 ]
-            )
+            results_entities.extend(entities)
         # Create document from filename, metadata, entities
         documents_entities.append(
             ProcessorDocumentEntities(
@@ -228,7 +236,7 @@ def main(
     if not return_entities:
         return documents_pages
     else:
-        return forward_document_entities(documents=documents_pages)
+        return forward_document_entities(documents=documents_pages, pdf_files=pdf_files)
 
 
 if __name__ == "__main__":
