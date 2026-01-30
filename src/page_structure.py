@@ -128,9 +128,10 @@ class ProcessedEntities(BaseModel):
     """Processed page entities from PDF."""
 
     classification: PageClasses
+    language: str | None
     page_start: int
     page_end: int
-    language: str | None
+    title: str | None = None
 
 
 class ProcessorDocumentEntities(BaseModel):
@@ -152,9 +153,17 @@ class ProcessorDocumentEntities(BaseModel):
                 "entities": [
                     {
                         "classification": "boreprofile",
+                        "language": "de",
                         "page_start": 1,
                         "page_end": 3,
-                        "language": "de",
+                        "title": "BS1",
+                    },
+                    {
+                        "classification": "map",
+                        "language": "fr",
+                        "page_start": 4,
+                        "page_end": 4,
+                        "title": None,
                     },
                 ],
             }
