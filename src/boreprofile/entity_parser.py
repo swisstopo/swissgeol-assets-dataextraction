@@ -30,13 +30,14 @@ def _select_pages(pdf_document: Document, pages_id: list[int]) -> Document:
     return select_pdf
 
 
-def document_to_boreprofiles(pdf_file: Path, pages_id: list[int], lang: str) -> list[ProcessedEntities]:
+def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lang: str) -> list[ProcessedEntities]:
     """Convert documents pages to boreprofile entities.
 
     Args:
-        pdf_file (Path): Path to pdf file
-        pages_id (list[int]): List of pages IDs.
-        lang (str): Detected language
+        pdf_file (Path): Path to pdf file.
+        page_start (int): Starting page.
+        page_end (int): Ending page.
+        lang (str): Detected language.
 
     Returns:
         list[ProcessedEntities]: List of boreprofile as entities.
@@ -46,7 +47,7 @@ def document_to_boreprofiles(pdf_file: Path, pages_id: list[int], lang: str) -> 
         # Open the PDF file
         pdf_document = fitz.open(pdf_file)
         # Get subset of pages
-        pdf_document_select = _select_pages(pdf_document, pages_id)
+        pdf_document_select = _select_pages(pdf_document, list(range(page_start, page_end + 1)))
         # Write as temporary
         path_document_select = Path(tmpdir) / pdf_file.name
         pdf_document_select.save(path_document_select)
@@ -55,5 +56,11 @@ def document_to_boreprofiles(pdf_file: Path, pages_id: list[int], lang: str) -> 
         # TODO add geometry as package in current repo
 
     return [
-        ProcessedEntities(classification=PageClasses.BOREPROFILE, page_start=1, page_end=1, language=lang, title="")
+        ProcessedEntities(
+            classification=PageClasses.BOREPROFILE,
+            page_start=page_start,
+            page_end=page_end,
+            language=lang,
+            title="BS1",
+        )
     ]

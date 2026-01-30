@@ -1,4 +1,5 @@
 import argparse
+import itertools
 import json
 import logging
 import os
@@ -110,6 +111,38 @@ def forward_document(
     return processor.process_batch(pdf_files)
 
 
+def forward_document_entities_group(
+    classification: PageClasses,
+    page_start: int,
+    page_end: int,
+    language: str,
+    pdf_file: Path,
+) -> list[ProcessedEntities]:
+    """Extract entities from a group of consecutive pages with the same classification.
+
+    Args:
+        classification (PageClasses): The classification type of the page group.
+        page_start (int): First page index in the consecutive group.
+        page_end (int): Last page index in the consecutive group.
+        language (str): Detected language of the page group.
+        pdf_file (Path): Path to the source PDF file.
+
+    Returns:
+        list[ProcessedEntities]: Extracted entities from the page group.
+    """
+    if classification == PageClasses.BOREPROFILE:
+        return document_to_boreprofiles(pdf_file=pdf_file, page_start=page_start, page_end=page_end, lang=language)
+    else:
+        return [
+            ProcessedEntities(
+                classification=classification,
+                page_start=page_start,
+                page_end=page_end,
+                language=language,
+            )
+        ]
+
+
 def forward_document_entities(
     documents: list[ProcessorDocument],
     pdf_files: list[Path],
@@ -131,21 +164,20 @@ def forward_document_entities(
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
             pages_id = sorted([page.page for page in pages])
-            entities: list[ProcessedEntities] = []
-
-            if pages_type == PageClasses.BOREPROFILE:
-                entities = document_to_boreprofiles(pdf_file=pdf_file, pages_id=pages_id, lang=lang)
-            else:
-                entities = [
-                    ProcessedEntities(
-                        classification=pages_type,
-                        page_start=min(pages_group),
-                        page_end=max(pages_group),
-                        language=lang,
-                    )
-                    # Group consecutive [1,2,10] -> [1,2], [10]
-                    for pages_group in group_consecutive(pages_id)
-                ]
+            entities = [
+                forward_document_entities_group(
+                    classification=pages_type,
+                    page_start=min(pages_group),
+                    page_end=max(pages_group),
+                    language=lang,
+                    pdf_file=pdf_file,
+                )
+                # Group consecutive [1,2,10] -> [1,2], [10]
+                for pages_group in group_consecutive(pages_id)
+            ]
+            # Flatten list of lists
+            entities = list(itertools.chain.from_iterable(entities))
+            # Extend entry
             results_entities.extend(entities)
         # Create document from filename, metadata, entities
         documents_entities.append(
