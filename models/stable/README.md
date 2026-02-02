@@ -34,10 +34,6 @@ It uses 23 input features to predict one of 8 possible classes:
   - Num Long or Horizontal Lines
   - Text Line Count
 
-# Version Notes
-
-In the initial version (available on the v0 router with endpoint '/'), the classes "geo_profile", "diagram", and "table" are mapped to "unknown" after prediction.
-
 # Example usage
 ```
 import joblib
