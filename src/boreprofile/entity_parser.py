@@ -1,4 +1,4 @@
-"""COnvert boreprofile document to processed entries."""
+"""Convert boreprofile document to processed entries."""
 
 import json
 import logging
@@ -43,7 +43,7 @@ def _find_undetected_pages(
 ) -> list[int]:
     """Look for undetected pages in entities.
 
-    Some pages fed tot he borehole detection pipeline might have not been linked to any borehole. The function
+    Some pages fed to the borehole detection pipeline might have not been linked to any borehole. The function
     identifies the pages in pages_id that are not linked to any entity.
 
     Args:
@@ -58,7 +58,9 @@ def _find_undetected_pages(
     return list(set(pages_id) - set(pages_covered_flattened))
 
 
-def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lang: str) -> list[ProcessedEntities]:
+def document_to_boreprofiles(
+    pdf_file: Path, page_start: int, page_end: int, lang: str | None
+) -> list[ProcessedEntities]:
     """Convert documents pages to boreprofile entities.
 
     Args:
@@ -73,7 +75,7 @@ def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lan
     # Define page range
     pages_id = list(range(page_start, page_end + 1))
 
-    # Write file to temp location for finference
+    # Write file to temp location for inference
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create related files
         out_directory = Path(tmpdir)

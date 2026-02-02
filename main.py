@@ -115,7 +115,7 @@ def forward_document_entities_group(
     classification: PageClasses,
     page_start: int,
     page_end: int,
-    language: str,
+    language: str | None,
     pdf_file: Path,
 ) -> list[ProcessedEntities]:
     """Extract entities from a group of consecutive pages with the same classification.
@@ -151,7 +151,7 @@ def forward_document_entities(
 
     Args:
         documents (list[ProcessorDocument]): List of documents to convert to entities.
-        pdf_files (list[Path]): List of path ti document.
+        pdf_files (list[Path]): List of path to documents.
 
     Returns:
        list[ProcessorDocumentEntities]: Processed documents entities
@@ -200,7 +200,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -213,7 +213,7 @@ def main(
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Return:
-        tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
             * A list of `ProcessorDocument` containing per-page classifications, or
             * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
             when `return_entities=True`.
@@ -233,7 +233,7 @@ def main(
     pdf_files = get_pdf_files(input_path)
     if not pdf_files:
         logger.error("No valid PDFs found.")
-        return [], []
+        return []
 
     # Run individual page classification
     documents_pages = forward_document(
