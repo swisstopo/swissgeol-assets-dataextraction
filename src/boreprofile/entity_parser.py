@@ -3,6 +3,7 @@
 import json
 import logging
 import tempfile
+from itertools import chain
 from pathlib import Path
 
 import fitz
@@ -21,7 +22,7 @@ def _select_pages(pdf_document: Document, pages_id: list[int]) -> Document:
 
     Args:
         pdf_document (Document): PDF to split.
-        pages_id (list[int]): List of pages to extract (0-based).
+        pages_id (list[int]): List of pages to extract (1-based).
 
     Returns:
         Document: Selected subset.
@@ -31,9 +32,30 @@ def _select_pages(pdf_document: Document, pages_id: list[int]) -> Document:
 
     for page_id in pages_id:
         # Insert the page into the new PDF
-        select_pdf.insert_pdf(pdf_document, from_page=page_id, to_page=page_id)
+        select_pdf.insert_pdf(pdf_document, from_page=page_id - 1, to_page=page_id - 1)
 
     return select_pdf
+
+
+def _find_undetected_pages(
+    entities: list[ProcessedEntities],
+    pages_id: list[int],
+) -> list[int]:
+    """Look for undetected pages in entities.
+
+    Some pages fed tot he borehole detection pipeline might have not been linked to any borehole. The function
+    identifies the pages in pages_id that are not linked to any entity.
+
+    Args:
+        entities (list[ProcessedEntities]): List of detected entities.
+        pages_id (list[int]): Pages to match.
+
+    Returns:
+        list[int]: List of undetected pages.
+    """
+    pages_covered = [list(range(entity.page_start, entity.page_end + 1)) for entity in entities]
+    pages_covered_flattened = list(chain.from_iterable(pages_covered))
+    return list(set(pages_id) - set(pages_covered_flattened))
 
 
 def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lang: str) -> list[ProcessedEntities]:
@@ -48,10 +70,12 @@ def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lan
     Returns:
         list[ProcessedEntities]: List of boreprofile as entities.
     """
+    # Define page range
+    pages_id = list(range(page_start, page_end + 1))
+
     # Write file to temp location for finference
     with tempfile.TemporaryDirectory() as tmpdir:
-        # Write as temporary
-
+        # Create related files
         out_directory = Path(tmpdir)
         path_input = Path(out_directory) / pdf_file.name
         path_prediction = Path(out_directory) / (pdf_file.name + ".pred.json")
@@ -59,7 +83,7 @@ def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lan
 
         # Open the PDF file, select pages and save
         pdf_document = fitz.open(pdf_file)
-        pdf_document_select = _select_pages(pdf_document, list(range(page_start - 1, page_end)))
+        pdf_document_select = _select_pages(pdf_document, pages_id)
         pdf_document_select.save(path_input)
 
         start_pipeline(
@@ -84,13 +108,30 @@ def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lan
             return []
 
     # Parse to processed entities
-    return [
+    entities = [
         ProcessedEntities(
             classification=PageClasses.BOREPROFILE,
-            page_start=min([bbox.page for bbox in borehole.bounding_boxes]),
-            page_end=max([bbox.page for bbox in borehole.bounding_boxes]),
+            page_start=min([page_start + (bbox.page - 1) for bbox in borehole.bounding_boxes]),
+            page_end=max([page_start + (bbox.page - 1) for bbox in borehole.bounding_boxes]),
             language=lang,
-            title=borehole.metadata.name.feature.name,
+            title=borehole.metadata.name.feature.name if borehole.metadata.name else None,
         )
         for borehole in prediction.file_predictions_list[0].borehole_predictions_list
     ]
+
+    # Add dummy pages if any missed
+    pages_missed_id = _find_undetected_pages(entities, pages_id)
+
+    entities_missed = [
+        ProcessedEntities(
+            classification=PageClasses.BOREPROFILE,
+            page_start=page_id,
+            page_end=page_id,
+            language=lang,
+            title=None,
+        )
+        for page_id in pages_missed_id
+    ]
+
+    # Return detected borehole and missed pages
+    return entities + entities_missed
