@@ -2,24 +2,22 @@
 
 ## Purpose
 
-This repository provides a classification pipeline to categorize PDF pages 
-from geological reports into document classes, with the goal of supporting document
+This repository provides a classification pipeline to categorize PDF pages from geological reports into document classes, with the goal of supporting document
 understanding and metadata extraction in the [Assets](https://assets.swissgeol.ch/) platform. The solution can be used as a standalone API.
 
-This classification helps to map individual pages in a document, which ultimately should facilitate the identification 
-of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and 
-boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
+This classification helps to map individual pages in a document, which ultimately should facilitate the identification of borehole profiles and maps in PDFs to link between documents on [Assets](https://assets.swissgeol.ch/) and boreprofiles on [Boreholes](https://boreholes.swissgeol.ch/).
 
 ## API endpoints
-Current API supports two endpoint versions **V1** with the latest changes (e.g., extended classes and different [response schema](#output-format)) and **V0** for backwards compatability.
+Current API supports two endpoint versions **V1** with the current implementation and **V2** with development features.
 
-**Endpoints for V0:**
- - `/` - main document selection endpoint
- - `/collect` - response collection
 
- **Endpoints for V1:**
+**Endpoints for V1:**
  - `/v1` - main document selection endpoint
  - `/v1/collect` - response collection
+
+**Endpoints for V2:**
+ - `/v2` - main document selection endpoint
+ - `/v2/collect` - response collection
 
 The request JSON body structure for all the endpoints follows the same pattern: `{"file": "filename.pdf"}`
 
@@ -39,19 +37,9 @@ The API currently uses the treebased classifier as the default trained model.
 
 This model was trained on data from `data/single_pages_split_new/train` and saved as `model.joblib`. It uses 17 input features to predict class.
 
-### V0 version
+
+### Classes
 Each page is categorized into one of the following:
-
-1. `Text` - Continuous text page.
-2. `Boreprofile` - Boreholes.
-3. `Maps` - Geological or topographic maps.
-4. `Title_Page` - Title pages of original reports.
-5. `Unknown` - Everything else.
-
-Extended classes in available in V1 version are mapped to `unknown` when running the V0 API version.
-
-### V1 version
-The V1 version containes extended classes from v0 and Each page is categorized into one of the following:
 
 1. `Text` - Continuous text page.
 2. `Boreprofile` - Boreholes.
@@ -65,70 +53,27 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 
 ## Output Format
 
-#### Example Output (v0)
-```json
-{
-	"has_finished": true,
-	"data": [
-		{
-			"filename": "input.pdf",
-			"metadata": {
-				"page_count": 1,
-				"languages": [
-					"de"
-				]
-			},
-			"pages": [
-				{
-					"page": 1,
-					"classification": {
-						"Text": 0,
-						"Boreprofile": 1,
-						"Maps": 0,
-						"Title_Page": 0,
-						"Unknown": 0
-					},
-					"metadata": {
-						"language": "de",
-						"is_frontpage": false
-					}
-				}
-			]
-		}
-	]
-}
-```
-
-**V0 Notes**:
-- `filename`: The name of the processed PDF file.
-- `metadata`: metadata about the file.
-- `pages`: list of dictionaries containing:
-  - `page`: The page number (1-indexed).
-  - `classification`: Classification of a current page:
-    - 1: class was assigned to the page.
-    - 0: class was not assigned.
-  - `metadata`: metadata about the current page.
-
+The output of the pipeline is dependent of the version queried.
 
 #### Example Output (v1)
-```json
+```jsonc
 {
 	"has_finished": true,
 	"data": [
 		{
-			"filename": "742_6.pdf",
+			"filename": "input.pdf",					// Name of the file
 			"metadata": {
-				"page_count": 1,
-				"languages": [
+				"page_count": 1,						// Number of pages
+				"languages": [							// Detected languages
 					"de"
 				]
 			},
-			"pages": [
+			"pages": [									// List of dictionaries containing:
 				{
-					"predicted_class": "Boreprofile",
-					"page_number": 1,
+					"predicted_class": "Boreprofile",	// Type of element (PascalPageClasses)
+					"page_number": 1,					// The page number (1-indexed)
 					"page_metadata": {
-						"language": "de",
+						"language": "de",				// Language of page
 						"is_frontpage": false
 					}
 				}
@@ -137,13 +82,6 @@ The V1 version containes extended classes from v0 and Each page is categorized i
 	]
 }
 ```
-**V1 Notes**:
-- `filename`: The name of the processed PDF file.
-- `metadata`: metadata about the file.
-- `pages`: list of dictionaries containing:
-  - `predicted_class`: The class name of the predicted class (e.g. "Boreprofile"). All possible classes are listed above in the section "Classes".
-  - `page_number`: The page number (1-indexed).
-  - `page_metadata`: metadata about the current page.
 
 
 #### Example Output (v2)
