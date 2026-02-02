@@ -4,6 +4,7 @@ import tempfile
 from pathlib import Path
 
 import fitz
+from extraction.main import start_pipeline
 from fitz import Document
 
 from src.page_classes import PageClasses
@@ -53,7 +54,18 @@ def document_to_boreprofiles(pdf_file: Path, page_start: int, page_end: int, lan
         pdf_document_select.save(path_document_select)
 
         # Process pipeline
-        # TODO add geometry as package in current repo
+        # TODO add path pred / meta / out
+        start_pipeline(
+            input_directory=path_document_select,
+            ground_truth_path=None,
+            out_directory="",
+            predictions_path="",
+            metadata_path="",
+            skip_draw_predictions=True,
+            part="notall",
+        )
+        # Read back prediction file
+        # TODO read file
 
     return [
         ProcessedEntities(

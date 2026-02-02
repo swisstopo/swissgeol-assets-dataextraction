@@ -122,8 +122,8 @@ def forward_document_entities_group(
 
     Args:
         classification (PageClasses): The classification type of the page group.
-        page_start (int): First page index in the consecutive group.
-        page_end (int): Last page index in the consecutive group.
+        page_start (int): First page index in the consecutive group (1-based).
+        page_end (int): Last page index in the consecutive group (1-based).
         language (str): Detected language of the page group.
         pdf_file (Path): Path to the source PDF file.
 
@@ -223,7 +223,7 @@ def main(
     """
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
-    matching_params = read_params("config/matching_params.yml")
+    matching_params = read_params("config/classification_matching_params.yml")
 
     # Start MLFlow tracking
     if mlflow_tracking:
@@ -332,4 +332,5 @@ if __name__ == "__main__":
         classifier_name=args.classifier,
         write_result=args.write_results,
         explain_model=args.explain_model,
+        return_entities=True,
     )
