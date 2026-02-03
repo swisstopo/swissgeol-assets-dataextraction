@@ -58,6 +58,40 @@ def _find_undetected_pages(
     return list(set(pages_id) - set(pages_covered_flattened))
 
 
+def _assign_trailing_pages(
+    entities: list[ProcessedEntities], pages_missed_id: list[int]
+) -> tuple[list[ProcessedEntities], list[int]]:
+    """Assign undetected pages to existing entities if they directly follow them.
+
+    Args:
+        entities (list[ProcessedEntities]): List of detected borehole entities to extend.
+        pages_missed_id (list[int]): List of page IDs (1-based) that were not assigned
+            to any entity during detection.
+
+    Returns:
+        tuple[list[ProcessedEntities], list[int]]: A tuple containing:
+            - The updated list of entities with extended page ranges where applicable.
+            - The list of page IDs that could not be matched to any entity.
+    """
+    # Keep track of pages that were not matched
+    pages_not_matched_id: list[int] = []
+    for id_missed in pages_missed_id:
+        # Iterate over boreholes
+        assigned: bool = False
+
+        for entity in entities:
+            # Check if current page can be assigned to existing
+            if entity.page_end + 1 == id_missed:
+                entity.page_end = id_missed
+                assigned = True
+
+        # Not able to match page
+        if not assigned:
+            pages_not_matched_id.append(id_missed)
+
+    return entities, pages_not_matched_id
+
+
 def document_to_boreprofiles(
     pdf_file: Path, page_start: int, page_end: int, lang: str | None
 ) -> list[ProcessedEntities]:
@@ -123,7 +157,9 @@ def document_to_boreprofiles(
 
     # Add dummy pages if any missed
     pages_missed_id = _find_undetected_pages(entities, pages_id)
+    entities, pages_missed_id = _assign_trailing_pages(entities, pages_missed_id)
 
+    # Add empoty pages if still exists
     entities_missed = [
         ProcessedEntities(
             classification=PageClasses.BOREPROFILE,
@@ -135,5 +171,6 @@ def document_to_boreprofiles(
         for page_id in pages_missed_id
     ]
 
-    # Return detected borehole and missed pages
-    return entities + entities_missed
+    # Return page sorted entities
+    all_entities = entities + entities_missed
+    return sorted(all_entities, key=lambda x: x.page_start)
