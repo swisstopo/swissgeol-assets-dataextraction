@@ -113,9 +113,9 @@ def document_to_boreprofiles(
     with tempfile.TemporaryDirectory() as tmpdir:
         # Create related files
         out_directory = Path(tmpdir)
-        path_input = Path(out_directory) / pdf_file.name
-        path_prediction = Path(out_directory) / (pdf_file.name + ".pred.json")
-        path_metadata = Path(out_directory) / (pdf_file.name + ".meta.json")
+        path_input = out_directory / pdf_file.name
+        path_prediction = out_directory / (pdf_file.name + ".pred.json")
+        path_metadata = out_directory / (pdf_file.name + ".meta.json")
 
         # Open the PDF file, select pages and save
         pdf_document = fitz.open(pdf_file)
