@@ -15,7 +15,7 @@ from src.utils import read_params
 
 logger = logging.getLogger(__name__)
 
-config = read_params("config/_params.yml")
+config = read_params("config/table_detection_params.yml")
 
 
 @dataclass
