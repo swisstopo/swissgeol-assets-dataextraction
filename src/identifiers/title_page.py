@@ -1,4 +1,4 @@
-"""deprecated:: This module is deprecated outside of baseline classifier."""
+""".. deprecated:: This module is deprecated outside of baseline classifier."""
 
 import logging
 from collections.abc import Callable, Sequence

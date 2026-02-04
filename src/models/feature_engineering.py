@@ -76,7 +76,7 @@ def get_features(
 
     features = compute_text_features(
         page,
-        page_number,
+        page_number - 1,
         lines,
         text_blocks,
         language,
@@ -98,9 +98,7 @@ def compute_text_features(
     matching_params: dict,
     extraction_context: ExtractionContext | None = None,
 ) -> list[float]:
-    """Computes 23 numerical features used for tree-based page classification models.
-
-    (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
+    """Computes 23 numerical features used for XGBoost page classification models.
 
     The features are derived from:
     - Text/word features (6): words per line, density, position, width, indentation, capitalization

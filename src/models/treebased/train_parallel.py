@@ -50,7 +50,7 @@ def extract_features_from_page(args):
             features = get_features(page, page_number, matching_params)
             return (filename, page_number, features)
     except Exception as e:
-        logger.error(f"Error processing {filename} page {page_number}: {e}")
+        logger.exception(f"Error processing {filename} page {page_number}: {e}")
         return None
 
 
