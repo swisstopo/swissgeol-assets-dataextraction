@@ -8,6 +8,7 @@ import pymupdf
 from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from xgboost import XGBClassifier
 
 from classifiers.pdf_dataset_builder import build_filename_to_label_map
@@ -24,8 +25,9 @@ mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 if mlflow_tracking:
     import mlflow
 
-MATCHING_PARAMS_PATH = "config/matching_params.yml"
+MATCHING_PARAMS_PATH = "config/local_matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
+borehole_matching_params = swissgeol_read_params("matching_params.yml")
 
 
 class RandomForestTrainer(TreeBasedTrainer):
@@ -140,7 +142,7 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
             print(f"Processing {filename}", end="\r")
 
             for page_number, page in enumerate(doc, start=1):
-                features = get_features(page, page_number, matching_params)
+                features = get_features(page, page_number, matching_params, borehole_matching_params)
                 all_features.append(features)
 
                 key = (filename, page_number)

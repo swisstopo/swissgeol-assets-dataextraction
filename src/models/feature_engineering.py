@@ -39,6 +39,7 @@ def get_features(
     page: pymupdf.Page,
     page_number: int,
     matching_params: dict,
+    borehole_matching_params: dict,
     ctx: PageContext | None = None,
 ) -> list[float]:
     """Extracts numerical features from a PDF page for classification.
@@ -51,6 +52,7 @@ def get_features(
         page: The PDF page object.
         page_number: The page number within the document (starting from 1).
         matching_params: Parameters for keyword matching.
+        borehole_matching_params: Parameters for borehole-specific matching.
         ctx: Optional pre-built PageContext with cached extraction data.
 
     Returns:
@@ -82,6 +84,7 @@ def get_features(
         language,
         geometric_lines,
         matching_params,
+        borehole_matching_params,
         extraction_context,
     )
 
@@ -96,6 +99,7 @@ def compute_text_features(
     language: str,
     geometric_lines: list[Line],
     matching_params: dict,
+    borehole_matching_params: dict,
     extraction_context: ExtractionContext | None = None,
 ) -> list[float]:
     """Computes 23 numerical features used for XGBoost page classification models.
@@ -114,6 +118,7 @@ def compute_text_features(
         language: Detected language of the text (e.g., "de", "fr", "it").
         geometric_lines: Detected graphical line elements on the page.
         matching_params: Configuration dictionary for keyword and pattern matching.
+        borehole_matching_params: Configuration for borehole-specific matching.
         extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
@@ -132,7 +137,7 @@ def compute_text_features(
     ) = get_word_features(lines, text_blocks)
 
     borehole_feature_list = get_borehole_feature_list(
-        page, page_index, language, matching_params, extraction_context=extraction_context
+        page, page_index, language, borehole_matching_params, extraction_context=extraction_context
     )
 
     num_map_keyword_lines = get_map_features(lines, language, matching_params)
@@ -170,7 +175,7 @@ def get_borehole_feature_list(
     page: pymupdf.Page,
     page_index: int,
     language,
-    matching_params: dict,
+    borehole_matching_params: dict,
     line_detection_params: dict | None = None,
     name_detection_params: dict | None = None,
     extraction_context: ExtractionContext | None = None,
@@ -184,7 +189,7 @@ def get_borehole_feature_list(
         page: The PDF page object.
         page_index: Zero-based page index within the document.
         language: Detected language of the text (e.g., "de", "fr", "it").
-        matching_params: Parameters for keyword matching.
+        borehole_matching_params: Parameters for keyword matching.
         line_detection_params: Optional parameters for line detection.
         name_detection_params: Optional parameters for name detection.
         extraction_context: Optional ExtractionContext for caching intermediate results.
@@ -201,7 +206,7 @@ def get_borehole_feature_list(
         page,
         page_index,
         language,
-        matching_params,
+        borehole_matching_params,
         line_detection_params,
         name_detection_params,
         extraction_context,

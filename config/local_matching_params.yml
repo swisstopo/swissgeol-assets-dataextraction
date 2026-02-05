@@ -1,0 +1,248 @@
+
+table_of_contents:
+  en:
+    - table of contents
+    - contents
+    - index
+    - overview
+    - summary
+    - list of topics
+  de:
+    - inhalt
+    - inhaltsverzeichnis
+    - übersicht
+    - index
+    - zusammenfassung
+    - kapitelübersicht
+  fr:
+    - table des matières
+    - sommaire
+    - index
+    - aperçu
+    - résumé
+  it:
+    - liste des chapitres
+    - contenuto
+    - indice dei contenuti
+    - panoramica
+    - indice
+    - sommario
+    - panoramica dei capitoli
+
+caption_description:
+  boreprofile:
+    en:
+      must_contain:
+        - [ profile, log, lithostratigraphy ]
+        - [ borehole, drilling, bore ]
+    de:
+      must_contain:
+        - [ profil, log, lithostratigraphie]
+        - [ bohrung, bohrloch, bohr ]
+    fr:
+      must_contain:
+        - [ profil, log, lithostratigraphique ]
+        - [ forage, sondage ]
+    it:
+      must_contain:
+        - [ profilo, log, stratigrafico, diagramma ]
+        - [ perforazione, sondaggio ]
+
+boreprofile:
+  en:
+    - borehole profile
+    - boreprofile
+    - borehole
+  de:
+    - bohrprofil
+    - bohrlochprofil
+    - bohrung
+  fr:
+    - forage
+    - sondage
+  it:
+    - profilo di perforazione
+    - perforazione
+    - sondaggio
+
+map_terms:
+  en:
+    including_expressions:
+      - legend
+      - map
+      - map key
+      - map symbols
+      - features
+      - scale
+      - sheet
+      - contour interval
+      - topographic
+      - elevation
+    excluding_expressions:
+      - diagram
+      - graph
+      - table
+      - chart
+  de:
+    including_expressions:
+      - legende
+      - karte
+      - kartenzeichen
+      - massstab
+      - blatt
+      - höhenlinien
+      - topographisch
+      - höhe
+      - situation
+    excluding_expressions:
+      - diagramm
+      - grafik
+      - tabelle
+      - schaubild
+      - bohrprofil
+  fr:
+    including_expressions:
+      - carte
+      - légende
+      - symboles
+      - échelle
+      - planche
+      - courbes de niveau
+      - altitude
+      - topographique
+      - situation
+    excluding_expressions:
+      - diagramme
+      - graphique
+      - tableau
+      - schéma
+  it:
+    including_expressions:
+      - mappa
+      - legenda
+      - simboli
+      - scala
+      - foglio
+      - equidistanza
+      - curve di livello
+      - altimetrico
+      - situazione
+    excluding_expressions:
+      - diagramma
+      - grafico
+      - tabella
+      - schema
+
+title_page:
+  en:
+    - project
+    - report
+  de:
+    - projekt
+    - bericht
+  fr:
+    - projet
+    - rapport
+  it:
+    - rapporto
+    - progetto
+
+geo_profile:
+  en:
+    - geological cross-section
+    - geological section
+    - geological profile
+    - cross-section
+    - vertical section
+  de:
+    - längsprofil
+    - längenprofil
+    - geologischer schnitt
+    - geologisches profil
+    - vertikalschnitt
+  fr:
+    - coupe géologique
+    - profil géologique
+    - section géologique
+    - coupe en profondeur
+    - coupe verticale
+    - coupe longitudinale
+  it:
+    - sezione geologica
+    - profilo geologico
+    - sezione verticale
+    - taglio geologico
+
+
+diagram:
+  en:
+    - diagram
+    - curve
+    - distribution
+    - histogram
+    - summation curve
+    - cumulative curve
+    - grading curve
+  de:
+    - kurve
+    - diagramm
+    - kornverteilung
+    - histogramm
+    - summationskurve
+    - körnungslinie
+    - verteilungskurve
+  fr:
+    - diagramme
+    - courbe
+    - distribution
+    - histogramme
+    - courbe de sommation
+    - courbe granulométrique
+  it:
+    - diagramma
+    - curva
+    - distribuzione
+    - istogramma
+    - curva cumulativa
+    - curva granulometrica
+
+units:
+  - m
+  - cm
+  - mm
+  - µm
+  - nm
+  - km
+  - g
+  - kg
+  - mg
+  - t
+  - mol
+  - mol/l
+  - mol/m3
+  - kg/m3
+  - g/cm3
+  - °c
+  - k
+  - pa
+  - kpa
+  - mpa
+  - bar
+  - l
+  - ml
+  - l/s
+  - m/s
+  - s
+  - sec
+  - h
+  - ora
+
+open_ended_depth_key:
+  - ab
+  - des
+  - dès
+  - a partir de
+  - à partir de
+  - from
+  - starting at
+  - a partire

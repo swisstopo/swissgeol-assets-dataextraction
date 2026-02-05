@@ -345,6 +345,21 @@ python -m src.models.treebased.train \
 - `config_file_path`: Path to the YAML config specifying hyperparameters and feature extraction settings.
 - `out_directory`: Output path for the trained model.
 
+#### Parallel Feature Extraction
+
+For faster training, use `train_parallel.py` which parallelizes the feature extraction step:
+
+```bash
+python -m src.models.treebased.train_parallel \
+    --config-file-path config/xgboost_config.yml \
+    --out-directory models/xgboost_model \
+	--max-workers 8
+```
+
+Additional arguments:
+- `--max-workers N`: Limit the number of parallel workers (defaults to CPU count)
+- `--tuning`: Enables hyperparameter tunning for the XGBoost algorithm
+
 If you're training an XGBoost model on macOS, you may encounter issues related to OpenMP. To resolve this, install the OpenMP library using Homebrew:
 ```bash
 brew install libomp

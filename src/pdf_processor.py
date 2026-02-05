@@ -76,13 +76,11 @@ class PDFProcessor:
         )
 
         return PageContext(
-            lines=lines,
             words=words,
             text_blocks=text_blocks,
             language=language,
             page_rect=page_rect,
             text_rect=text_rect,
-            geometric_lines=all_geometric_lines,
             is_digital=is_digital,
             drawings=drawings,
             image_rects=image_rects,

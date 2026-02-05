@@ -183,7 +183,7 @@ def main(
     """
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
-    matching_params = read_params("config/matching_params.yml")
+    matching_params = read_params("config/local_matching_params.yml")
 
     # Start MLFlow tracking
     if mlflow_tracking:

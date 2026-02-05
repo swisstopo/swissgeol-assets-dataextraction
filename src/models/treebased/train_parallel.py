@@ -9,6 +9,7 @@ from pathlib import Path
 
 import pymupdf
 from dotenv import load_dotenv
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 
 from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
@@ -27,27 +28,28 @@ mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 if mlflow_tracking:
     import mlflow
 
-MATCHING_PARAMS_PATH = "config/matching_params.yml"
+MATCHING_PARAMS_PATH = "config/local_matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
+borehole_matching_params = swissgeol_read_params("matching_params.yml")
 
 
 def extract_features_from_page(args):
     """Extract features from a single page (used for multiprocessing).
 
     Args:
-        args: Tuple of (file_path, page_number, matching_params)
+        args: Tuple of (file_path, page_number, matching_params, borehole_matching_params)
 
     Returns:
         Tuple of (filename, page_number, features) or None if error
     """
-    file_path, page_number, matching_params = args
+    file_path, page_number, matching_params, borehole_matching_params = args
     filename = os.path.basename(file_path)
 
     try:
         with pymupdf.Document(file_path) as doc:
             # Page numbers are 1-indexed for user, 0-indexed for pymupdf
             page = doc[page_number - 1]
-            features = get_features(page, page_number, matching_params)
+            features = get_features(page, page_number, matching_params, borehole_matching_params)
             return (filename, page_number, features)
     except Exception as e:
         logger.exception(f"Error processing {filename} page {page_number}: {e}")
@@ -76,7 +78,7 @@ def load_data_and_labels_parallel(folder_path: Path, label_map: dict[tuple[str, 
             page_count = len(doc)
             for page_number in range(1, page_count + 1):
                 if (filename, page_number) in label_map:
-                    tasks.append((file_path, page_number, matching_params))
+                    tasks.append((file_path, page_number, matching_params, borehole_matching_params))
                     task_keys.append((filename, page_number))
 
     print(f"Processing {len(tasks)} pages from {len(file_paths)} files...")
@@ -122,7 +124,7 @@ def load_data_and_labels_sequential(folder_path: Path, label_map: dict[tuple[str
                 key = (filename, page_number)
                 if key not in label_map:
                     continue  # Skip pages without labels
-                features = get_features(page, page_number, matching_params)
+                features = get_features(page, page_number, matching_params, borehole_matching_params)
                 all_features.append(features)
                 labels.append(label_map[key])
 
