@@ -163,7 +163,7 @@ def forward_document_entities(
         # Iterate over grouped entities types
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
-            pages_id = sorted([page.page for page in pages])
+            page_numbers = sorted([page.page for page in pages])
             entities = [
                 forward_document_entities_group(
                     classification=pages_type,
@@ -173,7 +173,7 @@ def forward_document_entities(
                     pdf_file=pdf_file,
                 )
                 # Group consecutive [1,2,10] -> [1,2], [10]
-                for pages_group in group_consecutive(pages_id)
+                for pages_group in group_consecutive(page_numbers)
             ]
             # Flatten list of lists
             entities = list(itertools.chain.from_iterable(entities))

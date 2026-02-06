@@ -3,13 +3,12 @@
 import json
 import logging
 import tempfile
-from itertools import chain
 from pathlib import Path
 
-import fitz
+import pymupdf
 from extraction.features.predictions.overall_file_predictions import OverallFilePredictions
 from extraction.main import start_pipeline
-from fitz import Document
+from pymupdf import Document
 
 from src.page_classes import PageClasses
 from src.page_structure import ProcessedEntities
@@ -17,79 +16,84 @@ from src.page_structure import ProcessedEntities
 logger = logging.getLogger(__name__)
 
 
-def _select_pages(pdf_document: Document, pages_id: list[int]) -> Document:
+def _select_pages(pdf_document: Document, page_numbers: list[int]) -> Document:
     """Select pages from PDF.
 
     Args:
         pdf_document (Document): PDF to split.
-        pages_id (list[int]): List of pages to extract (1-based).
+        page_numbers (list[int]): List of pages to extract (1-based).
 
     Returns:
         Document: Selected subset.
     """
     # Create a new PDF for the selected pages
-    select_pdf = fitz.open()
+    select_pdf = pymupdf.open()
 
-    for page_id in pages_id:
+    for page_number in page_numbers:
         # Insert the page into the new PDF
-        select_pdf.insert_pdf(pdf_document, from_page=page_id - 1, to_page=page_id - 1)
+        select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
 
     return select_pdf
 
 
 def _find_undetected_pages(
     entities: list[ProcessedEntities],
-    pages_id: list[int],
+    page_numbers: list[int],
 ) -> list[int]:
     """Look for undetected pages in entities.
 
     Some pages fed to the borehole detection pipeline might have not been linked to any borehole. The function
-    identifies the pages in pages_id that are not linked to any entity.
+    identifies the pages in page_numbers that are not linked to any entity.
 
     Args:
         entities (list[ProcessedEntities]): List of detected entities.
-        pages_id (list[int]): Pages to match.
+        page_numbers (list[int]): Pages to match.
 
     Returns:
         list[int]: List of undetected pages.
     """
-    pages_covered = [list(range(entity.page_start, entity.page_end + 1)) for entity in entities]
-    pages_covered_flattened = list(chain.from_iterable(pages_covered))
-    return list(set(pages_id) - set(pages_covered_flattened))
+    pages_covered = [
+        page_number
+        # Iterate over all entities
+        for entity in entities
+        # And pages range
+        for page_number in range(entity.page_start, entity.page_end + 1)
+    ]
+    return list(set(page_numbers) - set(pages_covered))
 
 
 def _assign_trailing_pages(
-    entities: list[ProcessedEntities], pages_missed_id: list[int]
+    entities: list[ProcessedEntities], page_numbers_missed: list[int]
 ) -> tuple[list[ProcessedEntities], list[int]]:
     """Assign undetected pages to existing entities if they directly follow them.
 
     Args:
         entities (list[ProcessedEntities]): List of detected borehole entities to extend.
-        pages_missed_id (list[int]): List of page IDs (1-based) that were not assigned
+        page_numbers_missed (list[int]): List of page numbers (1-based) that were not assigned
             to any entity during detection.
 
     Returns:
         tuple[list[ProcessedEntities], list[int]]: A tuple containing:
             - The updated list of entities with extended page ranges where applicable.
-            - The list of page IDs that could not be matched to any entity.
+            - The sorted list of page numbers that could not be matched to any entity.
     """
     # Keep track of pages that were not matched
-    pages_not_matched_id: list[int] = []
-    for id_missed in pages_missed_id:
+    page_numbers_not_matched: list[int] = []
+    for page_number in page_numbers_missed:
         # Iterate over boreholes
         assigned: bool = False
 
         for entity in entities:
             # Check if current page can be assigned to existing
-            if entity.page_end + 1 == id_missed:
-                entity.page_end = id_missed
+            if entity.page_end + 1 == page_number:
+                entity.page_end = page_number
                 assigned = True
 
         # Not able to match page
         if not assigned:
-            pages_not_matched_id.append(id_missed)
+            page_numbers_not_matched.append(page_number)
 
-    return entities, pages_not_matched_id
+    return entities, sorted(page_numbers_not_matched)
 
 
 def document_to_boreprofiles(
@@ -107,7 +111,7 @@ def document_to_boreprofiles(
         list[ProcessedEntities]: List of boreprofile as entities.
     """
     # Define page range
-    pages_id = list(range(page_start, page_end + 1))
+    page_numbers = list(range(page_start, page_end + 1))
 
     # Write file to temp location for inference
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -118,8 +122,8 @@ def document_to_boreprofiles(
         path_metadata = out_directory / (pdf_file.name + ".meta.json")
 
         # Open the PDF file, select pages and save
-        pdf_document = fitz.open(pdf_file)
-        pdf_document_select = _select_pages(pdf_document, pages_id)
+        pdf_document = pymupdf.open(pdf_file)
+        pdf_document_select = _select_pages(pdf_document, page_numbers)
         pdf_document_select.save(path_input)
 
         start_pipeline(
@@ -156,21 +160,21 @@ def document_to_boreprofiles(
     ]
 
     # Add dummy pages if any missed
-    pages_missed_id = _find_undetected_pages(entities, pages_id)
-    entities, pages_missed_id = _assign_trailing_pages(entities, pages_missed_id)
+    page_numbers_missed = _find_undetected_pages(entities, page_numbers)
+    entities, page_numbers_missed = _assign_trailing_pages(entities, page_numbers_missed)
 
     # Add an individual entity per page if there are still missing pages
     entities_missed = [
         ProcessedEntities(
             classification=PageClasses.BOREPROFILE,
-            page_start=page_id,
-            page_end=page_id,
+            page_start=page_number,
+            page_end=page_number,
             language=lang,
             title=None,
         )
-        for page_id in pages_missed_id
+        for page_number in page_numbers_missed
     ]
 
     # Return page sorted entities
     all_entities = entities + entities_missed
-    return sorted(all_entities, key=lambda x: x.page_start)
+    return sorted(all_entities, key=lambda x: x.page_end)
