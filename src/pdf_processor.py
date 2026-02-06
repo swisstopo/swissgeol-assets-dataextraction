@@ -5,11 +5,7 @@ from pathlib import Path
 
 import pymupdf
 from extraction.minimal_pipeline import ExtractionContext
-from swissgeol_doc_processing.geometry.line_detection import extract_lines
-from swissgeol_doc_processing.text.extract_text import extract_text_lines
 from swissgeol_doc_processing.utils.file_utils import read_params
-from swissgeol_doc_processing.utils.strip_log_detection import detect_strip_logs
-from swissgeol_doc_processing.utils.table_detection import detect_table_structures
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
@@ -48,32 +44,25 @@ class PDFProcessor:
 
     @staticmethod
     def build_full_context(page: pymupdf.Page, page_number: int, language: str) -> PageContext:
-        is_digital = is_digitally_born(page)
-        words = extract_words(page, page_number)
-        lines = extract_text_lines(page)
-        text_blocks = create_text_blocks(lines)
-        drawings, image_rects = extract_page_graphics(page, is_digital)
-        page_rect = get_page_bbox(page)
-        text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
-        color_proportion = get_color_proportion(page) if ENABLE_COLOR_PROPORTION else None
-
         # Build ExtractionContext once for reuse in feature extraction
         line_detection_params = read_params("line_detection_params.yml")
         striplog_detection_params = read_params("striplog_detection_params.yml")
         table_detection_params = read_params("table_detection_params.yml")
 
-        long_or_horizontal_lines, all_geometric_lines = extract_lines(page, line_detection_params)
-        strip_logs = detect_strip_logs(page, lines, striplog_detection_params)
-        table_structures = detect_table_structures(page, long_or_horizontal_lines, lines, table_detection_params)
-
-        extraction_context = ExtractionContext(
-            text_lines=lines,
-            long_or_horizontal_lines=long_or_horizontal_lines,
-            all_geometric_lines=all_geometric_lines,
-            strip_logs=strip_logs,
-            table_structures=table_structures,
-            language=language,
+        extraction_context = ExtractionContext.from_page(
+            page, line_detection_params, striplog_detection_params, table_detection_params
         )
+
+        extraction_context.language = language
+
+        is_digital = is_digitally_born(page)
+        words = extract_words(page, page_number)
+        lines = extraction_context.text_lines
+        text_blocks = create_text_blocks(lines)
+        drawings, image_rects = extract_page_graphics(page, is_digital)
+        page_rect = get_page_bbox(page)
+        text_rect = merge_bounding_boxes([line.rect for line in lines]) if lines else page_rect
+        color_proportion = get_color_proportion(page) if ENABLE_COLOR_PROPORTION else None
 
         return PageContext(
             words=words,

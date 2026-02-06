@@ -6,6 +6,7 @@ from itertools import groupby
 from pathlib import Path
 
 from dotenv import load_dotenv
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.page_structure import (
@@ -82,6 +83,7 @@ def group_consecutive(values: list[int]) -> list[list[int]]:
 def forward_document(
     pdf_files: list[Path],
     matching_params: dict,
+    borehole_matching_params: dict,
     model_path: str | None = None,
     classifier_name: str = "baseline",
     explain_model: bool = False,
@@ -91,6 +93,7 @@ def forward_document(
     Args:
         pdf_files (list[Path]): List fo documents to classify.
         matching_params (dict): Dict of parameters for document processing.
+        borehole_matching_params (dict): Dict of parameters for borehole matching.
         model_path (str, optional): Path to pretrained LayoutLMv3 model.
         classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
         explain_model (bool): If True, generates plots to explain the model's choices.
@@ -100,7 +103,9 @@ def forward_document(
     """
     # Set up classifier
     classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type, model_path, matching_params, explain_model)
+    classifier = create_classifier(
+        classifier_type, model_path, matching_params, borehole_matching_params, explain_model
+    )
     logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
 
     # Processed PDFs
@@ -184,6 +189,7 @@ def main(
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
     matching_params = read_params("config/local_matching_params.yml")
+    borehole_matching_params = swissgeol_read_params("matching_params.yml")
 
     # Start MLFlow tracking
     if mlflow_tracking:
@@ -199,6 +205,7 @@ def main(
     documents_pages = forward_document(
         pdf_files=pdf_files,
         matching_params=matching_params,
+        borehole_matching_params=borehole_matching_params,
         model_path=model_path,
         classifier_name=classifier_name,
         explain_model=explain_model,
