@@ -159,7 +159,7 @@ def document_to_boreprofiles(
     pages_missed_id = _find_undetected_pages(entities, pages_id)
     entities, pages_missed_id = _assign_trailing_pages(entities, pages_missed_id)
 
-    # Add empoty pages if still exists
+    # Add an individual entity per page if there are still missing pages
     entities_missed = [
         ProcessedEntities(
             classification=PageClasses.BOREPROFILE,
