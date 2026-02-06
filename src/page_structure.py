@@ -14,6 +14,7 @@ from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.page_classes import PageClasses
 
+
 @dataclass()
 class PageContext:
     """Contains processed text content and information from a page."""
