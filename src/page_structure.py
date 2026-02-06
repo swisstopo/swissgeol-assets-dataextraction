@@ -4,7 +4,6 @@ from collections import Counter
 from collections.abc import Generator
 from dataclasses import dataclass
 from itertools import groupby
-from typing import TYPE_CHECKING
 
 import pymupdf
 from extraction.minimal_pipeline import ExtractionContext
@@ -14,10 +13,6 @@ from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.page_classes import PageClasses
-
-if TYPE_CHECKING:
-    from extraction.minimal_pipeline import ExtractionContext
-
 
 @dataclass()
 class PageContext:
