@@ -2,7 +2,7 @@
 
 .. deprecated::
     This module is deprecated outside of baseline classifier.
-    Use swissgeol_doc_processing packaged for table_structures instead.
+    Use swissgeol_doc_processing package for table_structures instead.
 
 """
 

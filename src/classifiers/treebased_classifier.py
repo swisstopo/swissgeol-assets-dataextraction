@@ -46,7 +46,7 @@ class TreeBasedClassifier(Classifier):
         """
         self.type = ClassifierTypes.TREEBASED
         self.matching_params = matching_params
-        self.borehole_matchin_params = borehole_matching_params
+        self.borehole_matching_params = borehole_matching_params
         if model_path is None:
             raise ValueError("Model path should specify the path to a trained model.")
         self.model = TreeBasedModel(model_path=model_path)
@@ -71,7 +71,7 @@ class TreeBasedClassifier(Classifier):
             page=page,
             page_number=page_number,
             matching_params=self.matching_params,
-            borehole_matching_params=self.borehole_matchin_params,
+            borehole_matching_params=self.borehole_matching_params,
             ctx=context,
         )
 

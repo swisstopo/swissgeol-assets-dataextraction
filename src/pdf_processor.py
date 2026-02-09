@@ -73,8 +73,8 @@ class PDFProcessor:
             is_digital=is_digital,
             drawings=drawings,
             image_rects=image_rects,
-            color_proportion=color_proportion,
             extraction_context=extraction_context,
+            color_proportion=color_proportion,
         )
 
     def classify_page(self, page: pymupdf.Page, page_number: int, language: str) -> PageClasses:

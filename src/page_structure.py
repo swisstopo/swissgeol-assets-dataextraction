@@ -27,8 +27,8 @@ class PageContext:
     is_digital: bool
     drawings: list
     image_rects: list
+    extraction_context: ExtractionContext
     color_proportion: Counter | None = None
-    extraction_context: ExtractionContext | None = None
 
     @property
     def lines(self) -> list[TextLine]:
