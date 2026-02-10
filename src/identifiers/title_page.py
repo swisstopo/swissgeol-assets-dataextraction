@@ -1,3 +1,5 @@
+""".. deprecated:: This module is deprecated outside of baseline classifier."""
+
 import logging
 from collections.abc import Callable, Sequence
 from statistics import stdev

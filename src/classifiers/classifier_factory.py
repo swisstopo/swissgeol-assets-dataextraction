@@ -17,7 +17,11 @@ PIXTRAL_CONFIG_FILE_PATH = "config/pixtral_config.yml"
 
 
 def create_classifier(
-    classifier_type: ClassifierTypes, model_path: str = None, matching_params: dict = None, explain_model: bool = False
+    classifier_type: ClassifierTypes,
+    model_path: str = None,
+    matching_params: dict = None,
+    borehole_matching_params: dict = None,
+    explain_model: bool = False,
 ) -> Classifier:
     """Create and return a classifier instance based on the given type.
 
@@ -26,6 +30,7 @@ def create_classifier(
             (e.g., BASELINE, PIXTRAL, LAYOUTLMV3).
         model_path: path to pretrained model if LayoutLMv3 is used.
         matching_params: Expressions used for identifying page classes in baseline classifiers.
+        borehole_matching_params: Parameters for borehole matching.
         explain_model (bool): If True, generates plots to explain the model's choices.
 
     Returns:
@@ -42,7 +47,12 @@ def create_classifier(
     elif classifier_type == ClassifierTypes.TREEBASED:
         from src.classifiers.treebased_classifier import TreeBasedClassifier
 
-        return TreeBasedClassifier(matching_params=matching_params, model_path=model_path, explain_model=explain_model)
+        return TreeBasedClassifier(
+            matching_params=matching_params,
+            borehole_matching_params=borehole_matching_params,
+            model_path=model_path,
+            explain_model=explain_model,
+        )
 
     elif classifier_type == ClassifierTypes.LAYOUTLMV3:
         from src.classifiers.layoutlmv3_classifier import LayoutLMv3Classifier

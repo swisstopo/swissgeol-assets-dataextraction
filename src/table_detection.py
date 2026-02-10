@@ -1,4 +1,10 @@
-"""This module contains functionalities to detect table like structures."""
+"""This module contains functionalities to detect table like structures.
+
+.. deprecated::
+    This module is deprecated outside of baseline classifier.
+    Use swissgeol_doc_processing package for table_structures instead.
+
+"""
 
 from __future__ import annotations
 
@@ -7,15 +13,15 @@ import logging
 from dataclasses import dataclass
 
 import pymupdf
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textline import TextLine
+from swissgeol_doc_processing.utils.file_utils import read_params
 
 from src.bounding_box import bbox_of_lines, rects_intersect
-from src.geometric_objects import Line
-from src.text_objects import TextLine
-from src.utils import read_params
 
 logger = logging.getLogger(__name__)
 
-config = read_params("config/table_detection_params.yml")
+config = read_params("table_detection_params.yml")
 
 
 @dataclass
@@ -231,7 +237,7 @@ def _separate_by_orientation(lines: list[Line], config_file: dict) -> list[Struc
     structure_lines = []
 
     for line in lines:
-        angle = abs(line.line_angle)
+        angle = abs(line.angle)
 
         # Horizontal lines (close to 0° or 180°)
         if angle <= angle_tolerance or angle >= (180 - angle_tolerance):

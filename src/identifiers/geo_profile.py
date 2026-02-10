@@ -17,7 +17,7 @@ def identify_geo_profile(ctx: PageContext, matching_params: dict) -> bool:
 
     """
     key_words = matching_params["geo_profile"].get(ctx.language, DEFAULT_LANGUAGE)
-    if any([any(kw in line.line_text.lower() for kw in key_words) for line in ctx.lines]):
+    if any([any(kw in line.text.lower() for kw in key_words) for line in ctx.lines]):
         return True
 
     # tends to 0 if all lines are axis-alligned and have the same angles

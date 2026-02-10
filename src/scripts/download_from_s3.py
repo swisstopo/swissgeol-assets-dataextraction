@@ -34,7 +34,7 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 OUTPUT_DIR = DATA_DIR / "single_pages_new"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
-MATCHING_PARAMS = read_params(REPO_ROOT / "config" / "matching_params.yml")
+MATCHING_PARAMS = read_params(REPO_ROOT / "config" / "local_matching_params.yml")
 PIXTRAL_CONFIG_FILE_PATH = REPO_ROOT / "config/pixtral_config.yml"
 PIXTRAL_CONFIG = read_params(PIXTRAL_CONFIG_FILE_PATH)
 

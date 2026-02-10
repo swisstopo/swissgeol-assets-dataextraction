@@ -1,9 +1,10 @@
 import logging
 import re
 
+from swissgeol_doc_processing.text.textline import TextLine
+
 from src.bounding_box import is_line_below_box
 from src.page_structure import PageContext
-from src.text_objects import TextLine
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ def find_pattern(line: TextLine, patterns: list[str]) -> str | None:
     Returns:
         The first matching string if found, otherwise None.
     """
-    text = line.line_text.lower()
+    text = line.text.lower()
     for pattern in patterns:
         match = re.search(pattern, text)
         if match:

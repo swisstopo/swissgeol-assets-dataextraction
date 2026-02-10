@@ -18,7 +18,12 @@ T = TypeVar("T")
 
 
 class TextWord:
-    """Represents a word in a PDF document with its bounding box and text content."""
+    """Represents a word in a PDF document with its bounding box and text content.
+
+    .. deprecated::
+        This class is deprecated outside of baseline classifier.
+        Use swissgeol_doc_processing.text.textword.TextWord instead.
+    """
 
     def __init__(self, rect: pymupdf.Rect, text: str, page: int):
         self.rect = rect
@@ -39,7 +44,12 @@ def extract_words(page, page_number):
 
 
 class TextLine:
-    """Represents a line of text composed of multiple words."""
+    """Represents a line of text composed of multiple words.
+
+    .. deprecated::
+        This class is deprecated outside of baseline classifier.
+        Use swissgeol_doc_processing.text.textline.TextLine instead.
+    """
 
     def __init__(self, words: list[TextWord]):
         if not words:
@@ -106,7 +116,12 @@ def is_same_line(previous_word: TextWord, current_word: TextWord) -> bool:
 
 
 class TextBlock:
-    """Represents a block of text composed of multiple lines."""
+    """Represents a block of text composed of multiple lines.
+
+    .. deprecated::
+        This class is deprecated outside of baseline classifier.
+        Use swissgeol_doc_processing.text.textblock.TextBlock instead.
+    """
 
     def __init__(self, lines: list[TextLine]):
         self.lines = lines
