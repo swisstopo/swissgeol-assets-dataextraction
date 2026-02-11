@@ -1,3 +1,13 @@
+"""Line detection module.
+
+.. deprecated::
+    This module is deprecated outside of baseline classifier.
+    Use swissgeol_doc_processing.geometry.line_detection instead.
+
+    The custom extract_geometric_lines() function has been replaced by the standardized
+    extract_lines() function from swissgeol_doc_processing.
+"""
+
 from __future__ import annotations
 
 import logging

@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from tqdm import tqdm
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from xgboost import XGBClassifier
 
 from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
@@ -25,8 +26,9 @@ mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
 if mlflow_tracking:
     import mlflow
 
-MATCHING_PARAMS_PATH = "config/matching_params.yml"
+MATCHING_PARAMS_PATH = "config/local_matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
+borehole_matching_params = swissgeol_read_params("matching_params.yml")
 
 
 class RandomForestTrainer(TreeBasedTrainer):
@@ -139,7 +141,9 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
 
         with pymupdf.Document(file_path) as doc:
             for page_number, page in enumerate(doc, start=1):
-                # Check if file exists in labels
+                features = get_features(page, page_number, matching_params, borehole_matching_params)
+                all_features.append(features)
+
                 key = (filename, page_number)
                 if key not in label_map:
                     raise ValueError(f"Missing label for file: {key}")

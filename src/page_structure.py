@@ -1,31 +1,44 @@
+from __future__ import annotations
+
 from collections import Counter
 from collections.abc import Generator
 from dataclasses import dataclass
 from itertools import groupby
 
 import pymupdf
+from extraction.minimal_pipeline import ExtractionContext
 from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, field_serializer
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textblock import TextBlock
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
-from src.geometric_objects import Line
 from src.page_classes import PageClasses
-from src.text_objects import TextBlock, TextLine, TextWord
 
 
 @dataclass()
 class PageContext:
     """Contains processed text content and information from a page."""
 
-    lines: list[TextLine]
     words: list[TextWord]
     text_blocks: list[TextBlock]
     language: str
     page_rect: pymupdf.Rect
     text_rect: pymupdf.Rect
-    geometric_lines: list[Line]
     is_digital: bool
     drawings: list
     image_rects: list
+    extraction_context: ExtractionContext
     color_proportion: Counter | None = None
+
+    @property
+    def lines(self) -> list[TextLine]:
+        """Access text lines from extraction context."""
+        return self.extraction_context.text_lines
+
+    @property
+    def geometric_lines(self) -> list[Line]:
+        """Access geometric lines from extraction context."""
+        return list(self.extraction_context.all_geometric_lines)
 
 
 class ProcessorPageMetadata(BaseModel):
