@@ -1,3 +1,4 @@
+import logging
 import re
 from collections.abc import Callable
 
@@ -20,6 +21,8 @@ from src.language_detection.detect_language import (
 from src.page_structure import PageContext
 from src.text_objects import cluster_text_elements, create_text_blocks
 from src.utils import is_description
+
+logger = logging.getLogger(__name__)
 
 
 def extract_and_cache_page_data(page: pymupdf.Page) -> ExtractionContext:
