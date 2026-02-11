@@ -82,16 +82,16 @@ The classification results on the validation set are reported below
 
 | Class			  | Precision | Recall | F1-score |
 |-----------------|----------:|-------:|---------:|
-| boreprofile     |		 93.8 |   90.9 | 	 92.3 |
-| diagram   	  |	    100.0 |   84.6 | 	 91.7 |
-| geo_profile     |		 40.0 |   57.1 | 	 47.1 |
-| map   		  |		 65.6 |   80.8 | 	 72.4 |
-| section_header  |		 72.2 |   86.7 | 	 78.8 |
-| table   		  |		 90.0 |   75.0 | 	 81.8 |
-| text   		  |		 86.4 |   88.4 | 	 87.4 |
-| title_page   	  |		 90.4 |   95.0 | 	 92.7 |
-| unknown   	  |		 57.9 |   39.3 | 	 46.8 |
-| Overall (macro) |		 77.4 |   77.5 |     76.8 |
+| boreprofile     |		 96.7 |   87.9 | 	 92.1 |
+| diagram   	  |	     84.6 |   84.6 | 	 84.6 |
+| geo_profile     |		 55.6 |   71.4 | 	 62.5 |
+| map   		  |		 63.6 |   80.8 | 	 71.2 |
+| section_header  |		 73.3 |   73.3 | 	 73.3 |
+| table   		  |		 90.9 |   83.3 | 	 87.0 |
+| text   		  |		 84.8 |   90.7 | 	 87.6 |
+| title_page   	  |		 95.0 |   95.0 | 	 95.0 |
+| unknown   	  |		 55.0 |   39.3 | 	 45.8 |
+| Overall (macro) |		 77.7 |   78.5 |     77.7 |
 
 
 # Reporte reuslts compared to old profil
