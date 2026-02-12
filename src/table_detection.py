@@ -1,10 +1,4 @@
-"""This module contains functionalities to detect table like structures.
-
-.. deprecated::
-    This module is deprecated outside of baseline classifier.
-    Use swissgeol_doc_processing package for table_structures instead.
-
-"""
+"""This module contains functionalities to detect table like structures."""
 
 from __future__ import annotations
 

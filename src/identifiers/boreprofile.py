@@ -8,7 +8,7 @@ from swissgeol_doc_processing.text.textline import TextWord
 from src.keyword_finding import find_figure_description
 from src.material_description import detect_material_description
 from src.page_structure import PageContext
-from src.text_objects import cluster_text_elements
+from src.utils.text_clustering import cluster_text_elements
 
 logger = logging.getLogger(__name__)
 

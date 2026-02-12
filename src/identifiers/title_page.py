@@ -1,12 +1,14 @@
-""".. deprecated:: This module is deprecated outside of baseline classifier."""
+"""Title page identification utilities for document classification."""
 
 import logging
 from collections.abc import Callable, Sequence
 from statistics import stdev
 
+from swissgeol_doc_processing.text.textline import TextLine
+
 from src.keyword_finding import DATE_PATTERNS, PHONE_PATTERNS, find_pattern
 from src.page_structure import PageContext
-from src.text_objects import TextLine, cluster_connected_components
+from src.utils.text_clustering import cluster_connected_components
 
 logger = logging.getLogger(__name__)
 
@@ -197,7 +199,7 @@ def cluster_aligned_text_lines(
             return False
         # vertical closeness
         vertical_distance = abs(a.rect.y0 - b.rect.y0)
-        limit = VERTICAL_SPACING_FACTOR * max(a.font_size, b.font_size)
+        limit = VERTICAL_SPACING_FACTOR * max(a.rect.height, b.rect.height)
         return vertical_distance < limit
 
     return [c for c in cluster_connected_components(lines, is_conn) if len(c) > 1]

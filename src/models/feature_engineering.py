@@ -18,8 +18,8 @@ from src.language_detection.detect_language import (
     select_classification_language,
 )
 from src.page_structure import PageContext
-from src.text_objects import cluster_text_elements, create_text_blocks
-from src.utils import is_description
+from src.utils.utility import is_description
+from src.utils.text_clustering import cluster_text_elements, create_text_blocks
 
 
 def extract_and_cache_page_data(page: pymupdf.Page) -> ExtractionContext:

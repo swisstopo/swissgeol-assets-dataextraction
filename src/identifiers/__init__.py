@@ -1,1 +1,1 @@
-"""Identifiers used for baseline classifier to identify various document types."""
+"""Identifiers used to identify various document types."""

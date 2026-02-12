@@ -7,8 +7,8 @@ The same including and excluding matching parameters used.
 import pymupdf
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
-from src.text_objects import cluster_text_elements
-from src.utils import is_description
+from src.utils.utility import is_description
+from src.utils.text_clustering import cluster_text_elements
 
 
 class MaterialDescription:

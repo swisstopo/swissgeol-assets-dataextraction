@@ -1,7 +1,7 @@
 import pymupdf
+from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.identifiers.title_page import VERTICAL_SPACING_FACTOR, cluster_aligned_text_lines
-from src.text_objects import TextLine, TextWord
 
 
 def x0(line):
@@ -11,9 +11,9 @@ def x0(line):
 def test_x0_cluster():
     # Three horizontally x0 aligned lines, vertically close
     lines = [
-        TextLine([TextWord(pymupdf.Rect(100, 100, 200, 110), "Line 1", 0)]),
-        TextLine([TextWord(pymupdf.Rect(100, 145, 200, 155), "Line 2", 0)]),
-        TextLine([TextWord(pymupdf.Rect(100, 190, 200, 200), "Line 3", 0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(100, 100, 200, 110), text="Line 1", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(100, 145, 200, 155), text="Line 2", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(100, 190, 200, 200), text="Line 3", page=0)]),
     ]
     clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 1
@@ -23,10 +23,10 @@ def test_x0_cluster():
 def test_two_x0_clusters():
     # Two x0 aligned clusters far apart in x0
     lines = [
-        TextLine([TextWord(pymupdf.Rect(100, 100, 200, 110), "Line 1 in cluster 1", 0)]),
-        TextLine([TextWord(pymupdf.Rect(102, 130, 200, 140), "Line 2 in cluster 1", 0)]),
-        TextLine([TextWord(pymupdf.Rect(300, 100, 400, 110), "Line 1 in cluster 2", 0)]),
-        TextLine([TextWord(pymupdf.Rect(298, 130, 400, 140), "Line 2 in cluster 2", 0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(100, 100, 200, 110), text="Line 1 in cluster 1", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(102, 130, 200, 140), text="Line 2 in cluster 1", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(300, 100, 400, 110), text="Line 1 in cluster 2", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(298, 130, 400, 140), text="Line 2 in cluster 2", page=0)]),
     ]
     clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 2
@@ -37,9 +37,9 @@ def test_two_x0_clusters():
 def test_transitive_inclusion():
     # A close to B, B close to C, A not close to C
     lines = [
-        TextLine([TextWord(pymupdf.Rect(100, 100, 200, 110), "Line A", 0)]),  # A
-        TextLine([TextWord(pymupdf.Rect(104, 130, 204, 140), "Line B", 0)]),  # B
-        TextLine([TextWord(pymupdf.Rect(108, 160, 208, 170), "Line C", 0)]),  # C
+        TextLine([TextWord(rect=pymupdf.Rect(100, 100, 200, 110), text="Line A", page=0)]),  # A
+        TextLine([TextWord(rect=pymupdf.Rect(104, 130, 204, 140), text="Line B", page=0)]),  # B
+        TextLine([TextWord(rect=pymupdf.Rect(108, 160, 208, 170), text="Line C", page=0)]),  # C
     ]
     clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 1
@@ -49,9 +49,9 @@ def test_transitive_inclusion():
 def test_no_clusters_x0():
     # All lines too far apart on x0
     lines = [
-        TextLine([TextWord(pymupdf.Rect(100, 100, 200, 110), "Line A", 0)]),
-        TextLine([TextWord(pymupdf.Rect(300, 300, 400, 310), "Line B", 0)]),
-        TextLine([TextWord(pymupdf.Rect(500, 500, 600, 510), "Line C", 0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(100, 100, 200, 110), text="Line A", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(300, 300, 400, 310), text="Line B", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(500, 500, 600, 510), text="Line C", page=0)]),
     ]
     clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 0
@@ -60,9 +60,9 @@ def test_no_clusters_x0():
 def test_no_cluster_y0():
     # All lines too far apart on y0
     lines = [
-        TextLine([TextWord(pymupdf.Rect(100, 100, 200, 110), "Line A", 0)]),
-        TextLine([TextWord(pymupdf.Rect(100, 160, 200, 170), "Line B", 0)]),  # > 5 * height away
-        TextLine([TextWord(pymupdf.Rect(100, 210, 200, 220), "Line C", 0)]),  # > 5 * height away
+        TextLine([TextWord(rect=pymupdf.Rect(100, 100, 200, 110), text="Line A", page=0)]),
+        TextLine([TextWord(rect=pymupdf.Rect(100, 160, 200, 170), text="Line B", page=0)]),  # > 5 * height away
+        TextLine([TextWord(rect=pymupdf.Rect(100, 210, 200, 220), text="Line C", page=0)]),  # > 5 * height away
     ]
     clusters = cluster_aligned_text_lines(lines, key_func=lambda line: line.rect.x0, threshold=VERTICAL_SPACING_FACTOR)
     assert len(clusters) == 0

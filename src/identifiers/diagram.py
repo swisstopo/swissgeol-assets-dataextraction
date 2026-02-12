@@ -4,7 +4,7 @@ from collections.abc import Callable
 
 from src.identifiers.boreprofile import Entry, detect_entries, is_mostly_increasing
 from src.page_structure import PageContext
-from src.text_objects import cluster_text_elements
+from src.utils.text_clustering import cluster_text_elements
 
 logger = logging.getLogger(__name__)
 

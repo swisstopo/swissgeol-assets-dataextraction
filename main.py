@@ -85,7 +85,7 @@ def forward_document(
     matching_params: dict,
     borehole_matching_params: dict,
     model_path: str | None = None,
-    classifier_name: str = "baseline",
+    classifier_name: str = "treebased",
     explain_model: bool = False,
 ) -> list[ProcessorDocument]:
     """Infer document classes.
@@ -94,8 +94,8 @@ def forward_document(
         pdf_files (list[Path]): List fo documents to classify.
         matching_params (dict): Dict of parameters for document processing.
         borehole_matching_params (dict): Dict of parameters for borehole matching.
-        model_path (str, optional): Path to pretrained LayoutLMv3 model.
-        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+        model_path (str, optional): Path to pretrained model.
+        classifier_name (str, optional): Classifier to use ("treebased", "pixtral", etc.).
         explain_model (bool): If True, generates plots to explain the model's choices.
 
     Returns:
@@ -161,7 +161,7 @@ def main(
     input_path: str,
     ground_truth_path: str | None = None,
     model_path: str | None = None,
-    classifier_name: str = "baseline",
+    classifier_name: str = "treebased",
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
@@ -171,8 +171,8 @@ def main(
     Args:
         input_path (str): Path to directory with PDF pages or documents.
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
-        model_path (str, optional): Path to pretrained LayoutLMv3 model.
-        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
+        model_path (str, optional): Path to pretrained model.
+        classifier_name (str, optional): Classifier to use ("treebased", "pixtral", etc.).
         write_result (bool): If True, writes results to prediction.json.
         explain_model (bool): If True, generates plots to explain the model's choices.
         return_entities (bool): If True, return grouped entities instead of per-page results.
@@ -262,8 +262,8 @@ if __name__ == "__main__":
         "--classifier",
         type=str,
         required=False,
-        default="baseline",
-        help="Specify which classifier to use for classification. Default set to baseline.",
+        default="treebased",
+        help="Specify which classifier to use for classification. Default set to treebased.",
     )
 
     parser.add_argument(
@@ -271,7 +271,7 @@ if __name__ == "__main__":
         "--model_path",
         type=str,
         required=False,
-        help="Path to pretrained LayoutLMv3 or Tree Based model for classification.",
+        help="Path to pretrained model for classification.",
     )
     parser.add_argument(
         "-w",
@@ -289,7 +289,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Check if model_path is required based on classifier
-    if args.classifier.lower() in ["layoutlmv3", "treebased"] and not args.model_path:
+    if args.classifier.lower() == "treebased" and not args.model_path:
         parser.error(f"--model_path is required when using classifier '{args.classifier}'")
 
     main(

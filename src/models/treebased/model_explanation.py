@@ -8,7 +8,7 @@ from dotenv import load_dotenv
 from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
-from src.utils import read_params
+from src.utils.utility import read_params
 
 xg_boost_config = read_params("config/xgboost_config.yml")
 

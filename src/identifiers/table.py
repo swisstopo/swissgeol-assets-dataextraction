@@ -5,7 +5,8 @@ from swissgeol_doc_processing.text.textline import TextWord
 from src.bounding_box import _x_center, rects_intersect
 from src.page_structure import PageContext
 from src.table_detection import detect_structure_lines, detect_table_structures
-from src.text_objects import TextColumn, TextTable, cluster_connected_components
+from src.utils.table_structures import TextColumn, TextTable
+from src.utils.text_clustering import cluster_connected_components
 
 
 def identify_table(ctx: PageContext, min_coverage: float = 0.3) -> bool:
