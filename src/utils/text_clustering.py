@@ -18,8 +18,6 @@ import pymupdf
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
-from src.bounding_box import merge_bounding_boxes
-
 T = TypeVar("T")
 
 
@@ -151,9 +149,7 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
                     merged_rect = current_words[0].rect
                     for w in current_words[1:]:
                         merged_rect.include_rect(w.rect)
-                    rect_with_page = RectWithPage(
-                        rect=merged_rect, page_number=current_words[0].page_number
-                    )
+                    rect_with_page = RectWithPage(rect=merged_rect, page_number=current_words[0].page_number)
                     merged_line = TextLine(words=current_words, rect_with_page=rect_with_page)
                     merged_lines.append(merged_line)
                     current_words = []
@@ -254,7 +250,6 @@ def create_text_blocks(text_lines: list[TextLine]) -> list[TextBlock]:
     Note:
         Uses swissgeol_doc_processing TextBlock class.
     """
-
     data = adjacent_lines(text_lines)
 
     # Apply transitive closure until no new relationships found

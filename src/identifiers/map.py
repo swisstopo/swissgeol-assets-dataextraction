@@ -7,8 +7,8 @@ from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.page_structure import PageContext
-from src.utils.utility import is_description
 from src.utils.text_clustering import cluster_text_elements
+from src.utils.utility import is_description
 
 logger = logging.getLogger(__name__)
 pattern_maps = [

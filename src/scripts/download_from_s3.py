@@ -8,6 +8,7 @@ from pathlib import Path
 import boto3
 import pymupdf
 from dotenv import load_dotenv
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 
 from src.classifiers.pixtral_classifier import PixtralClassifier
@@ -33,8 +34,6 @@ TMP_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTPUT_DIR = DATA_DIR / "single_pages_new"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
-
-from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
 MATCHING_PARAMS = read_params(REPO_ROOT / "config" / "local_matching_params.yml")
 BOREHOLE_MATCHING_PARAMS = swissgeol_read_params("matching_params.yml")

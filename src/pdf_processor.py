@@ -21,8 +21,8 @@ from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_classes import PageClasses
 from src.page_graphics import extract_page_graphics, get_color_proportion
 from src.page_structure import PageContext, ProcessorDocument, ProcessorPage, ProcessorPageMetadata
-from src.utils.utility import is_digitally_born
 from src.utils.text_clustering import create_text_blocks
+from src.utils.utility import is_digitally_born
 
 logger = logging.getLogger(__name__)
 

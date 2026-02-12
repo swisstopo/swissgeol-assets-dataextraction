@@ -15,7 +15,7 @@ from src.page_structure import (
     ProcessorDocumentEntities,
 )
 from src.pdf_processor import PDFProcessor
-from src.utils import get_pdf_files, read_params
+from src.utils.utility import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
