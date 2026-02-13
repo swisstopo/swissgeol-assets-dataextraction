@@ -15,6 +15,7 @@ from collections.abc import Callable
 from typing import TypeVar
 
 import pymupdf
+from swissgeol_doc_processing.geometry.geometry_dataclasses import RectWithPage
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
@@ -134,8 +135,6 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
         This function uses swissgeol_doc_processing TextLine class.
         Lines are merged based on vertical alignment of words.
     """
-    from swissgeol_doc_processing.geometry.geometry_dataclasses import RectWithPage
-
     merged_lines = []
     current_words = []
 
@@ -157,9 +156,6 @@ def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
             current_words.append(word)
 
     if current_words:
-        # Create final line
-        from swissgeol_doc_processing.geometry.geometry_dataclasses import RectWithPage
-
         merged_rect = current_words[0].rect
         for w in current_words[1:]:
             merged_rect.include_rect(w.rect)
