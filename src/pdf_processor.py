@@ -4,6 +4,8 @@ from collections import defaultdict
 from pathlib import Path
 
 import pymupdf
+from extraction.minimal_pipeline import ExtractionContext
+from swissgeol_doc_processing.utils.file_utils import read_params
 from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
@@ -19,8 +21,8 @@ from src.language_detection.pages_to_ignore import is_belegblatt
 from src.page_classes import PageClasses
 from src.page_graphics import extract_page_graphics, get_color_proportion
 from src.page_structure import PageContext, ProcessorDocument, ProcessorPage, ProcessorPageMetadata
-from src.text_objects import create_text_blocks, create_text_lines, extract_words
-from src.utils import is_digitally_born
+from src.utils.text_clustering import create_text_blocks
+from src.utils.utility import is_digitally_born
 
 logger = logging.getLogger(__name__)
 
@@ -42,9 +44,20 @@ class PDFProcessor:
 
     @staticmethod
     def build_full_context(page: pymupdf.Page, page_number: int, language: str) -> PageContext:
+        # Build ExtractionContext once for reuse in feature extraction
+        line_detection_params = read_params("line_detection_params.yml")
+        striplog_detection_params = read_params("striplog_detection_params.yml")
+        table_detection_params = read_params("table_detection_params.yml")
+
+        extraction_context = ExtractionContext.from_page(
+            page, line_detection_params, striplog_detection_params, table_detection_params
+        )
+
+        extraction_context.language = language
+
         is_digital = is_digitally_born(page)
-        words = extract_words(page, page_number)
-        lines = create_text_lines(page, page_number)
+        lines = extraction_context.text_lines
+        words = [word for line in lines for word in line.words]
         text_blocks = create_text_blocks(lines)
         drawings, image_rects = extract_page_graphics(page, is_digital)
         page_rect = get_page_bbox(page)
@@ -52,16 +65,15 @@ class PDFProcessor:
         color_proportion = get_color_proportion(page) if ENABLE_COLOR_PROPORTION else None
 
         return PageContext(
-            lines=lines,
             words=words,
             text_blocks=text_blocks,
             language=language,
             page_rect=page_rect,
             text_rect=text_rect,
-            geometric_lines=[],
             is_digital=is_digital,
             drawings=drawings,
             image_rects=image_rects,
+            extraction_context=extraction_context,
             color_proportion=color_proportion,
         )
 

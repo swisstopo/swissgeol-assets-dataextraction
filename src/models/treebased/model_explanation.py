@@ -5,10 +5,9 @@ import tempfile
 
 import numpy as np
 from dotenv import load_dotenv
-from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
-from src.utils import read_params
+from src.utils.utility import read_params
 
 xg_boost_config = read_params("config/xgboost_config.yml")
 
@@ -32,7 +31,7 @@ except ImportError:
 
 
 def explain_prediction(
-    model: XGBClassifier | RandomForestClassifier,
+    model: XGBClassifier,
     input_features: list[float],
     pred_idx: int,
     page_name: str,
@@ -98,7 +97,7 @@ def explain_prediction(
         log_plt_fig_to_mlflow(tmpdir, f"{page_name}.png", "stacked_force", dpi=300)
 
 
-def explain_model(model: XGBClassifier | RandomForestClassifier, X_train: list[list[float]], id2label: dict[int, str]):
+def explain_model(model: XGBClassifier, X_train: list[list[float]], id2label: dict[int, str]):
     """Generates global SHAP explanations for the model and logs the plots to MLflow.
 
     Args:

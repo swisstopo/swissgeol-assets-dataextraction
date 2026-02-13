@@ -3,9 +3,13 @@ from collections.abc import Callable
 
 import numpy as np
 import pymupdf
+from extraction.minimal_pipeline import ExtractionContext, extract_page_features
+from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
+from swissgeol_doc_processing.text.textblock import TextBlock
+from swissgeol_doc_processing.text.textline import TextLine
+from swissgeol_doc_processing.utils.file_utils import read_params
 
-from src.geometric_objects import Line
-from src.identifiers.boreprofile import Entry, create_sidebars, detect_entries, is_mostly_increasing
+from src.identifiers.boreprofile import Entry, detect_entries, is_mostly_increasing
 from src.identifiers.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
 from src.language_detection.detect_language import (
     DEFAULT_LANGUAGE,
@@ -13,94 +17,117 @@ from src.language_detection.detect_language import (
     predict_language,
     select_classification_language,
 )
-from src.line_detection import extract_geometric_lines
-from src.material_description import detect_material_description
 from src.page_structure import PageContext
-from src.text_objects import TextBlock, TextLine, cluster_text_elements, create_text_blocks, create_text_lines
-from src.utils import is_description
+from src.utils.text_clustering import cluster_text_elements, create_text_blocks
+from src.utils.utility import is_description
 
 
-def get_features(page: pymupdf.Page, page_number: int, matching_params: dict) -> list[float]:
-    """Extracts numerical features from a  PDF page for training a classifier.
-
-    This function is used during training, where language, text lines,
-    text blocks, and geometric lines are all extracted from the page.
-
-    Args:
-        page (pymupdf.Page): The PDF page object.
-        page_number (int): The page number within the document (starting form 1).
-        matching_params (dict): Parameters for keyword matching.
+def extract_and_cache_page_data(page: pymupdf.Page) -> ExtractionContext:
+    """Extract and cache all page data using ExtractionContext.
 
     Returns:
-        list[float]: A list of 17 computed features used for training tree-based classifiers.
+        ExtractionContext: Context object with cached extraction results
     """
-    ## detect language
-    clean_text, word_count = extract_cleaned_text(page)
-    language_prediction = predict_language(clean_text)
-    language = select_classification_language(language_prediction, word_count)
+    line_detection_params = read_params("line_detection_params.yml")
+    striplog_detection_params = read_params("striplog_detection_params.yml")
+    table_detection_params = read_params("table_detection_params.yml")
 
-    ## construct text features
-    lines = create_text_lines(page, page_number)
-    geometric_lines = extract_geometric_lines(page)
-    text_blocks = create_text_blocks(lines)
-
-    features = compute_text_features(lines, text_blocks, language, geometric_lines, matching_params)
-    return features
+    return ExtractionContext.from_page(page, line_detection_params, striplog_detection_params, table_detection_params)
 
 
-def get_features_from_page(page: pymupdf.Page, ctx: PageContext, matching_params: dict) -> list[float]:
-    """Computes features for an already processed page using its PageContext.
+def get_features(
+    page: pymupdf.Page,
+    page_number: int,
+    matching_params: dict,
+    borehole_matching_params: dict,
+    ctx: PageContext | None = None,
+) -> list[float]:
+    """Extracts numerical features from a PDF page for classification.
 
-    It is used during page classification,
-     where preprocessing has already been performed and stored in the PageContext.
+    Unified function for both training and inference paths:
+    - Training: Call without ctx, extracts everything fresh
+    - Inference: Call with ctx, reuses cached ExtractionContext
 
     Args:
-        page (pymupdf.Page): The PDF page object.
-        ctx (PageContext): A pre-populated PageContext object containing lines, language, text blocks, etc.
-        matching_params (dict): Parameters for keyword matching.
+        page: The PDF page object.
+        page_number: The page number within the document (starting from 1).
+        matching_params: Parameters for keyword matching.
+        borehole_matching_params: Parameters for borehole-specific matching.
+        ctx: Optional pre-built PageContext with cached extraction data.
 
     Returns:
-        list[float]: A list of 17 computed features used for classification.
+        list[float]: A list of 23 computed features.
     """
-    ctx.geometric_lines = extract_geometric_lines(page)
-    features = compute_text_features(ctx.lines, ctx.text_blocks, ctx.language, ctx.geometric_lines, matching_params)
+    if ctx is not None and ctx.extraction_context is not None:
+        # INFERENCE PATH: Reuse cached data from PageContext
+        extraction_context = ctx.extraction_context
+        lines = ctx.lines
+        text_blocks = ctx.text_blocks
+        language = ctx.language
+        geometric_lines = ctx.geometric_lines
+    else:
+        # TRAINING PATH: Extract everything fresh
+        clean_text, word_count = extract_cleaned_text(page)
+        language_prediction = predict_language(clean_text)
+        language = select_classification_language(language_prediction, word_count)
+
+        extraction_context = extract_and_cache_page_data(page)
+        lines = extraction_context.text_lines
+        geometric_lines = extraction_context.all_geometric_lines
+        text_blocks = create_text_blocks(lines)
+
+    features = compute_text_features(
+        page,
+        page_number - 1,
+        lines,
+        text_blocks,
+        language,
+        geometric_lines,
+        matching_params,
+        borehole_matching_params,
+        extraction_context,
+    )
 
     return features
 
 
 def compute_text_features(
+    page: pymupdf.Page,
+    page_index: int,
     lines: list[TextLine],
     text_blocks: list[TextBlock],
     language: str,
     geometric_lines: list[Line],
     matching_params: dict,
+    borehole_matching_params: dict,
+    extraction_context: ExtractionContext | None = None,
 ) -> list[float]:
-    """Computes 19 numerical features used for tree-based page classification models.
-
-    (e.g., Random Forest, XGBoost) based on extracted text and geometric lines.
+    """Computes 23 numerical features used for XGBoost page classification models.
 
     The features are derived from:
-    - Text lines (e.g., line length, punctuation, capitalization)
-    - Text block geometry (e.g., density, indentation)
-    - Language-specific heuristics
-    - Geometric lines on the page
-    - Domain-specific keyword and structure matching
+    - Text/word features (6): words per line, density, position, width, indentation, capitalization
+    - Map features (5): keyword lines, grid/non-grid line lengths, angle entropy, line score
+    - Geo profile and diagram features (4): keywords, units, axis scales
+    - Borehole features (8): descriptions, strip logs, tables, boreholes, sidebars, geometric lines
 
     Args:
+        page: The PDF page object.
+        page_index: Zero-based page index within the document.
         lines: List of detected text lines on the page.
         text_blocks: Grouped lines forming text blocks.
         language: Detected language of the text (e.g., "de", "fr", "it").
         geometric_lines: Detected graphical line elements on the page.
         matching_params: Configuration dictionary for keyword and pattern matching.
+        borehole_matching_params: Configuration for borehole-specific matching.
+        extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
-        list: A list of 19 computed feature values for the page. If no text lines are found, returns a zero vector.
+        list: A list of 23 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
     if not lines:
-        return [0.0] * 19  # Handle empty pages
+        return [0.0] * 23  # Handle empty pages (15 base + 8 borehole features)
 
     (
-        line_count,
         word_per_line,
         word_density,
         mean_left,
@@ -109,7 +136,9 @@ def compute_text_features(
         capital_ratio,
     ) = get_word_features(lines, text_blocks)
 
-    num_valid_descriptions, has_sidebar, has_bh_keyword = get_borehole_features(lines, language, matching_params)
+    borehole_feature_list = get_borehole_feature_list(
+        page, page_index, language, borehole_matching_params, extraction_context=extraction_context
+    )
 
     num_map_keyword_lines = get_map_features(lines, language, matching_params)
 
@@ -124,12 +153,8 @@ def compute_text_features(
         word_density,
         mean_left,
         text_width,
-        line_count,
         indent_std,
         capital_ratio,
-        has_sidebar,
-        has_bh_keyword,
-        num_valid_descriptions,
         num_map_keyword_lines,
         grid_length_sum,
         non_grid_length_sum,
@@ -140,19 +165,77 @@ def compute_text_features(
         y_ok,
         x_ok,
     ]
+
+    features.extend(borehole_feature_list)
+
     return list(map(float, features))
+
+
+def get_borehole_feature_list(
+    page: pymupdf.Page,
+    page_index: int,
+    language,
+    borehole_matching_params: dict,
+    line_detection_params: dict | None = None,
+    name_detection_params: dict | None = None,
+    extraction_context: ExtractionContext | None = None,
+) -> list[float]:
+    """Extract borehole-related features from a page as a list for classification.
+
+    Combines page feature extraction with conversion to a feature list suitable
+    for tree-based classifiers.
+
+    Args:
+        page: The PDF page object.
+        page_index: Zero-based page index within the document.
+        language: Detected language of the text (e.g., "de", "fr", "it").
+        borehole_matching_params: Parameters for keyword matching.
+        line_detection_params: Optional parameters for line detection.
+        name_detection_params: Optional parameters for name detection.
+        extraction_context: Optional ExtractionContext for caching intermediate results.
+
+    Returns:
+        List of 8 feature values in consistent order for classification.
+    """
+    if line_detection_params is None:
+        line_detection_params = read_params("line_detection_params.yml")
+    if name_detection_params is None:
+        name_detection_params = read_params("name_detection_params.yml")
+
+    borehole_features = extract_page_features(
+        page,
+        page_index,
+        language,
+        borehole_matching_params,
+        line_detection_params,
+        name_detection_params,
+        extraction_context,
+        extract_boreholes=True,
+    )
+    sidebar_info = borehole_features.sidebar_information
+
+    return [
+        float(borehole_features.number_of_valid_borehole_descriptions),
+        float(borehole_features.number_of_strip_logs),
+        float(borehole_features.number_of_tables),
+        float(borehole_features.number_of_boreholes),
+        float(sidebar_info.number_of_good_sidebars),
+        float(sidebar_info.best_sidebar_score),
+        float(borehole_features.number_long_or_horizontal_lines),
+        float(borehole_features.text_line_count),
+    ]
 
 
 def get_diagram_features(lines: list[TextLine], matching_params: dict):
     keywords_unit = matching_params["units"]
 
     num_unit = sum(
-        bool(re.search(r"[\(\[]\s*" + re.escape(u) + r"\s*[\)\]]", line.line_text.lower()))
+        bool(re.search(r"[\(\[]\s*" + re.escape(u) + r"\s*[\)\]]", line.text.lower()))
         for u in keywords_unit
         for line in lines
     )
     words = [word for line in lines for word in line.words]
-    depths_entries = detect_entries(words)  # TODO should include
+    depths_entries = detect_entries(words)
 
     vertical_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     horizontal_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.y0, tolerance=10)
@@ -179,7 +262,7 @@ def get_diagram_features(lines: list[TextLine], matching_params: dict):
 
 def get_geo_profile_feature(lines: list[TextLine], language: str, matching_params: dict):
     geo_profile_key_words = matching_params["geo_profile"].get(language, DEFAULT_LANGUAGE)
-    num_geo_profile_key_words = sum(kw in line.line_text.lower() for kw in geo_profile_key_words for line in lines)
+    num_geo_profile_key_words = sum(kw in line.text.lower() for kw in geo_profile_key_words for line in lines)
     return num_geo_profile_key_words
 
 
@@ -193,28 +276,13 @@ def get_map_features(lines: list[TextLine], language: str, matching_params: dict
 
 
 def get_geom_line_features(geometric_lines: list[Line]):
-    angles = [line.line_angle for line in geometric_lines]
+    angles = [line.angle for line in geometric_lines]
     grid_lengths, non_grid_lengths = split_lines_by_orientation(geometric_lines)
     grid_length_sum = sum(grid_lengths)
     non_grid_length_sum = sum(non_grid_lengths)
     angle_entropy = compute_angle_entropy(angles)
     lines_score = map_lines_score(geometric_lines)
     return float(grid_length_sum), float(non_grid_length_sum), float(angle_entropy), lines_score
-
-
-def get_borehole_features(lines: list[TextLine], language: str, matching_params: dict):
-    words = [word for line in lines for word in line.words]
-
-    keywords = matching_params["material_description"].get(language, {})
-    descriptions = detect_material_description(lines, words, keywords) if keywords else []
-    num_valid_descriptions = len([desc for desc in descriptions if desc.is_valid])
-
-    sidebars = create_sidebars(words)
-    has_sidebar = int(bool(sidebars))
-
-    keyword_set = matching_params["boreprofile"].get(language, {})
-    has_bh_keyword = int(any(keyword in word.text.lower() for word in words for keyword in keyword_set))
-    return num_valid_descriptions, has_sidebar, has_bh_keyword
 
 
 def get_word_features(lines: list[TextLine], text_blocks: list[TextBlock]):
@@ -257,7 +325,6 @@ def get_word_features(lines: list[TextLine], text_blocks: list[TextBlock]):
     indent_std = np.std(lefts)
     capital_ratio = capital_chars / total_chars if total_chars else 0
     return (
-        line_count,
         word_per_line,
         word_density,
         mean_left,
