@@ -1,13 +1,11 @@
 """Convert boreprofile document to processed entries."""
 
-import json
 import logging
-import tempfile
+from io import BytesIO
 from pathlib import Path
 
 import pymupdf
-from extraction.features.predictions.overall_file_predictions import OverallFilePredictions
-from extraction.main import start_pipeline
+from extraction.runner import extract
 from pymupdf import Document
 
 from src.page_classes import PageClasses
@@ -113,39 +111,15 @@ def document_to_boreprofiles(
     # Define page range
     page_numbers = list(range(page_start, page_end + 1))
 
+    # Open the PDF file, select pages and save
+    pdf_document = pymupdf.open(pdf_file)
+    pdf_document_select = _select_pages(pdf_document, page_numbers)
+
     # Write file to temp location for inference
-    with tempfile.TemporaryDirectory() as tmpdir:
-        # Create related files
-        out_directory = Path(tmpdir)
-        path_input = out_directory / pdf_file.name
-        path_prediction = out_directory / (pdf_file.name + ".pred.json")
-        path_metadata = out_directory / (pdf_file.name + ".meta.json")
-
-        # Open the PDF file, select pages and save
-        pdf_document = pymupdf.open(pdf_file)
-        pdf_document_select = _select_pages(pdf_document, page_numbers)
-        pdf_document_select.save(path_input)
-
-        start_pipeline(
-            input_directory=path_input,
-            ground_truth_path=None,
-            out_directory=out_directory,
-            predictions_path=path_prediction,
-            metadata_path=path_metadata,
-            skip_draw_predictions=True,
-            part="all",
-        )
-        # Read back prediction file
-        with open(path_prediction, encoding="utf8") as f:
-            prediction = OverallFilePredictions.from_json(json.load(f))
-
-        # Check that single prediction and correct id
-        if (
-            len(prediction.file_predictions_list) != 1
-            or prediction.file_predictions_list[0].file_name != pdf_file.name
-        ):
-            logger.error(f"Unable to process predictions for {pdf_file.name}")
-            return []
+    prediction = extract(
+        file=BytesIO(pdf_document_select.tobytes()),
+        filename=pdf_file.name,
+    )
 
     # Parse to processed entities
     entities = [
@@ -156,7 +130,7 @@ def document_to_boreprofiles(
             language=lang,
             title=borehole.metadata.name.feature.name if borehole.metadata.name else None,
         )
-        for borehole in prediction.file_predictions_list[0].borehole_predictions_list
+        for borehole in prediction.borehole_predictions_list
     ]
 
     # Add dummy pages if any missed
