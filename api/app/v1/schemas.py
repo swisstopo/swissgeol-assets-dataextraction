@@ -1,18 +1,22 @@
-from enum import Enum
-from typing import TypeAlias
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
 from src.page_classes import PageClasses
 
-# dynamically created Enum to expose PascalCase class names to the API.
-PascalPageClasses = Enum(
-    "PascalPageClasses",
-    {name: to_pascal(value) for name, value in PageClasses.__members__.items()},
-    type=str,
-)
-PascalPageClasses: TypeAlias = PascalPageClasses  # pyright: ignore[reportInvalidTypeForm]
+
+class PascalPageClasses(StrEnum):
+    """Enum for classifying pages into page types."""
+
+    BOREPROFILE = "Boreprofile"
+    DIAGRAM = "Diagram"
+    GEO_PROFILE = "GeoProfile"
+    MAP = "Map"
+    TABLE = "Table"
+    TEXT = "Text"
+    TITLE_PAGE = "TitlePage"
+    UNKNOWN = "Unknown"
 
 
 class MetaDataSchema(BaseModel):
@@ -110,6 +114,9 @@ def predicted_class(classification: PageClasses) -> PascalPageClasses:
     The values of the dict are the sting representation of each class in the PageClasses enum.
     """
     try:
+        # Merge section header and section headers
+        if classification == PageClasses.SECTION_HEADER:
+            classification = PageClasses.TITLE_PAGE
         return PascalPageClasses(to_pascal(classification))
     except ValueError:
         return PascalPageClasses.UNKNOWN
