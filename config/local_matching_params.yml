@@ -1,4 +1,3 @@
-
 table_of_contents:
   en:
     - table of contents
@@ -33,20 +32,20 @@ caption_description:
   boreprofile:
     en:
       must_contain:
-        - [ profile, log, lithostratigraphy ]
-        - [ borehole, drilling, bore ]
+        - [profile, log, lithostratigraphy]
+        - [borehole, drilling, bore]
     de:
       must_contain:
-        - [ profil, log, lithostratigraphie]
-        - [ bohrung, bohrloch, bohr ]
+        - [profil, log, lithostratigraphie]
+        - [bohrung, bohrloch, bohr]
     fr:
       must_contain:
-        - [ profil, log, lithostratigraphique ]
-        - [ forage, sondage ]
+        - [profil, log, lithostratigraphique]
+        - [forage, sondage]
     it:
       must_contain:
-        - [ profilo, log, stratigrafico, diagramma ]
-        - [ perforazione, sondaggio ]
+        - [profilo, log, stratigrafico, diagramma]
+        - [perforazione, sondaggio]
 
 boreprofile:
   en:
@@ -172,7 +171,6 @@ geo_profile:
     - profilo geologico
     - sezione verticale
     - taglio geologico
-
 
 diagram:
   en:
