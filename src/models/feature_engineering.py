@@ -235,7 +235,7 @@ def get_diagram_features(lines: list[TextLine], matching_params: dict):
         for line in lines
     )
     words = [word for line in lines for word in line.words]
-    depths_entries = detect_entries(words)  # TODO should include
+    depths_entries = detect_entries(words)
 
     vertical_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     horizontal_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.y0, tolerance=10)
