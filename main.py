@@ -271,6 +271,7 @@ if __name__ == "__main__":
         "--model_path",
         type=str,
         required=False,
+        default="models/stable/model.joblib",
         help="Path to pretrained model for classification.",
     )
     parser.add_argument(

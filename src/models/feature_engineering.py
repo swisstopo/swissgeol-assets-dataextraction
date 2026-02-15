@@ -9,8 +9,6 @@ from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine
 from swissgeol_doc_processing.utils.file_utils import read_params
 
-from src.identifiers.boreprofile import Entry, detect_entries, is_mostly_increasing
-from src.identifiers.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
 from src.language_detection.detect_language import (
     DEFAULT_LANGUAGE,
     extract_cleaned_text,
@@ -18,6 +16,8 @@ from src.language_detection.detect_language import (
     select_classification_language,
 )
 from src.page_structure import PageContext
+from src.utils.diagrams import Entry, detect_entries, is_mostly_increasing
+from src.utils.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
 from src.utils.text_clustering import cluster_text_elements, create_text_blocks
 from src.utils.utility import is_description
 

@@ -12,12 +12,11 @@ from dotenv import load_dotenv
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 
-from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
 from src.models.feature_engineering import get_features
 from src.models.treebased.model_explanation import explain_model
 
 # Reuse trainer classes from train.py to avoid duplication
-from src.models.treebased.train import XGBoostTrainer
+from src.models.treebased.train import XGBoostTrainer, build_filename_to_label_map
 from src.utils.utility import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)

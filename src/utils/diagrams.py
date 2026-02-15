@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Entry:
-    """Represents a single entry in the boreprofile sidebar."""
+    """Represents a single entry for diagram detection"""
 
     rect: pymupdf.Rect
     value: float
