@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class Entry:
-    """Represents a single entry for diagram detection"""
+    """Represents a single entry for diagram detection."""
 
     rect: pymupdf.Rect
     value: float

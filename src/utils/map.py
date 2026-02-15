@@ -4,11 +4,7 @@ import numpy as np
 import regex
 from scipy.stats import entropy
 from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
-from swissgeol_doc_processing.text.textline import TextLine, TextWord
-
-from src.page_structure import PageContext
-from src.utils.text_clustering import cluster_text_elements
-from src.utils.utility import is_description
+from swissgeol_doc_processing.text.textline import TextLine
 
 logger = logging.getLogger(__name__)
 pattern_maps = [
@@ -22,121 +18,6 @@ def find_map_scales(line: TextLine) -> regex.Match | None:
         (match for pattern in pattern_maps for word in line.words if (match := pattern.search(word.text))),
         None,
     )
-
-
-def get_map_entry_lines(ctx: PageContext, keyword_lines: list[TextLine]) -> list[TextLine]:
-    """Extracts candidate lines that are likely to be map entries (e.g., street names, place labels).
-
-    These are:
-        - Lines from small text blocks (<= 3 lines per block)
-        - Short lines (< 4 words)
-        - Not already identified as containing map keywords
-    """
-    map_entry_blocks = [block for block in ctx.text_blocks if len(block.lines) <= 3]
-
-    map_entry_lines = [
-        line for block in map_entry_blocks for line in block.lines if len(line.words) < 4 and line not in keyword_lines
-    ]
-
-    return map_entry_lines
-
-
-def has_enough_map_entry_lines(map_entry_lines, lines) -> bool:
-    """Checks whether a 50% of the page consists of potential map entry lines."""
-    return map_entry_lines and (len(map_entry_lines) / len(lines)) > 0.5
-
-
-def map_like_words_ratio(words: list[TextWord], keyword_lines: list[TextLine]) -> float:
-    """Calculates the ratio of words following a typical map entry format.
-
-    Needs to have:
-    - All uppercase (e.g., "BASEL")
-    - Title case (e.g., "Bern")
-    - Contains numbers (e.g., "3", "A1")
-    """
-    ## Needs to have at least some words if no keyword lines are provided
-    if len(words) < 7 and not keyword_lines:
-        return 0.0
-
-    def _is_a_number(string: str) -> bool:
-        try:
-            float(string)
-            return True
-        except ValueError:
-            return False
-
-    map_like_words = [
-        word
-        for word in words
-        if ((word.text.isalpha() and word.text.istitle()) or word.text.isupper() or _is_a_number(word.text))
-    ]
-
-    if not map_like_words:
-        return 0.0
-
-    return (len(map_like_words)) / len(words)
-
-
-def identify_map(ctx: PageContext, matching_params) -> bool:
-    """Determines whether a page contains a map based on geometric lines and based on text features.
-
-     Detection Logic:
-    - Uses `map_lines_score` (primary driver) to quantify the presence of non-grid line structures
-    - Uses `map_text_score` to quantify the presence of typical map-like text entries
-    - Detects keyword lines to reinforce the presence of map-specific content
-
-    Returns:
-        bool: True if combined score exceeds 0.4 threshold.
-    """
-    keywords = matching_params["map_terms"].get(ctx.language, [])
-    if not keywords:
-        logger.warning(f"No keywords for language '{ctx.language}', falling back to 'de'")
-        keywords = matching_params["map_terms"].get("de", [])
-
-    line_score = map_lines_score(ctx.geometric_lines)
-
-    map_keyword_lines = [line for line in ctx.lines if is_description(line, keywords) or find_map_scales(line)]
-    text_score = map_text_score(ctx, map_keyword_lines)
-
-    text_boost = 0.1 if text_score > 0.75 else 0.0
-    keyword_boost = 0.05 if map_keyword_lines else 0.0
-
-    map_score = line_score + keyword_boost + text_boost
-
-    return map_score > 0.4
-
-
-def map_text_score(ctx: PageContext, keyword_lines) -> float:
-    """Returns score of how much page text follows map layout patterns.
-
-    Detection logic:
-    - Identifies short text blocks typical of map entries
-    - Clusters entry lines by x-position and filters large clusters
-    - Confirms detection if word formatting follows typical map label format
-
-    Args:
-        ctx: Lines, blocks, language and layout information of the page.
-        keyword_lines: Dictionary with keyword patterns for identifying map content.
-
-    Returns:
-        float: Ratio of words following map layout patterns / total words.
-    """
-    map_entry_lines = get_map_entry_lines(ctx, keyword_lines)
-
-    # Substantial portion of the page has to be made up of map entry lines
-    if not has_enough_map_entry_lines(map_entry_lines, ctx.lines):
-        return 0.0
-
-    # Cluster lines based on horizontal alignment
-    clusters = cluster_text_elements(map_entry_lines, key_fn=lambda line: line.rect.x0)
-    map_clusters = [cluster for cluster in clusters if len(cluster) <= 3]
-
-    if not map_clusters:
-        return 0.0
-
-    words_in_map_clusters = [word for lines in map_clusters for line in lines for word in line.words]
-
-    return map_like_words_ratio(words_in_map_clusters, keyword_lines)
 
 
 def is_grid_angle(angle: float, tolerance: float = 2.0) -> bool:
