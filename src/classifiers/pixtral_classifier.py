@@ -13,7 +13,7 @@ from src.classifiers.utils import clean_label, map_string_to_page_class, read_im
 from src.page_classes import PageClasses
 from src.page_graphics import get_page_image_bytes
 from src.page_structure import PageContext
-from src.utils import read_params
+from src.utils.utility import read_params
 
 logger = logging.getLogger(__name__)
 
@@ -91,7 +91,7 @@ class PixtralClassifier(Classifier):
     ) -> PageClasses:
         """Determines the class of a document page using the Pixtral model.
 
-        Falls back to baseline classifier if output is malformed or ClientError.
+        Falls back to treebased classifier if output is malformed or ClientError.
 
         Args:
             page: The page of th document that should be classified
@@ -114,22 +114,28 @@ class PixtralClassifier(Classifier):
             label = clean_label(raw_label)
             category = map_string_to_page_class(label)
             if category == PageClasses.UNKNOWN and label not in ("unknown", ""):
-                logger.warning("Falling back to baseline classification, due to malformed category.")
+                logger.warning("Falling back to treebased classifier, due to malformed category.")
                 if self.fallback_classifier:
-                    return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
+                    return self.fallback_classifier.determine_class(
+                        page=page, page_number=page_number, context_builder=context_builder
+                    )
 
             return category
 
         except ClientError as e:
-            logger.info(f"Pixtral classification failed due to ClientError: {e}. Fallback to baseline classification")
+            logger.info(f"Pixtral classification failed due to ClientError: {e}. Fallback to treebased classifier")
             if self.fallback_classifier:
-                return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
+                return self.fallback_classifier.determine_class(
+                    page=page, page_number=page_number, context_builder=context_builder
+                )
             return PageClasses.UNKNOWN
 
         except Exception as e:
             logger.exception(f"Unexpected error during Pixtral classification: {e}")
             if self.fallback_classifier:
-                return self.fallback_classifier.determine_class(page=page, context_builder=context_builder)
+                return self.fallback_classifier.determine_class(
+                    page=page, page_number=page_number, context_builder=context_builder
+                )
             return PageClasses.UNKNOWN
 
     def _build_conversation(self, image_bytes: bytes) -> list[dict]:
