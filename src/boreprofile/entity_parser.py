@@ -112,12 +112,13 @@ def document_to_boreprofiles(
     page_numbers = list(range(page_start, page_end + 1))
 
     # Open the PDF file, select pages and save
-    pdf_document = pymupdf.open(pdf_file)
-    pdf_document_select = _select_pages(pdf_document, page_numbers)
+    with pymupdf.Document(pdf_file) as doc:
+        pdf_document_select = _select_pages(doc, page_numbers)
+        bytes_document_select = BytesIO(pdf_document_select.tobytes())
 
     # Write file to temp location for inference
     prediction = extract(
-        file=BytesIO(pdf_document_select.tobytes()),
+        file=bytes_document_select,
         filename=pdf_file.name,
     )
 

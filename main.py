@@ -151,19 +151,17 @@ def forward_document_entities_group(
 
 def forward_document_entities(
     documents: list[ProcessorDocument],
-    pdf_files: list[Path],
 ) -> list[ProcessorDocumentEntities]:
     """Convert classified documents pages to entities.
 
     Args:
         documents (list[ProcessorDocument]): List of documents to convert to entities.
-        pdf_files (list[Path]): List of path to documents.
 
     Returns:
        list[ProcessorDocumentEntities]: Processed documents entities
     """
     documents_entities: list[ProcessorDocumentEntities] = []
-    for document, pdf_file in zip(documents, pdf_files, strict=True):
+    for document in documents:
         # Reset list of entities for current document
         results_entities: list[ProcessedEntities] = []
         # Iterate over grouped entities types
@@ -176,7 +174,7 @@ def forward_document_entities(
                     page_start=min(pages_group),
                     page_end=max(pages_group),
                     language=lang,
-                    pdf_file=pdf_file,
+                    pdf_file=document.path,
                 )
                 # Group consecutive [1,2,10] -> [1,2], [10]
                 for pages_group in group_consecutive(page_numbers)
@@ -276,7 +274,7 @@ def main(
     if not return_entities:
         return documents_pages
     else:
-        return forward_document_entities(documents=documents_pages, pdf_files=pdf_files)
+        return forward_document_entities(documents=documents_pages)
 
 
 if __name__ == "__main__":

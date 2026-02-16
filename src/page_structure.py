@@ -4,6 +4,7 @@ from collections import Counter
 from collections.abc import Generator
 from dataclasses import dataclass
 from itertools import groupby
+from pathlib import Path
 
 import pymupdf
 from extraction.minimal_pipeline import ExtractionContext
@@ -95,6 +96,7 @@ class ProcessorDocument(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     filename: str
+    path: Path
     metadata: ProcessorDocumentMetadata
     pages: list[ProcessorPage]
 
@@ -102,6 +104,7 @@ class ProcessorDocument(BaseModel):
         json_schema_extra={
             "example": {
                 "filename": "foo.pdf",
+                "path": "path/to/file/foo.pdf",
                 "metadata": {"page_count": 2, "languages": ["fr", "de"]},
                 "pages": [
                     {
