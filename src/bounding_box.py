@@ -16,26 +16,6 @@ def merge_bounding_boxes(rects):
     return pymupdf.Rect(x0, y0, x1, y1)
 
 
-def is_line_below_box(line_rect: pymupdf.Rect, image_rect: pymupdf.Rect) -> bool:
-    """Determines whether a text line rect is directly below an image rect and horizontally aligned.
-
-    Args:
-        line_rect (pymupdf.Rect): Bounding box of the text line.
-        image_rect (pymupdf.Rect): Bounding box of the image (transformed according to page rotation).
-
-    Returns:
-        bool: True if the line is well aligned else False
-    """
-    if image_rect.y1 - line_rect.y0 > image_rect.height * 0.25:
-        return False
-
-    max_offset = image_rect.width * 0.2
-    left_within = line_rect.x0 >= image_rect.x0 - max_offset
-    right_within = line_rect.x1 <= image_rect.x1 + max_offset
-
-    return left_within and right_within
-
-
 def find_document_bounding_box(gray):
     _, binary = cv2.threshold(gray, 180, 255, cv2.THRESH_BINARY)
     contours, _ = cv2.findContours(binary, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)

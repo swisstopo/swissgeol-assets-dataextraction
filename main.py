@@ -11,6 +11,7 @@ from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_r
 
 from src.boreprofile.entity_parser import document_to_boreprofiles
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
@@ -311,6 +312,7 @@ if __name__ == "__main__":
         "--model_path",
         type=str,
         required=False,
+        default=DEFAULT_TREEBASED_MODEL_PATH,
         help="Path to pretrained model for classification.",
     )
     parser.add_argument(

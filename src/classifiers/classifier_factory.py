@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 from src.utils.utility import get_aws_config, read_params
 
 logger = logging.getLogger(__name__)
@@ -63,7 +64,7 @@ def create_classifier(
 
         # Create TreeBased classifier as fallback
         # Use stable model path if not provided
-        fallback_model_path = model_path if model_path else "models/stable/model.joblib"
+        fallback_model_path = model_path if model_path else DEFAULT_TREEBASED_MODEL_PATH
         fallback = TreeBasedClassifier(
             matching_params=matching_params,
             borehole_matching_params=borehole_matching_params,

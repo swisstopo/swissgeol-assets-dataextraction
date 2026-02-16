@@ -1,21 +1,10 @@
-"""Text clustering utilities for grouping text elements.
-
-These functions were extracted from the deprecated text_objects.py module
-to preserve clustering functionality while using swissgeol_doc_processing classes.
-
-Functions preserved:
-- cluster_text_elements: Generic clustering based on coordinate tolerance
-- cluster_connected_components: BFS clustering for connected components
-- create_text_blocks: Creates text blocks from text lines
-- merge_text_lines: Merges raw lines into logical lines
-"""
+"""Text clustering utilities for grouping text elements."""
 
 from collections import defaultdict
 from collections.abc import Callable
 from typing import TypeVar
 
 import pymupdf
-from swissgeol_doc_processing.geometry.geometry_dataclasses import RectWithPage
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
@@ -120,50 +109,6 @@ def is_same_line(word1: TextWord, word2: TextWord) -> bool:
         True if words are on the same line (y-coordinates within 2.0 pixels)
     """
     return abs(word1.rect.y0 - word2.rect.y0) <= 2.0
-
-
-def merge_text_lines(naive_lines: list[TextLine]) -> list[TextLine]:
-    """Merge raw lines into logical lines if PyMuPDF splits them unnecessarily.
-
-    Args:
-        naive_lines: Text lines as extracted directly from PDF
-
-    Returns:
-        List of merged logical text lines
-
-    Note:
-        This function uses swissgeol_doc_processing TextLine class.
-        Lines are merged based on vertical alignment of words.
-    """
-    merged_lines = []
-    current_words = []
-
-    for naive_line in naive_lines:
-        for word in naive_line.words:
-            if current_words:
-                previous_word = current_words[-1]
-                if not is_same_line(word, previous_word):
-                    # Create new TextLine from accumulated words
-                    # Package TextLine expects words to be a list
-                    merged_rect = current_words[0].rect
-                    for w in current_words[1:]:
-                        merged_rect.include_rect(w.rect)
-                    rect_with_page = RectWithPage(rect=merged_rect, page_number=current_words[0].page_number)
-                    merged_line = TextLine(words=current_words, rect_with_page=rect_with_page)
-                    merged_lines.append(merged_line)
-                    current_words = []
-
-            current_words.append(word)
-
-    if current_words:
-        merged_rect = current_words[0].rect
-        for w in current_words[1:]:
-            merged_rect.include_rect(w.rect)
-        rect_with_page = RectWithPage(rect=merged_rect, page_number=current_words[0].page_number)
-        merged_line = TextLine(words=current_words, rect_with_page=rect_with_page)
-        merged_lines.append(merged_line)
-
-    return merged_lines
 
 
 def overlaps(line: TextLine, line2: TextLine, vertical_margin: float = 15.0) -> bool:
