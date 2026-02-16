@@ -9,6 +9,7 @@ from dotenv import load_dotenv
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 from src.page_structure import (
     ProcessedEntities,
     ProcessorDocument,
@@ -271,7 +272,7 @@ if __name__ == "__main__":
         "--model_path",
         type=str,
         required=False,
-        default="models/stable/model.joblib",
+        default=DEFAULT_TREEBASED_MODEL_PATH,
         help="Path to pretrained model for classification.",
     )
     parser.add_argument(

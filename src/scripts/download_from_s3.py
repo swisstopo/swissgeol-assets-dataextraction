@@ -13,6 +13,7 @@ from tqdm import tqdm
 
 from src.classifiers.pixtral_classifier import PixtralClassifier
 from src.classifiers.treebased_classifier import TreeBasedClassifier
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 from src.pdf_processor import PDFProcessor
 from src.utils.utility import get_aws_config, read_params
 
@@ -144,7 +145,7 @@ def create_data(sample_size: int = 1) -> None:
     fallback = TreeBasedClassifier(
         matching_params=MATCHING_PARAMS,
         borehole_matching_params=BOREHOLE_MATCHING_PARAMS,
-        model_path="models/stable/model.joblib",
+        model_path=DEFAULT_TREEBASED_MODEL_PATH,
         explain_model=False,
     )
     processor = PDFProcessor(
