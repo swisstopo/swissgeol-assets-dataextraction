@@ -212,7 +212,7 @@ def main(
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
         model_path (str, optional): Path to pretrained model.
         classifier_name (str, optional): Classifier to use ("treebased", "pixtral", etc.).
-        write_result (bool): If True, writes results to prediction.json.
+        write_result (bool): If True, and return_entities is True, writes results to prediction.json.
         explain_model (bool): If True, generates plots to explain the model's choices.
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
@@ -250,15 +250,6 @@ def main(
         explain_model=explain_model,
     )
 
-    # Check if data need to be saved
-    if write_result:
-        output_file = Path("data") / "prediction.json"
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(
-            json.dumps([r.model_dump() for r in documents_pages], indent=4),
-            encoding="utf-8",
-        )
-
     # Check if GT need to be computed
     if ground_truth_path:
         from src.evaluation import evaluate_results
@@ -274,6 +265,14 @@ def main(
     if not return_entities:
         return documents_pages
     else:
+        # Check if data need to be saved
+        if write_result:
+            output_file = Path("data") / "prediction.json"
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            output_file.write_text(
+                json.dumps([r.model_dump() for r in documents_pages], indent=4),
+                encoding="utf-8",
+            )
         return forward_document_entities(documents=documents_pages)
 
 
