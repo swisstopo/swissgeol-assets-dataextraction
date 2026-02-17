@@ -6,18 +6,17 @@ import time
 from pathlib import Path
 
 import pymupdf
-from classifiers.pdf_dataset_builder import build_filename_to_label_map
 from dotenv import load_dotenv
 from sklearn.model_selection import RandomizedSearchCV
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 from xgboost import XGBClassifier
 
-from models.feature_engineering import get_features
-from models.treebased.basetrainer import TreeBasedTrainer
-from models.treebased.model_explanation import explain_model
-from page_classes import label2id
-from utils import get_pdf_files, read_params
+from src.models.feature_engineering import get_features
+from src.models.treebased.basetrainer import TreeBasedTrainer
+from src.models.treebased.model_explanation import explain_model
+from src.page_classes import label2id
+from src.utils.utility import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)
 
