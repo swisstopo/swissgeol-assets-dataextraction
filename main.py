@@ -266,14 +266,17 @@ def main(
         return documents_pages
     else:
         # Check if data need to be saved
+        entities = forward_document_entities(documents=documents_pages)
+
+        # Check if data need to be saved
         if write_result:
             output_file = Path("data") / "prediction.json"
             output_file.parent.mkdir(parents=True, exist_ok=True)
             output_file.write_text(
-                json.dumps([r.model_dump() for r in documents_pages], indent=4),
+                json.dumps([r.model_dump() for r in entities], indent=4),
                 encoding="utf-8",
             )
-        return forward_document_entities(documents=documents_pages)
+        return entities
 
 
 if __name__ == "__main__":
