@@ -82,7 +82,7 @@ def split_data(input_directory: Path, output_directory: Path, rtest: float, rval
         └── ...
 
     Args:
-        input_directory (Path): Folder containing the input PDF files.
+        input_directory (Path): Folder or subfolders containing the input PDF files.
         output_directory (Path): Destination folder for the split subfolders.
         rtest (float): Fraction assigned to the test set. Defaults to 0.15.
         rvalid (float): Fraction assigned to the validation set. Defaults to 0.15.

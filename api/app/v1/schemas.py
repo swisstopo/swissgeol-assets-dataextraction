@@ -67,7 +67,7 @@ class PredictionSchema(BaseModel):
     pages: list[PagePrediction]
 
     @classmethod
-    def from_prediction(cls, prediction: dict[dict]):
+    def from_prediction(cls, prediction: dict):
         return cls(
             filename=prediction["filename"],
             metadata=MetaDataSchema.from_prediction(prediction["metadata"]),
@@ -111,12 +111,10 @@ class CollectResponse(BaseModel):
 def predicted_class(classification: PageClasses) -> PascalPageClasses:
     """Parse the predicted class from a one-hot encoded classification dictionary.
 
-    The values of the dict are the sting representation of each class in the PageClasses enum.
+    The values of the dict are the string representation of each class in the PageClasses enum.
     """
     try:
-        # Merge section header and section headers
-        if classification == PageClasses.SECTION_HEADER:
-            classification = PageClasses.TITLE_PAGE
+        # Cast detected pages to Pascal equivalent
         return PascalPageClasses(to_pascal(classification))
     except ValueError:
         return PascalPageClasses.UNKNOWN

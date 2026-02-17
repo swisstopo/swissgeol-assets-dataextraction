@@ -100,7 +100,7 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
                 if key not in label_map:
                     raise ValueError(f"Missing label for file: {key}")
 
-                # Extarct feature for given document page
+                # Extract feature for given document page
                 features = get_features(page, page_number, matching_params, borehole_matching_params)
 
                 labels.append(label_map[key])

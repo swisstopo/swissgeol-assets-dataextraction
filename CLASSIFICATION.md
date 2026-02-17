@@ -1,12 +1,12 @@
 # Classification
 
-To run classification, development package need to be installed and MLFLow tracking activated.
+To run classification, development package needs to be installed and MLFLow tracking activated.
 
 
 ## Data
 
 The dataset is stored in the S3 bucket `stijnvermeeren-assets-data`, under the `single_pages/` folder. It contains categorized subfolders per class.
-In addition, the bucket contains a split of the dataset in `single_pages_splits/` folder. The ground truth is available under `data/gt_single_pages_2026.json`. The whole datset (train + valid) is composed of 1011 single pages files split spread over 9 classes.
+In addition, the bucket contains a split of the dataset in `single_pages_splits/` folder. The ground truth is available under `data/gt_single_pages_2026.json`. The whole dataset (train + valid) is composed of 1011 single pages files split spread over 9 classes.
 
 
 | Class			 | Number   | Percentage |
@@ -38,6 +38,8 @@ stijnvermeeren-assets-data
 │   │   └── ...
 │   ├── table
 │   │   └── ...
+│   ├── text
+│   │   └── ...
 │   ├── title_page
 │   │   └── ...
 │   └── unknown
@@ -52,7 +54,7 @@ stijnvermeeren-assets-data
 ```
 
 
-The files are splitted in a 80-20% ratio based on filename using script `src/scripts/split_data.py`.
+The files are split in a 80-20% ratio based on filename using script `src/scripts/split_data.py`.
 
 ```bash
 # Splits dataset into train and validation sets
@@ -60,7 +62,7 @@ python src/scripts/split_data.py -i data/single_pages -o data/single_pages_split
 ```
 
 ## Train XGBoost
-To train a RandomForest or XGBoost classifier, use:
+To train a XGBoost classifier, use:
 
 ```bash
 python -m src.models.treebased.train \
@@ -93,5 +95,3 @@ The classification results on the validation set are reported below
 | unknown   	  |		 55.0 |   39.3 | 	 45.8 |
 | Overall (macro) |		 77.7 |   78.5 |     77.7 |
 
-
-# Reporte reuslts compared to old profil

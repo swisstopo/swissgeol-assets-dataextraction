@@ -17,7 +17,6 @@ class PageClasses(StrEnum):
     UNKNOWN = "unknown"
 
 
-# TODO: remove all the below after cleaning by DO
 ## ID mappings
 label2id = {cls.value: idx for idx, cls in enumerate(PageClasses)}
 id2label = {idx: cls.value for idx, cls in enumerate(PageClasses)}

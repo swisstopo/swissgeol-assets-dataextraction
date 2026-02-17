@@ -93,7 +93,7 @@ def forward_document(
     """Infer document classes.
 
     Args:
-        pdf_files (list[Path]): List fo documents to classify.
+        pdf_files (list[Path]): List of documents to classify.
         matching_params (dict): Dict of parameters for document processing.
         borehole_matching_params (dict): Dict of parameters for borehole matching.
         model_path (str, optional): Path to pretrained model.
@@ -130,7 +130,7 @@ def affect_section_headers(document: ProcessorDocument) -> ProcessorDocument:
     Returns:
         ProcessorDocument: Updated document
     """
-    classes = [page.classification for page in document.pages]
+    n_pages = len(document.pages)
     pages = [page.page for page in document.pages]
 
     if not (
@@ -146,14 +146,14 @@ def affect_section_headers(document: ProcessorDocument) -> ProcessorDocument:
         raise ValueError("Document pages should be sorted, unique and continuous")
 
     # Reverse iteration to update classes
-    for i in range(len(classes))[::-1]:
+    for i in range(n_pages)[::-1]:
         # Check if current page is section header
-        if classes[i] != PageClasses.SECTION_HEADER:
+        if document.pages[i].classification != PageClasses.SECTION_HEADER:
             continue
 
-        # If page is last, put to tile, otherwise set to class of next page
-        if i == len(classes) - 1:
-            document.pages[i].classification = PageClasses.TITLE_PAGE
+        # If page is last, put to unknown, otherwise set to class of next page
+        if i == n_pages - 1:
+            document.pages[i].classification = PageClasses.UNKNOWN
         else:
             document.pages[i].classification = document.pages[i + 1].classification
 
@@ -212,7 +212,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -225,7 +225,7 @@ def main(
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Return:
-        tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+        list[ProcessorDocument] | list[ProcessorDocumentEntities]:
             * A list of `ProcessorDocument` containing per-page classifications, or
             * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
             when `return_entities=True`.
