@@ -95,7 +95,7 @@ def forward_document(
     """Infer document classes.
 
     Args:
-        pdf_files (list[Path]): List fo documents to classify.
+        pdf_files (list[Path]): List of documents to classify.
         matching_params (dict): Dict of parameters for document processing.
         borehole_matching_params (dict): Dict of parameters for borehole matching.
         model_path (str, optional): Path to pretrained model.
@@ -216,7 +216,7 @@ def main(
         explain_model (bool): If True, generates plots to explain the model's choices.
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
-    Return:
+    Returns:
         list[ProcessorDocument] | list[ProcessorDocumentEntities]::
             * A list of `ProcessorDocument` containing per-page classifications, or
             * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities

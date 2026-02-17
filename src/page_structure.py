@@ -81,7 +81,7 @@ class ProcessorPage(BaseModel):
             info (FieldSerializationInfo): Context that should contain legacy tag.
 
         Returns:
-            PageClasses | dict[PageClasses, int]: _description_
+            PageClasses | dict[PageClasses, int]: Converted page classes.
         """
         legacy = bool(info.context and info.context.get("legacy"))
         if legacy:
@@ -93,14 +93,13 @@ class ProcessorPage(BaseModel):
 class ProcessorDocument(BaseModel):
     """PDF object structure."""
 
-    model_config = ConfigDict(extra="forbid")
-
     filename: str
     path: Path = Field(exclude=True)
     metadata: ProcessorDocumentMetadata
     pages: list[ProcessorPage]
 
     model_config = ConfigDict(
+        extra="forbid",
         json_schema_extra={
             "example": {
                 "filename": "foo.pdf",
@@ -153,14 +152,13 @@ class ProcessedEntities(BaseModel):
 class ProcessorDocumentEntities(BaseModel):
     """Restructured document as entities."""
 
-    model_config = ConfigDict(extra="forbid")
-
     filename: str
     page_count: int
     languages: list[str]
     entities: list[ProcessedEntities]
 
     model_config = ConfigDict(
+        extra="forbid",
         json_schema_extra={
             "example": {
                 "filename": "input.pdf",
