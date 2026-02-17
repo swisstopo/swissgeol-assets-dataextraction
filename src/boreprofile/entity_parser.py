@@ -99,6 +99,9 @@ def document_to_boreprofiles(
 ) -> list[ProcessedEntities]:
     """Convert documents pages to boreprofile entities.
 
+    Entities are sorted first based on starting page. If two entities start
+    on the same page, give priority to the one that ends before.
+
     Args:
         pdf_file (Path): Path to pdf file.
         page_start (int): Starting page (1-based).
@@ -152,4 +155,6 @@ def document_to_boreprofiles(
 
     # Return page sorted entities
     all_entities = entities + entities_missed
-    return sorted(all_entities, key=lambda x: x.page_end)
+
+    # Sort based on page_start, then page_end
+    return sorted(all_entities, key=lambda x: (x.page_start, x.page_end))
