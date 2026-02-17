@@ -122,7 +122,7 @@ def affect_section_headers(document: ProcessorDocument) -> ProcessorDocument:
     """Affect section header to class of following page.
 
     Assume document contains all pages. If section header is the last page in
-    document, set to title page.
+    document, set to unknown.
 
     Args:
         document (ProcessorDocument): Document to update.

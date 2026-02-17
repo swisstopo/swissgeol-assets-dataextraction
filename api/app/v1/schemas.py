@@ -117,4 +117,5 @@ def predicted_class(classification: PageClasses) -> PascalPageClasses:
         # Cast detected pages to Pascal equivalent
         return PascalPageClasses(to_pascal(classification))
     except ValueError:
+        # Other undefined classes such as Section Header
         return PascalPageClasses.UNKNOWN

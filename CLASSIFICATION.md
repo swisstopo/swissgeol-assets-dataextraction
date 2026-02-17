@@ -62,7 +62,7 @@ python src/scripts/split_data.py -i data/single_pages -o data/single_pages_split
 ```
 
 ## Train XGBoost
-To train a XGBoost classifier, use:
+To train an XGBoost classifier, use:
 
 ```bash
 python -m src.models.treebased.train \
