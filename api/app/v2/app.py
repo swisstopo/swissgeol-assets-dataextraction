@@ -12,6 +12,7 @@ from api.app.v2.schemas import CollectResponse
 from api.aws import aws
 from api.utils import task
 from main import main as script
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 
 app = FastAPI()
 
@@ -104,7 +105,7 @@ def process(
         entities = script(
             input_path=temp_dir,
             classifier_name="treebased",
-            model_path="models/stable/model.joblib",
+            model_path=DEFAULT_TREEBASED_MODEL_PATH,
             write_result=False,
             return_entities=True,
         )

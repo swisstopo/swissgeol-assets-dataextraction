@@ -1,22 +1,23 @@
 import argparse
+import json
 import logging
 import os
 import time
 from pathlib import Path
 
 import pymupdf
+from classifiers.pdf_dataset_builder import build_filename_to_label_map
 from dotenv import load_dotenv
-from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import RandomizedSearchCV
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 from xgboost import XGBClassifier
 
-from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
-from src.models.feature_engineering import get_features
-from src.models.treebased.basetrainer import TreeBasedTrainer
-from src.models.treebased.model_explanation import explain_model
-from src.utils import get_pdf_files, read_params
+from models.feature_engineering import get_features
+from models.treebased.basetrainer import TreeBasedTrainer
+from models.treebased.model_explanation import explain_model
+from page_classes import label2id
+from utils import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)
 
@@ -29,51 +30,6 @@ if mlflow_tracking:
 MATCHING_PARAMS_PATH = "config/local_matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
 borehole_matching_params = swissgeol_read_params("matching_params.yml")
-
-
-class RandomForestTrainer(TreeBasedTrainer):
-    """Trainer for Random Forest models.
-
-    This class extends the TreeBasedTrainer to implement specific methods for training and evaluating
-    Random Forest models using the provided configuration and data.
-    """
-
-    model_name = "random_forest_model"
-
-    def prepare_model(self):
-        """Prepares the Random Forest model for training."""
-        hyperparams = self.config.get("hyperparameters", {})
-        self.model = RandomForestClassifier(**hyperparams)
-
-    def tune_hyperparameters(
-        self, param_dist: dict, n_iter: int = 20, cv: int = 3, scoring: str = "f1_micro", random_state: int = 42
-    ) -> tuple[dict, float]:
-        """Runs RandomizedSearchCV to tune hyperparameters.
-
-        Args:
-            param_dist (dict): Dictionary with parameters to search.
-            n_iter (int): Number of parameter settings that are sampled.
-            cv (int): Number of folds in cross-validation.
-            scoring (str): Scoring method to use for evaluation.
-            random_state (int): Random seed for reproducibility.
-
-        Returns:
-                best_params (dict): Best hyperparameters found during tuning.
-                best_score (float): Best score achieved during tuning.
-        """
-        search = RandomizedSearchCV(
-            RandomForestClassifier(),
-            param_distributions=param_dist,
-            n_iter=n_iter,
-            cv=cv,
-            scoring=scoring,
-            random_state=random_state,
-            verbose=1,
-            n_jobs=1,
-        )
-        search.fit(self.X_train, self.y_train)
-        self.model = search.best_estimator_
-        return search.best_params_, search.best_score_
 
 
 class XGBoostTrainer(TreeBasedTrainer):
@@ -154,8 +110,28 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
     return all_features, labels
 
 
+def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int]:
+    """Build a map from filename to class ID based on the ground truth JSON."""
+    with open(gt_json_path) as f:
+        gt_data = json.load(f)
+
+    label_lookup = {}
+    for entry in gt_data:
+        filename = entry["filename"]
+        for pages in entry["pages"]:
+            page = pages["page"]
+            for label_name, value in pages["classification"].items():
+                if value == 1:
+                    try:
+                        label_id = label2id[label_name]
+                        label_lookup[(filename, page)] = label_id
+                    except KeyError as err:
+                        raise ValueError(f"Unknown label: {label_name}") from err
+    return label_lookup
+
+
 def main(config_path: str, out_directory: str, tuning: bool = False):
-    """Main function to train the Random Forest or XGBoost model based on the provided configuration.
+    """Main function to train the XGBoost model based on the provided configuration.
 
     Args:
         config_path (str): Path to the YAML configuration file.
@@ -180,12 +156,10 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
     X_train, y_train = load_data_and_labels(train_folder, label_lookup)
     X_val, y_val = load_data_and_labels(val_folder, label_lookup)
 
-    if trainer_name == "random_forest":
-        trainer = RandomForestTrainer(config, model_out_directory)
-    elif trainer_name == "xgboost":
-        trainer = XGBoostTrainer(config, model_out_directory)
-    else:
-        raise ValueError(f"Unsupported trainer: {trainer_name}")
+    if trainer_name != "xgboost":
+        raise ValueError(f"Unsupported trainer: '{trainer_name}'. Only 'xgboost' is supported.")
+
+    trainer = XGBoostTrainer(config, model_out_directory)
 
     with mlflow.start_run(run_name=trainer_name):
         trainer.load_data(X_train, y_train, X_val, y_val)

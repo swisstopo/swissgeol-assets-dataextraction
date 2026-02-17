@@ -8,12 +8,14 @@ from pathlib import Path
 import boto3
 import pymupdf
 from dotenv import load_dotenv
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 
-from src.classifiers.baseline_classifier import BaselineClassifier
 from src.classifiers.pixtral_classifier import PixtralClassifier
+from src.classifiers.treebased_classifier import TreeBasedClassifier
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 from src.pdf_processor import PDFProcessor
-from src.utils import get_aws_config, read_params
+from src.utils.utility import get_aws_config, read_params
 
 # --- Logging & Determinism ----
 logging.basicConfig(level=logging.INFO)
@@ -35,6 +37,7 @@ OUTPUT_DIR = DATA_DIR / "single_pages_new"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
 MATCHING_PARAMS = read_params(REPO_ROOT / "config" / "local_matching_params.yml")
+BOREHOLE_MATCHING_PARAMS = swissgeol_read_params("matching_params.yml")
 PIXTRAL_CONFIG_FILE_PATH = REPO_ROOT / "config/pixtral_config.yml"
 PIXTRAL_CONFIG = read_params(PIXTRAL_CONFIG_FILE_PATH)
 
@@ -139,10 +142,14 @@ def create_data(sample_size: int = 1) -> None:
 
     sampled_objs = random.sample(objs, min(sample_size, len(objs)))
 
+    fallback = TreeBasedClassifier(
+        matching_params=MATCHING_PARAMS,
+        borehole_matching_params=BOREHOLE_MATCHING_PARAMS,
+        model_path=DEFAULT_TREEBASED_MODEL_PATH,
+        explain_model=False,
+    )
     processor = PDFProcessor(
-        PixtralClassifier(
-            config=PIXTRAL_CONFIG, aws_config=AWS_CONFIG, fallback_classifier=BaselineClassifier(MATCHING_PARAMS)
-        )
+        PixtralClassifier(config=PIXTRAL_CONFIG, aws_config=AWS_CONFIG, fallback_classifier=fallback)
     )
 
     for obj in tqdm(sampled_objs, desc="Processing PDFs"):

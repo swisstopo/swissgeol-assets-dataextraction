@@ -12,13 +12,12 @@ from dotenv import load_dotenv
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 
-from src.classifiers.pdf_dataset_builder import build_filename_to_label_map
 from src.models.feature_engineering import get_features
 from src.models.treebased.model_explanation import explain_model
 
 # Reuse trainer classes from train.py to avoid duplication
-from src.models.treebased.train import RandomForestTrainer, XGBoostTrainer
-from src.utils import get_pdf_files, read_params
+from src.models.treebased.train import XGBoostTrainer, build_filename_to_label_map
+from src.utils.utility import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)
 
@@ -175,12 +174,10 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
     elapsed = time.time() - start_time
     print(f"\nFeature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
 
-    if trainer_name == "random_forest":
-        trainer = RandomForestTrainer(config, model_out_directory)
-    elif trainer_name == "xgboost":
-        trainer = XGBoostTrainer(config, model_out_directory)
-    else:
-        raise ValueError(f"Unsupported trainer: {trainer_name}")
+    if trainer_name != "xgboost":
+        raise ValueError(f"Unsupported trainer: '{trainer_name}'. Only 'xgboost' is supported.")
+
+    trainer = XGBoostTrainer(config, model_out_directory)
 
     with mlflow.start_run(run_name=trainer_name):
         trainer.load_data(X_train, y_train, X_val, y_val)

@@ -153,21 +153,19 @@ mlflow ui
 ```
 ### 6. Run the classification:
 ```bash
-python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> 
+python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> -p <model_path>
 ```
-If no classifier is specified, the baseline classifier is used by default.
-If classifier is `layoutlmv3` or `treebased`, `--model_path` must be specified to locate the trained model.
+If no classifier is specified, the treebased classifier is used by default.
+For `treebased` classifier, `--model_path` must be specified to locate the trained model.
 
 | Classifier Name | Description                                                                   |
 |------------------|-------------------------------------------------------------------------------|
-| `baseline`       | Default. Rule-based classifier using layout, keyword matching, and heuristics |
+| `treebased`      | Default. Feature-based XGBoost model |
 | `pixtral`        | Uses the Pixtral Large via Amazon Bedrock to classify PDF pages               |
-| `layoutlmv3`     | Transformer model (pretrained or fine-tuned LayoutLMv3) |
-|`treebased` | Feature-based model (RandomForest or XGBoost)|
 
 **Example**
 ```bash
-python main.py -i data/single_pages/ -g data/gt_single_pages.json -c baseline
+python main.py -i data/single_pages/ -g data/gt_single_pages.json -c treebased -p models/stable/model.joblib
 ```
 ---
 ## Run the API locally
@@ -301,7 +299,7 @@ In addition, boreprofile data from the `zurich` and `geoquat/validation` folders
 - `config/`: YAML configs (models, matching, prediction profiles)
 - `data/` : input data,  predictions and ground truths
 - `evaluation/`: Evaluation and metrics
-- `models/`: Models (e.g. LayoutLMv3, TreeBased)
+- `models/`: Models (TreeBased)
 - `prompts/`: Pixtral prompts
 - `src/`: Utility scripts and core logic 
 - `tests/`: Unit tests
@@ -318,25 +316,8 @@ python scripts/split_data.py
 # data/single_pages_split/train/
 # data/single_pages_split/val/
 ```
-### Train LayoutLMv3
-
-To train a LayoutLMv3 model, run:
-```bash
-python -m src.models.layoutlmv3.train \
-    --config-file-path config/layoutlmv3_config.yaml \
-    --out-directory models/layoutlmv3_output \
-    # Optional argument:
-    --model-checkpoint models/layoutlmv3_pretrained_checkpoint
-```
-**Arguments**:
-- `config_file_path`: Path to the YAML configuration file with model parameters and dataset paths.
-- `out_directory`: Directory where the trained model will be saved.
-- `model_checkpoint` (optional): Path to a pre-trained model checkpoint. If not provided, the model will be initialized from the Hugging Face hub based on the config.
-
-The script supports freezing/unfreezing specific layers and uses the Hugging Face Trainer API under the hood.
-
-### Train TreeBased (RandomForest or  XGBoost)
-To train a RandomForest or XGBoost classifier, use:
+### Train TreeBased (XGBoost)
+To train an XGBoost classifier, use:
 ```bash
 python -m src.models.treebased.train \
     --config-file-path config/xgboost_config.yml \

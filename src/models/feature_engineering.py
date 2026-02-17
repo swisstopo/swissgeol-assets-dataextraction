@@ -10,8 +10,6 @@ from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine
 from swissgeol_doc_processing.utils.file_utils import read_params
 
-from src.identifiers.boreprofile import Entry, detect_entries, is_mostly_increasing
-from src.identifiers.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
 from src.language_detection.detect_language import (
     DEFAULT_LANGUAGE,
     extract_cleaned_text,
@@ -19,8 +17,10 @@ from src.language_detection.detect_language import (
     select_classification_language,
 )
 from src.page_structure import PageContext
-from src.text_objects import cluster_text_elements, create_text_blocks
-from src.utils import is_description
+from src.utils.diagrams import Entry, detect_entries, is_mostly_increasing
+from src.utils.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
+from src.utils.text_clustering import cluster_text_elements, create_text_blocks
+from src.utils.utility import is_description
 
 logger = logging.getLogger(__name__)
 
@@ -238,7 +238,7 @@ def get_diagram_features(lines: list[TextLine], matching_params: dict):
         for line in lines
     )
     words = [word for line in lines for word in line.words]
-    depths_entries = detect_entries(words)  # TODO should include
+    depths_entries = detect_entries(words)
 
     vertical_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.x0, tolerance=10)
     horizontal_clusters = cluster_text_elements(depths_entries, key_fn=lambda e: e.rect.y0, tolerance=10)
