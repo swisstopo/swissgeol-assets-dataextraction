@@ -1,63 +1,69 @@
 {
-  "text": {
-    "precision": 0.8055555555555556,
+  "boreprofile": {
+    "precision": 0.9666666666666667,
     "recall": 0.8787878787878788,
-    "f1-score": 0.8405797101449275,
+    "f1-score": 0.9206349206349206,
     "support": 33.0
   },
-  "boreprofile": {
-    "precision": 1.0,
-    "recall": 0.84,
-    "f1-score": 0.9130434782608695,
-    "support": 25.0
-  },
-  "map": {
-    "precision": 0.6774193548387096,
-    "recall": 0.8076923076923077,
-    "f1-score": 0.7368421052631579,
-    "support": 26.0
+  "diagram": {
+    "precision": 0.8461538461538461,
+    "recall": 0.8461538461538461,
+    "f1-score": 0.8461538461538461,
+    "support": 13.0
   },
   "geo_profile": {
-    "precision": 0.8,
-    "recall": 0.8,
-    "f1-score": 0.8,
-    "support": 10.0
+    "precision": 0.5555555555555556,
+    "recall": 0.7142857142857143,
+    "f1-score": 0.625,
+    "support": 7.0
   },
-  "title_page": {
-    "precision": 0.8333333333333334,
-    "recall": 0.8,
-    "f1-score": 0.8163265306122449,
-    "support": 25.0
+  "map": {
+    "precision": 0.6363636363636364,
+    "recall": 0.8076923076923077,
+    "f1-score": 0.711864406779661,
+    "support": 26.0
   },
-  "diagram": {
-    "precision": 0.8421052631578947,
-    "recall": 0.7272727272727273,
-    "f1-score": 0.7804878048780488,
-    "support": 22.0
+  "section_header": {
+    "precision": 0.7333333333333333,
+    "recall": 0.7333333333333333,
+    "f1-score": 0.7333333333333333,
+    "support": 15.0
   },
   "table": {
-    "precision": 0.8333333333333334,
-    "recall": 1.0,
-    "f1-score": 0.9090909090909091,
-    "support": 10.0
+    "precision": 0.9090909090909091,
+    "recall": 0.8333333333333334,
+    "f1-score": 0.8695652173913043,
+    "support": 12.0
+  },
+  "text": {
+    "precision": 0.8478260869565217,
+    "recall": 0.9069767441860465,
+    "f1-score": 0.8764044943820225,
+    "support": 43.0
+  },
+  "title_page": {
+    "precision": 0.95,
+    "recall": 0.95,
+    "f1-score": 0.95,
+    "support": 20.0
   },
   "unknown": {
-    "precision": 0.7037037037037037,
-    "recall": 0.6551724137931034,
-    "f1-score": 0.6785714285714286,
-    "support": 29.0
+    "precision": 0.55,
+    "recall": 0.39285714285714285,
+    "f1-score": 0.4583333333333333,
+    "support": 28.0
   },
-  "accuracy": 0.8,
+  "accuracy": 0.7918781725888325,
   "macro avg": {
-    "precision": 0.8119313179903163,
-    "recall": 0.8136156659432521,
-    "f1-score": 0.8093677458526982,
-    "support": 180.0
+    "precision": 0.7772211149022743,
+    "recall": 0.7848244778477337,
+    "f1-score": 0.7768099502231578,
+    "support": 197.0
   },
   "weighted avg": {
-    "precision": 0.8072034801260419,
-    "recall": 0.8,
-    "f1-score": 0.8003971534458343,
-    "support": 180.0
+    "precision": 0.7923855638708872,
+    "recall": 0.7918781725888325,
+    "f1-score": 0.7879083053689316,
+    "support": 197.0
   }
 }

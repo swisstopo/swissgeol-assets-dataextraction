@@ -10,6 +10,7 @@ from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_r
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.constants import DEFAULT_TREEBASED_MODEL_PATH
+from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
     ProcessorDocument,
@@ -111,7 +112,52 @@ def forward_document(
 
     # Processed PDFs
     processor = PDFProcessor(classifier)
-    return processor.process_batch(pdf_files)
+    documents_pages = processor.process_batch(pdf_files)
+
+    # Affect section pages to page after
+    return [affect_section_headers(doc) for doc in documents_pages]
+
+
+def affect_section_headers(document: ProcessorDocument) -> ProcessorDocument:
+    """Affect section header to class of following page.
+
+    Assume document contains all pages. If section header is the last page in
+    document, set to title page.
+
+    Args:
+        document (ProcessorDocument): Document to update.
+
+    Returns:
+        ProcessorDocument: Updated document
+    """
+    classes = [page.classification for page in document.pages]
+    pages = [page.page for page in document.pages]
+
+    if not (
+        # Pages should be ordered
+        pages == sorted(pages)
+        # Pages should be unique
+        and len(set(pages)) == len(pages)
+        # Index should start at 1
+        and pages[0] == 1
+        # Last index should be pages count
+        and len(pages) == pages[-1]
+    ):
+        raise ValueError("Document pages should be sorted, unique and continuous")
+
+    # Reverse iteration to update classes
+    for i in range(len(classes))[::-1]:
+        # Check if current page is section header
+        if classes[i] != PageClasses.SECTION_HEADER:
+            continue
+
+        # If page is last, put to tile, otherwise set to class of next page
+        if i == len(classes) - 1:
+            document.pages[i].classification = PageClasses.TITLE_PAGE
+        else:
+            document.pages[i].classification = document.pages[i + 1].classification
+
+    return document
 
 
 def forward_document_entities(
