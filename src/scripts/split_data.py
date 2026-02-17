@@ -82,7 +82,7 @@ def split_data(input_directory: Path, output_directory: Path, rtest: float, rval
         └── ...
 
     Args:
-        input_directory (Path): Folder or subfolders containing the input PDF files.
+        input_directory (Path): Folder containing the input PDF files.
         output_directory (Path): Destination folder for the split subfolders.
         rtest (float): Fraction assigned to the test set. Defaults to 0.15.
         rvalid (float): Fraction assigned to the validation set. Defaults to 0.15.
@@ -91,7 +91,7 @@ def split_data(input_directory: Path, output_directory: Path, rtest: float, rval
     if rtest < 0 or rvalid < 0 or (rtest + rvalid) >= 1:
         raise click.BadParameter("Require 0 <= rtest, rvalid and rtest + rvalid < 1.")
 
-    # Read input files and check if any
+    # Read input files recursively and check if any
     paths = [p for p in input_directory.rglob("*.pdf")]
     if not paths:
         logger.info("No PDF files found in %s", input_directory)
