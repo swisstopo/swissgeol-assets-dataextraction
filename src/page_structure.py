@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pymupdf
 from extraction.minimal_pipeline import ExtractionContext
-from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, FieldSerializationInfo, field_serializer
 from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
@@ -96,7 +96,7 @@ class ProcessorDocument(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     filename: str
-    path: Path
+    path: Path = Field(exclude=True)
     metadata: ProcessorDocumentMetadata
     pages: list[ProcessorPage]
 
