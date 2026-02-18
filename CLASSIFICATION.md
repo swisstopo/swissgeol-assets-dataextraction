@@ -15,10 +15,10 @@ In addition, the bucket contains a split of the dataset in `single_pages_splits/
 | diagram   	 | 		106 | 		10.5 |
 | geo_profile    | 		 74 | 		 7.3 |
 | map   		 | 		126	| 		12.5 |
-| section_header | 		 95 | 		 9.4 |
+| section_header | 		 93 | 		 9.2 |
 | table   		 | 		 60	| 		 5.9 |
 | text   		 | 		202 | 		20.0 |
-| title_page   	 | 		107 | 		10.6 |
+| title_page   	 | 		109 | 		10.8 |
 | unknown   	 | 		126	| 		12.5 |
 
 ```yaml
@@ -88,10 +88,10 @@ The classification results on the validation set are reported below
 | diagram   	  |	     84.6 |   84.6 | 	 84.6 |
 | geo_profile     |		 55.6 |   71.4 | 	 62.5 |
 | map   		  |		 63.6 |   80.8 | 	 71.2 |
-| section_header  |		 73.3 |   73.3 | 	 73.3 |
+| section_header  |		 64.7 |   73.3 | 	 68.8 |
 | table   		  |		 90.9 |   83.3 | 	 87.0 |
-| text   		  |		 84.8 |   90.7 | 	 87.6 |
+| text   		  |		 84.4 |   88.4 | 	 86.4 |
 | title_page   	  |		 95.0 |   95.0 | 	 95.0 |
-| unknown   	  |		 55.0 |   39.3 | 	 45.8 |
-| Overall (macro) |		 77.7 |   78.5 |     77.7 |
+| unknown   	  |		 57.9 |   39.3 | 	 46.8 |
+| Overall (macro) |		 77.0 |   78.2 |     77.1 |
 
