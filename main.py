@@ -115,15 +115,15 @@ def forward_document(
     processor = PDFProcessor(classifier)
     documents_pages = processor.process_batch(pdf_files)
 
-    # Affect section pages to page after
-    return [affect_section_headers(doc) for doc in documents_pages]
+    # Reclassify section header pages using the label of their following page
+    return [reclassify_section_headers(doc) for doc in documents_pages]
 
 
-def affect_section_headers(document: ProcessorDocument) -> ProcessorDocument:
-    """Affect section header to class of following page.
+def reclassify_section_headers(document: ProcessorDocument) -> ProcessorDocument:
+    """Reclassify section header pages to the label of their following page.
 
-    Assume document contains all pages. If section header is the last page in
-    document, set to unknown.
+    Iterates in reverse over all pages. If a section header is the last page
+    in the document, it is set to unknown.
 
     Args:
         document (ProcessorDocument): Document to update.
