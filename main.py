@@ -1,5 +1,4 @@
 import argparse
-import itertools
 import json
 import logging
 import os
@@ -169,18 +168,16 @@ def forward_document_entities(
             # Get pages sequences
             page_numbers = sorted([page.page for page in pages])
             entities = [
-                forward_document_entities_group(
+                entity
+                for pages_group in group_consecutive(page_numbers)  # Group consecutive [1,2,10] -> [1,2], [10]
+                for entity in forward_document_entities_group(
                     classification=pages_type,
                     page_start=min(pages_group),
                     page_end=max(pages_group),
                     language=lang,
                     pdf_file=document.path,
                 )
-                # Group consecutive [1,2,10] -> [1,2], [10]
-                for pages_group in group_consecutive(page_numbers)
             ]
-            # Flatten list of lists
-            entities = list(itertools.chain.from_iterable(entities))
             # Extend entry
             results_entities.extend(entities)
         # Create document from filename, metadata, entities
