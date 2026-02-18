@@ -268,7 +268,6 @@ def main(
         # Check if data need to be saved
         entities = forward_document_entities(documents=documents_pages)
 
-        # Check if data need to be saved
         if write_result:
             output_file = Path("data") / "prediction.json"
             output_file.parent.mkdir(parents=True, exist_ok=True)
