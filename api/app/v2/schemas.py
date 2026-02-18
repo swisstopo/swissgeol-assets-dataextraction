@@ -20,9 +20,10 @@ class CollectResponse(BaseModel):
                     "entities": [
                         {
                             "classification": "boreprofile",
+                            "language": "de",
                             "page_start": 1,
                             "page_end": 3,
-                            "language": "de",
+                            "title": "BS1",
                         },
                     ],
                 },

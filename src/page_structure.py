@@ -4,10 +4,11 @@ from collections import Counter
 from collections.abc import Generator
 from dataclasses import dataclass
 from itertools import groupby
+from pathlib import Path
 
 import pymupdf
 from extraction.minimal_pipeline import ExtractionContext
-from pydantic import BaseModel, ConfigDict, FieldSerializationInfo, field_serializer
+from pydantic import BaseModel, ConfigDict, Field, FieldSerializationInfo, field_serializer
 from swissgeol_doc_processing.geometry.geometry_dataclasses import Line
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
@@ -80,7 +81,7 @@ class ProcessorPage(BaseModel):
             info (FieldSerializationInfo): Context that should contain legacy tag.
 
         Returns:
-            PageClasses | dict[PageClasses, int]: _description_
+            PageClasses | dict[PageClasses, int]: Converted page classes.
         """
         legacy = bool(info.context and info.context.get("legacy"))
         if legacy:
@@ -92,16 +93,17 @@ class ProcessorPage(BaseModel):
 class ProcessorDocument(BaseModel):
     """PDF object structure."""
 
-    model_config = ConfigDict(extra="forbid")
-
     filename: str
+    path: Path = Field(exclude=True)
     metadata: ProcessorDocumentMetadata
     pages: list[ProcessorPage]
 
     model_config = ConfigDict(
+        extra="forbid",
         json_schema_extra={
             "example": {
                 "filename": "foo.pdf",
+                "path": "path/to/file/foo.pdf",
                 "metadata": {"page_count": 2, "languages": ["fr", "de"]},
                 "pages": [
                     {
@@ -141,15 +143,14 @@ class ProcessedEntities(BaseModel):
     """Processed page entities from PDF."""
 
     classification: PageClasses
+    language: str | None
     page_start: int
     page_end: int
-    language: str | None
+    title: str | None = None
 
 
 class ProcessorDocumentEntities(BaseModel):
     """Restructured document as entities."""
-
-    model_config = ConfigDict(extra="forbid")
 
     filename: str
     page_count: int
@@ -157,6 +158,7 @@ class ProcessorDocumentEntities(BaseModel):
     entities: list[ProcessedEntities]
 
     model_config = ConfigDict(
+        extra="forbid",
         json_schema_extra={
             "example": {
                 "filename": "input.pdf",
@@ -165,9 +167,17 @@ class ProcessorDocumentEntities(BaseModel):
                 "entities": [
                     {
                         "classification": "boreprofile",
+                        "language": "de",
                         "page_start": 1,
                         "page_end": 3,
-                        "language": "de",
+                        "title": "BS1",
+                    },
+                    {
+                        "classification": "map",
+                        "language": "fr",
+                        "page_start": 4,
+                        "page_end": 4,
+                        "title": None,
                     },
                 ],
             }
