@@ -11386,11 +11386,11 @@
                     "boreprofile": 0,
                     "map": 0,
                     "geo_profile": 0,
-                    "title_page": 0,
+                    "title_page": 1,
                     "diagram": 0,
                     "table": 0,
                     "unknown": 0,
-                    "section_header": 1
+                    "section_header": 0
                 }
             }
         ]
@@ -12790,7 +12790,7 @@
             {
                 "page": 1,
                 "classification": {
-                    "text": 0,
+                    "text": 1,
                     "boreprofile": 0,
                     "map": 0,
                     "geo_profile": 0,
@@ -12798,7 +12798,7 @@
                     "diagram": 0,
                     "table": 0,
                     "unknown": 0,
-                    "section_header": 1
+                    "section_header": 2
                 }
             }
         ]
