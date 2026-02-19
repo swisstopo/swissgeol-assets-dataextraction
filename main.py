@@ -140,8 +140,7 @@ def forward_document(
     processor = PDFProcessor(classifier)
     documents_pages = processor.process_batch(pdf_files)
 
-    # Reclassify section header pages using the label of their following page
-    return [reclassify_section_headers(doc) for doc in documents_pages]
+    return documents_pages
 
 
 def reclassify_section_headers(document: ProcessorDocument) -> ProcessorDocument:
@@ -334,7 +333,8 @@ def main(
         mlflow.end_run()
 
     if not return_entities:
-        return documents_pages
+        # Reclassify section header pages using the label of their following page
+        return [reclassify_section_headers(doc) for doc in documents_pages]
     else:
         entities = forward_document_entities(documents=documents_pages)
 
