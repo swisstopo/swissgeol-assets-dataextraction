@@ -113,7 +113,52 @@ def forward_document(
 
     # Processed PDFs
     processor = PDFProcessor(classifier)
-    return processor.process_batch(pdf_files)
+    documents_pages = processor.process_batch(pdf_files)
+
+    # Reclassify section header pages using the label of their following page
+    return [reclassify_section_headers(doc) for doc in documents_pages]
+
+
+def reclassify_section_headers(document: ProcessorDocument) -> ProcessorDocument:
+    """Reclassify section header pages to the label of their following page.
+
+    Iterates in reverse over all pages. If a section header is the last page
+    in the document, it is set to unknown.
+
+    Args:
+        document (ProcessorDocument): Document to update.
+
+    Returns:
+        ProcessorDocument: Updated document
+    """
+    n_pages = len(document.pages)
+    pages = [page.page for page in document.pages]
+
+    if not (
+        # Pages should be ordered
+        pages == sorted(pages)
+        # Pages should be unique
+        and len(set(pages)) == len(pages)
+        # Index should start at 1
+        and pages[0] == 1
+        # Last index should be pages count
+        and len(pages) == pages[-1]
+    ):
+        raise ValueError("Document pages should be sorted, unique and continuous")
+
+    # Reverse iteration to update classes
+    for i in range(n_pages)[::-1]:
+        # Check if current page is section header
+        if document.pages[i].classification != PageClasses.SECTION_HEADER:
+            continue
+
+        # If page is last, put to unknown, otherwise set to class of next page
+        if i == n_pages - 1:
+            document.pages[i].classification = PageClasses.UNKNOWN
+        else:
+            document.pages[i].classification = document.pages[i + 1].classification
+
+    return document
 
 
 def forward_document_entities_group(

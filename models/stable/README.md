@@ -5,7 +5,7 @@ It uses 23 input features to predict one of 8 possible classes:
 
 "text", "boreprofile", "map", "title_page", "unknown", "geo_profile", "diagram", "table".
 
-## Features: 
+## Features:
   ### Text/word features (6)
   - Words Per Line
   - Word Density

@@ -15,6 +15,7 @@ from src.page_classes import PageClasses
         (PageClasses.MAP, PascalPageClasses.MAP),
         (PageClasses.GEO_PROFILE, PascalPageClasses.GEO_PROFILE),
         (PageClasses.TITLE_PAGE, PascalPageClasses.TITLE_PAGE),
+        (PageClasses.SECTION_HEADER, PascalPageClasses.UNKNOWN),
         (PageClasses.DIAGRAM, PascalPageClasses.DIAGRAM),
         (PageClasses.TABLE, PascalPageClasses.TABLE),
         (PageClasses.UNKNOWN, PascalPageClasses.UNKNOWN),

@@ -91,22 +91,23 @@ def split_data(input_directory: Path, output_directory: Path, rtest: float, rval
     if rtest < 0 or rvalid < 0 or (rtest + rvalid) >= 1:
         raise click.BadParameter("Require 0 <= rtest, rvalid and rtest + rvalid < 1.")
 
-    # Read input files and check if any
-    files = [p.name for p in input_directory.iterdir() if p.is_file() and p.suffix.lower() == ".pdf"]
-    if not files:
+    # Read input files recursively and check if any
+    paths = [p for p in input_directory.rglob("*.pdf")]
+    if not paths:
         logger.info("No PDF files found in %s", input_directory)
         return
 
     # Get split into sets.
     splits = {"train": [], "validation": [], "test": []}
-    for file in files:
-        x_ratio = deterministic_hash_ratio(file)
+    for path in paths:
+        # Extract filename for hash
+        x_ratio = deterministic_hash_ratio(path.name)
         if x_ratio < rtest:
-            splits["test"].append(file)
+            splits["test"].append(path)
         elif x_ratio < rtest + rvalid:
-            splits["validation"].append(file)
+            splits["validation"].append(path)
         else:
-            splits["train"].append(file)
+            splits["train"].append(path)
 
     logger.info(
         "Files train: {}, validation: {}, test: {}".format(
@@ -115,12 +116,15 @@ def split_data(input_directory: Path, output_directory: Path, rtest: float, rval
     )
 
     # Prepare outputs
-    for split_name, split_files in splits.items():
+    for split_name, split_paths in splits.items():
+        # Check if at least a single file in split
+        if len(split_paths) == 0:
+            continue
         # Create output directory
         (output_directory / split_name).mkdir(parents=True, exist_ok=True)
         # Write to output
-        for filename in split_files:
-            shutil.copyfile(input_directory / filename, output_directory / split_name / filename)
+        for path in split_paths:
+            shutil.copyfile(path, output_directory / split_name / path.name)
 
     logger.info("Done.")
 
