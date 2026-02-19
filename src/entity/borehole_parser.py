@@ -6,32 +6,12 @@ from pathlib import Path
 
 import pymupdf
 from extraction.runner import extract
-from pymupdf import Document
 
+from src.entity.utils import _select_pages
 from src.page_classes import PageClasses
 from src.page_structure import ProcessedEntities
 
 logger = logging.getLogger(__name__)
-
-
-def _select_pages(pdf_document: Document, page_numbers: list[int]) -> Document:
-    """Select pages from PDF.
-
-    Args:
-        pdf_document (Document): PDF to split.
-        page_numbers (list[int]): List of pages to extract (1-based).
-
-    Returns:
-        Document: Selected subset.
-    """
-    # Create a new PDF for the selected pages
-    select_pdf = pymupdf.open()
-
-    for page_number in page_numbers:
-        # Insert the page into the new PDF
-        select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
-
-    return select_pdf
 
 
 def _find_undetected_pages(
@@ -106,7 +86,7 @@ def document_to_boreprofiles(
         pdf_file (Path): Path to pdf file.
         page_start (int): Starting page (1-based).
         page_end (int): Ending page (1-based).
-        lang (str): Detected language.
+        lang (str | None): Detected language.
 
     Returns:
         list[ProcessedEntities]: List of boreprofile as entities.
@@ -116,7 +96,7 @@ def document_to_boreprofiles(
 
     # Open the PDF file, select pages and save
     with pymupdf.Document(pdf_file) as doc:
-        pdf_document_select = _select_pages(doc, page_numbers)
+        pdf_document_select = _select_pages(doc, page_start, page_end)
         bytes_document_select = BytesIO(pdf_document_select.tobytes())
 
     # Write file to temp location for inference

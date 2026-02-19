@@ -8,9 +8,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
-from src.boreprofile.entity_parser import document_to_boreprofiles
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.constants import DEFAULT_TREEBASED_MODEL_PATH
+from src.entity.borehole_parser import document_to_boreprofiles
+from src.entity.titlepage_parser import document_to_titlepages
 from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
@@ -34,8 +35,22 @@ logger = logging.getLogger(__name__)
 
 
 def setup_mlflow(
-    input_path: Path, ground_truth_path: Path, model_path: str, matching_params: dict, classifier_name: str
+    input_path: Path,
+    matching_params: dict,
+    ground_truth_path: Path | None,
+    model_path: str | None = None,
+    classifier_name: str | None = None,
 ):
+    """Configure MLflow tracking with experiment metadata and git information.
+
+    Args:
+        input_path (Path): Path to input PDF directory.
+        matching_params (dict): Dictionary of matching parameters.
+        ground_truth_path (Path | None): Path to ground truth JSON file, or None to skip.
+        model_path (str | None): Path to pretrained model file, or None to use the default.
+        classifier_name (str | None): Name of the classifier being used, or None if not applicable.
+
+    """
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
@@ -60,7 +75,17 @@ def setup_mlflow(
         logger.warning(f"Could not attach Git metadata to MLflow: {e}")
 
 
-def flatten_dict(d, parent_key="", sep=".") -> dict:
+def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
+    """Flatten a nested dictionary into a single-level dictionary.
+
+    Args:
+        d (dict): Dictionary to flatten.
+        parent_key (str): Parent key prefix for nested keys.
+        sep (str): Separator character for joining keys (default ".").
+
+    Returns:
+        dict: A flattened dictionary with separated keys.
+    """
     items = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
@@ -182,6 +207,10 @@ def forward_document_entities_group(
     """
     if classification == PageClasses.BOREPROFILE:
         return document_to_boreprofiles(pdf_file=pdf_file, page_start=page_start, page_end=page_end, lang=language)
+    elif classification == PageClasses.TITLE_PAGE or classification == PageClasses.SECTION_HEADER:
+        return document_to_titlepages(
+            pdf_file=pdf_file, classification=classification, page_start=page_start, page_end=page_end, lang=language
+        )
     else:
         return [
             ProcessedEntities(

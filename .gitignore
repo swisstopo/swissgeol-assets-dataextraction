@@ -21,6 +21,7 @@ venv/
 minio
 
 # IDE config
+.claude/
 .idea/
 .vscode/*
 !.vscode/launch.json.template.jsonc
