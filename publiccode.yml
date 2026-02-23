@@ -12,10 +12,10 @@ organisation:
 description:
   en:
     shortDescription: >-
-      Classification pipeline for categorizing PDF pages from geological
+      Classification pipeline for categorising PDF pages from geological
       reports into document classes
     longDescription: >-
-      A classification pipeline to categorize PDF pages from geological reports
+      A classification pipeline to categorise PDF pages from geological reports
       into document classes, supporting document understanding and metadata
       extraction for the swissgeol.ch Assets platform. The classification maps
       individual pages in a document to facilitate identification of borehole
@@ -23,7 +23,7 @@ description:
       approaches: a feature-based XGBoost model (default) and Pixtral Large via
       Amazon Bedrock.
     features:
-      - Classify PDF pages into 9 geological document classes
+      - Classify PDF pages into 8 geological document classes
       - Feature-based XGBoost classifier with SHAP explainability
       - Pixtral Large classifier via Amazon Bedrock
       - Versioned REST API (V1 and V2)

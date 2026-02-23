@@ -24,7 +24,7 @@ source venv/bin/activate
 ```
 
 ### 2. Install dependencies
-For basic runtime API install the base dependencies:
+To install base dependencies:
 
 ```bash
 pip install .
@@ -77,7 +77,7 @@ For detailed endpoint documentation, output formats, and local S3 setup, see the
 |----------|-------------|
 | [API Usage Guide](docs/api-usage.md) | Endpoints, output formats, MinIO setup |
 | [Docker Deployment](docs/docker-deployment.md) | Building and running Docker images |
-| [Training Classifiers](docs/training.md) | Data, XGBoost training, hyperparameter tuning |
+| [Training Classifier](docs/training.md) | Data, XGBoost training, hyperparameter tuning |
 | [Pixtral Setup](docs/pixtral-setup.md) | AWS Bedrock configuration |
 | [Model Explainability](src/models/treebased/README.md) | SHAP interpretation for tree-based models |
 | [API Architecture](api/README.md) | API versioning and OpenAPI spec |

@@ -1,8 +1,8 @@
-# XGBoost Classification
+# Training XGBoost Classifier
 
 To train the classification, the development package needs to be installed and MLflow tracking activated.
 
-The dataset used to train the provided model (`models/stable/model.joblib`) is internal and not publicly available. It is stored in a private S3 bucket (`stijnvermeeren-assets-data`) accessible only to the project team. The dataset is composed of 1011 labeled single-page PDF across 9 classes, with ground truth available under `data/gt_single_pages_2026.json`. The distribution of the pages is listed below.
+The dataset used to train the provided model (`models/stable/model.joblib`) is internal and not publicly available. It is stored in a private S3 bucket (`stijnvermeeren-assets-data`) accessible only to the project team. The dataset is composed of 1011 labeled single-page PDF across 9 classes, with ground truth available under `data/gt_single_pages.json`. The distribution of the pages is listed below.
 
 | Class           | Number | Percentage |
 |-----------------|-------:|-----------:|
@@ -32,6 +32,8 @@ The classification results on the validation set are reported below.
 | unknown         |      57.9 |   39.3 |     46.8 |
 | Overall (macro) |      77.0 |   78.2 |     77.1 |
 
+
+The `section_header` class is used internally as section title pages and does not appear as a classified entity in the API output. It is merged into the following page class.
 
 ## Train with your own data
 

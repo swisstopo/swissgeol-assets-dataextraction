@@ -71,7 +71,7 @@ The output of the pipeline depends on the version queried.
 ```jsonc
 {
 	"has_finished": true,
-	"data":{
+	"data": {
 		"filename": "input.pdf",					// Name of the file
 		"page_count": 3,							// Number of pages
 		"languages": [								// Detected languages
