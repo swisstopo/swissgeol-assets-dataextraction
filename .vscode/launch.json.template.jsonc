@@ -1,0 +1,29 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name":"Python: Run dataset split (single pages)",
+            "type":"debugpy",
+            "request":"launch",
+            "program":"src/scripts/split_data.py",
+            "console":"integratedTerminal",
+            "args": ["-i", "data/single_pages", "-o", "data/single_pages_splits", "-rv", "0.2", "-rt", "0.0"],
+            "python": "${workspaceFolder}/venv/bin/python3",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        },
+        {
+            "name":"Python: Train XGBoost classsification (single pages)",
+            "type":"debugpy",
+            "request":"launch",
+            "program":"src/models/treebased/train.py",
+            "console":"integratedTerminal",
+            "args": ["--config-file-path", "config/xgboost_config.yml", "--out-directory", "models/xgboost_model"],
+            "python": "${workspaceFolder}/venv/bin/python3",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}"
+            }
+        }
+    ]
+}

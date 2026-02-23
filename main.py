@@ -8,8 +8,10 @@ from pathlib import Path
 from dotenv import load_dotenv
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
+from src.boreprofile.entity_parser import document_to_boreprofiles
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.constants import DEFAULT_TREEBASED_MODEL_PATH
+from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
     ProcessorDocument,
@@ -92,7 +94,7 @@ def forward_document(
     """Infer document classes.
 
     Args:
-        pdf_files (list[Path]): List fo documents to classify.
+        pdf_files (list[Path]): List of documents to classify.
         matching_params (dict): Dict of parameters for document processing.
         borehole_matching_params (dict): Dict of parameters for borehole matching.
         model_path (str, optional): Path to pretrained model.
@@ -111,7 +113,84 @@ def forward_document(
 
     # Processed PDFs
     processor = PDFProcessor(classifier)
-    return processor.process_batch(pdf_files)
+    documents_pages = processor.process_batch(pdf_files)
+
+    # Reclassify section header pages using the label of their following page
+    return [reclassify_section_headers(doc) for doc in documents_pages]
+
+
+def reclassify_section_headers(document: ProcessorDocument) -> ProcessorDocument:
+    """Reclassify section header pages to the label of their following page.
+
+    Iterates in reverse over all pages. If a section header is the last page
+    in the document, it is set to unknown.
+
+    Args:
+        document (ProcessorDocument): Document to update.
+
+    Returns:
+        ProcessorDocument: Updated document
+    """
+    n_pages = len(document.pages)
+    pages = [page.page for page in document.pages]
+
+    if not (
+        # Pages should be ordered
+        pages == sorted(pages)
+        # Pages should be unique
+        and len(set(pages)) == len(pages)
+        # Index should start at 1
+        and pages[0] == 1
+        # Last index should be pages count
+        and len(pages) == pages[-1]
+    ):
+        raise ValueError("Document pages should be sorted, unique and continuous")
+
+    # Reverse iteration to update classes
+    for i in range(n_pages)[::-1]:
+        # Check if current page is section header
+        if document.pages[i].classification != PageClasses.SECTION_HEADER:
+            continue
+
+        # If page is last, put to unknown, otherwise set to class of next page
+        if i == n_pages - 1:
+            document.pages[i].classification = PageClasses.UNKNOWN
+        else:
+            document.pages[i].classification = document.pages[i + 1].classification
+
+    return document
+
+
+def forward_document_entities_group(
+    classification: PageClasses,
+    page_start: int,
+    page_end: int,
+    language: str | None,
+    pdf_file: Path,
+) -> list[ProcessedEntities]:
+    """Extract entities from a group of consecutive pages with the same classification.
+
+    Args:
+        classification (PageClasses): The classification type of the page group.
+        page_start (int): First page index in the consecutive group (1-based).
+        page_end (int): Last page index in the consecutive group (1-based).
+        language (str): Detected language of the page group.
+        pdf_file (Path): Path to the source PDF file.
+
+    Returns:
+        list[ProcessedEntities]: Extracted entities from the page group.
+    """
+    if classification == PageClasses.BOREPROFILE:
+        return document_to_boreprofiles(pdf_file=pdf_file, page_start=page_start, page_end=page_end, lang=language)
+    else:
+        return [
+            ProcessedEntities(
+                classification=classification,
+                page_start=page_start,
+                page_end=page_end,
+                language=language,
+            )
+        ]
 
 
 def forward_document_entities(
@@ -120,7 +199,7 @@ def forward_document_entities(
     """Convert classified documents pages to entities.
 
     Args:
-        documents (list[ProcessorDocument]): List of documents to process.
+        documents (list[ProcessorDocument]): List of documents to convert to entities.
 
     Returns:
        list[ProcessorDocumentEntities]: Processed documents entities
@@ -132,19 +211,20 @@ def forward_document_entities(
         # Iterate over grouped entities types
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
-            pages_id = sorted([page.page for page in pages])
-            results_entities.extend(
-                [
-                    ProcessedEntities(
-                        classification=pages_type,
-                        page_start=min(pages_group),
-                        page_end=max(pages_group),
-                        language=lang,
-                    )
-                    # Group consecutive [1,2,10] -> [1,2], [10]
-                    for pages_group in group_consecutive(pages_id)
-                ]
-            )
+            page_numbers = sorted([page.page for page in pages])
+            entities = [
+                entity
+                for pages_group in group_consecutive(page_numbers)  # Group consecutive [1,2,10] -> [1,2], [10]
+                for entity in forward_document_entities_group(
+                    classification=pages_type,
+                    page_start=min(pages_group),
+                    page_end=max(pages_group),
+                    language=lang,
+                    pdf_file=document.path,
+                )
+            ]
+            # Extend entry
+            results_entities.extend(entities)
         # Create document from filename, metadata, entities
         documents_entities.append(
             ProcessorDocumentEntities(
@@ -166,7 +246,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -174,12 +254,12 @@ def main(
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
         model_path (str, optional): Path to pretrained model.
         classifier_name (str, optional): Classifier to use ("treebased", "pixtral", etc.).
-        write_result (bool): If True, writes results to prediction.json.
+        write_result (bool): If True, and return_entities is True, writes results to prediction.json.
         explain_model (bool): If True, generates plots to explain the model's choices.
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
-    Return:
-        tuple[list[ProcessorDocument] | list[ProcessorDocumentEntities]]:
+    Returns:
+        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
             * A list of `ProcessorDocument` containing per-page classifications, or
             * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
             when `return_entities=True`.
@@ -200,7 +280,7 @@ def main(
     pdf_files = get_pdf_files(input_path)
     if not pdf_files:
         logger.error("No valid PDFs found.")
-        return [], []
+        return []
 
     # Run individual page classification
     documents_pages = forward_document(
@@ -211,15 +291,6 @@ def main(
         classifier_name=classifier_name,
         explain_model=explain_model,
     )
-
-    # Check if data need to be saved
-    if write_result:
-        output_file = Path("data") / "prediction.json"
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        output_file.write_text(
-            json.dumps([r.model_dump() for r in documents_pages], indent=4),
-            encoding="utf-8",
-        )
 
     # Check if GT need to be computed
     if ground_truth_path:
@@ -236,7 +307,17 @@ def main(
     if not return_entities:
         return documents_pages
     else:
-        return forward_document_entities(documents=documents_pages)
+        entities = forward_document_entities(documents=documents_pages)
+
+        # Check if data needs to be saved
+        if write_result:
+            output_file = Path("data") / "prediction.json"
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            output_file.write_text(
+                json.dumps([r.model_dump() for r in entities], indent=4),
+                encoding="utf-8",
+            )
+        return entities
 
 
 if __name__ == "__main__":
@@ -301,4 +382,5 @@ if __name__ == "__main__":
         classifier_name=args.classifier,
         write_result=args.write_results,
         explain_model=args.explain_model,
+        return_entities=True,
     )

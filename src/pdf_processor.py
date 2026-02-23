@@ -142,6 +142,7 @@ class PDFProcessor:
 
         return ProcessorDocument(
             filename=file_path.name,
+            path=file_path,
             metadata=metadata,
             pages=pages,
         )

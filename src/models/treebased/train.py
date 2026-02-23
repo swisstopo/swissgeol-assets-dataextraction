@@ -9,11 +9,12 @@ import pymupdf
 from dotenv import load_dotenv
 from sklearn.model_selection import RandomizedSearchCV
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
+from tqdm import tqdm
 from xgboost import XGBClassifier
 
-from models.treebased.basetrainer import TreeBasedTrainer
-from models.treebased.model_explanation import explain_model
 from src.models.feature_engineering import get_features
+from src.models.treebased.basetrainer import TreeBasedTrainer
+from src.models.treebased.model_explanation import explain_model
 from src.page_classes import label2id
 from src.utils.utility import get_pdf_files, read_params
 
@@ -90,20 +91,20 @@ def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int
     all_features = []
     labels = []
 
-    for file_path in file_paths:
+    for file_path in tqdm(file_paths, desc="Loading data ..."):
         filename = os.path.basename(file_path)
 
         with pymupdf.Document(file_path) as doc:
-            print(f"Processing {filename}", end="\r")
-
             for page_number, page in enumerate(doc, start=1):
-                features = get_features(page, page_number, matching_params, borehole_matching_params)
-                all_features.append(features)
-
                 key = (filename, page_number)
                 if key not in label_map:
                     raise ValueError(f"Missing label for file: {key}")
+
+                # Extract feature for given document page
+                features = get_features(page, page_number, matching_params, borehole_matching_params)
+
                 labels.append(label_map[key])
+                all_features.append(features)
 
     return all_features, labels
 

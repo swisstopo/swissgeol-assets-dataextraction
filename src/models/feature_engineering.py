@@ -1,3 +1,4 @@
+import logging
 import re
 from collections.abc import Callable
 
@@ -20,6 +21,8 @@ from src.utils.diagrams import Entry, detect_entries, is_mostly_increasing
 from src.utils.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
 from src.utils.text_clustering import cluster_text_elements, create_text_blocks
 from src.utils.utility import is_description
+
+logger = logging.getLogger(__name__)
 
 
 def extract_and_cache_page_data(page: pymupdf.Page) -> ExtractionContext:

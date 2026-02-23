@@ -1,18 +1,22 @@
-from enum import Enum
-from typing import TypeAlias
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
 
 from src.page_classes import PageClasses
 
-# dynamically created Enum to expose PascalCase class names to the API.
-PascalPageClasses = Enum(
-    "PascalPageClasses",
-    {name: to_pascal(value) for name, value in PageClasses.__members__.items()},
-    type=str,
-)
-PascalPageClasses: TypeAlias = PascalPageClasses  # pyright: ignore[reportInvalidTypeForm]
+
+class PascalPageClasses(StrEnum):
+    """Enum for classifying pages into page types."""
+
+    BOREPROFILE = "Boreprofile"
+    DIAGRAM = "Diagram"
+    GEO_PROFILE = "GeoProfile"
+    MAP = "Map"
+    TABLE = "Table"
+    TEXT = "Text"
+    TITLE_PAGE = "TitlePage"
+    UNKNOWN = "Unknown"
 
 
 class MetaDataSchema(BaseModel):
@@ -63,7 +67,7 @@ class PredictionSchema(BaseModel):
     pages: list[PagePrediction]
 
     @classmethod
-    def from_prediction(cls, prediction: dict[dict]):
+    def from_prediction(cls, prediction: dict):
         return cls(
             filename=prediction["filename"],
             metadata=MetaDataSchema.from_prediction(prediction["metadata"]),
@@ -107,9 +111,11 @@ class CollectResponse(BaseModel):
 def predicted_class(classification: PageClasses) -> PascalPageClasses:
     """Parse the predicted class from a one-hot encoded classification dictionary.
 
-    The values of the dict are the sting representation of each class in the PageClasses enum.
+    The values of the dict are the string representation of each class in the PageClasses enum.
     """
     try:
+        # Cast detected pages to Pascal equivalent
         return PascalPageClasses(to_pascal(classification))
     except ValueError:
+        # Other undefined classes such as Section Header
         return PascalPageClasses.UNKNOWN

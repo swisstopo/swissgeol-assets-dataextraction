@@ -22,7 +22,8 @@ minio
 
 # IDE config
 .idea/
-.vscode/
+.vscode/*
+!.vscode/launch.json.template.jsonc
 
 # Package metadata
 *.egg-info/
