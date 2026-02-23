@@ -1,0 +1,41 @@
+publiccodeYmlVersion: 0.5.0
+name: swissgeol-assets-dataextraction
+applicationSuite: swissgeol.ch
+url: https://github.com/swisstopo/swissgeol-assets-dataextraction
+platforms:
+  - web
+developmentStatus: beta
+softwareType: standalone/backend
+organisation:
+  uri: https://ld.admin.ch/office/IV.1.5a
+  name: Bundesamt für Landestopografie (swisstopo)
+description:
+  en:
+    shortDescription: >-
+      Classification pipeline for categorizing PDF pages from geological
+      reports into document classes
+    longDescription: >-
+      A classification pipeline to categorize PDF pages from geological reports
+      into document classes, supporting document understanding and metadata
+      extraction for the swissgeol.ch Assets platform. The classification maps
+      individual pages in a document to facilitate identification of borehole
+      profiles, maps and other categories in PDFs. It supports two classifier
+      approaches: a feature-based XGBoost model (default) and Pixtral Large via
+      Amazon Bedrock.
+    features:
+      - Classify PDF pages into 9 geological document classes
+      - Feature-based XGBoost classifier with SHAP explainability
+      - Pixtral Large classifier via Amazon Bedrock
+      - Versioned REST API (V1 and V2)
+      - Local MLflow experiment tracking
+legal:
+  license: AGPL-3.0-only
+maintenance:
+  type: community
+  contacts:
+    - name: Stijn Vermeeren
+      email: stijn.vermeeren@swisstopo.ch
+localisation:
+  localisationReady: false
+  availableLanguages:
+    - en
