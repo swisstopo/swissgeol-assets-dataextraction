@@ -24,7 +24,7 @@ source venv/bin/activate
 ```
 
 ### 2. Install dependencies
-For basic runtime API install based dependencies:
+For basic runtime API install the base dependencies:
 
 ```bash
 pip install .
@@ -63,7 +63,7 @@ Example:
 python main.py -i data/single_pages/ -g data/gt_single_pages.json -c treebased -p models/stable/model.joblib
 ```
 
-### 4. Running as API
+### 5. Running as API
 
 ```bash
 uvicorn api.api:app --reload --host 0.0.0.0 --port 8000
