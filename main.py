@@ -320,14 +320,6 @@ def main(
         explain_model=explain_model,
     )
 
-    # Check if GT need to be computed
-    if ground_truth_path:
-        from src.evaluation import evaluate_results
-
-        evaluate_results(
-            [result.model_dump(context={"legacy": True}) for result in documents_pages], ground_truth_path
-        )
-
     # End mlflow tracking
     if mlflow_tracking:
         mlflow.end_run()
@@ -346,6 +338,13 @@ def main(
                 json.dumps([r.model_dump() for r in entities], indent=4),
                 encoding="utf-8",
             )
+
+        # Check if GT need to be computed
+        if ground_truth_path:
+            from src.evaluation import evaluate_results
+
+            evaluate_results(entities, ground_truth_path)
+
         return entities
 
 

@@ -14,6 +14,7 @@ from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
 from src.page_classes import PageClasses
+from src.schemas import DocumentGroundTruth, DocumentMetadata, DocumentPage
 
 
 @dataclass()
@@ -183,3 +184,23 @@ class ProcessorDocumentEntities(BaseModel):
             }
         },
     )
+
+    def to_ground_truth(self) -> DocumentGroundTruth:
+        """Convert document entities to ground truth format for evaluation.
+
+        Returns:
+            DocumentGroundTruth: Parsed document to ground truth format.
+        """
+        return DocumentGroundTruth(
+            filename=self.filename,
+            metadata=DocumentMetadata(page_count=self.page_count),
+            pages=[
+                DocumentPage(
+                    page=page_id,
+                    title=entity.title,
+                    classification={page_cls: int(page_cls == entity.classification) for page_cls in PageClasses},
+                )
+                for entity in self.entities
+                for page_id in range(entity.page_start, entity.page_end + 1)
+            ],
+        )

@@ -4,10 +4,10 @@ from pathlib import Path
 
 import click
 import pymupdf
-from pydantic import TypeAdapter
 from tqdm import tqdm
 
 from src.classifiers.pixtral_classifier import PixtralFeatureExtraction
+from src.evaluation import load_ground_truth
 from src.schemas import DocumentGroundTruth
 from src.utils.utility import get_aws_config, read_params
 
@@ -103,9 +103,7 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
     )
 
     # Read ground truth and parse
-    with open(ground_truth) as f:
-        gt_list = json.load(f)
-        gt_list = TypeAdapter(list[DocumentGroundTruth]).validate_python(gt_list)
+    gt_list = load_ground_truth(ground_truth)
 
     # Update GT if needed
     gt_list_new = []
