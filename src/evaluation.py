@@ -3,12 +3,14 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any
 
 import pandas as pd
 from dotenv import load_dotenv
+from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
+from src.page_structure import ProcessorDocumentEntities
+from src.schemas import DocumentGroundTruth
 
 load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
@@ -21,46 +23,26 @@ logger = logging.getLogger(__name__)
 LABELS = [cls.value for cls in PageClasses]
 
 
-def load_predictions(predictions: list[dict[str, Any]]) -> dict[tuple[str, int], dict[str, int]]:
-    """Normalizes predictions list.
-
-    { (filename, page_number): classification_dict }
-    Works for both model predictions and ground-truth lists.
-    """
-    pred_dict: dict[tuple[str, int], dict[str, int]] = {}
-
-    for entry in predictions:
-        filename = entry.get("filename")
-        pages = entry.get("pages", [])
-
-        for page_entry in pages:
-            page_number = page_entry.get("page")
-            classification = page_entry.get("classification")
-
-            key = (filename, page_number)
-            if key in pred_dict:
-                logger.warning(f"Duplicate entry for {key}; overwriting previous value.")
-            pred_dict[key] = classification
-    return pred_dict
-
-
-def load_ground_truth(ground_truth_path: Path) -> dict | None:
+def load_ground_truth(ground_truth_path: Path) -> list[DocumentGroundTruth] | None:
     """Loads ground truth data from a JSON file."""
     try:
         with open(ground_truth_path) as f:
             gt_list = json.load(f)
-            return load_predictions(gt_list)
+            gt_list = TypeAdapter(list[DocumentGroundTruth]).validate_python(gt_list)
+            return gt_list
     except Exception as e:
         logger.error(f"Invalid ground truth path or JSON: {e}")
         return None
 
 
-def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict, int, int]:
+def compute_confusion_stats(
+    predictions: list[DocumentGroundTruth], ground_truth: list[DocumentGroundTruth]
+) -> tuple[dict, int, int]:
     """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
     stats = {label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0} for label in LABELS}
 
-    pred_keys = set(predictions.keys())
-    gt_keys = set(ground_truth.keys())
+    pred_keys = set([pred.filename for pred in predictions])
+    gt_keys = set([pred.filename for pred in ground_truth])
 
     # Evaluate on the intersection so we don't crash when pages are missing
     common_keys = pred_keys & gt_keys
@@ -72,6 +54,7 @@ def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict
     if missing_in_gt:
         logger.info(f"{len(missing_in_gt)} predicted pages missing in GT (e.g., {next(iter(missing_in_gt))}).")
 
+    # TODO from here - finish evaluation
     total_pages = len(common_keys)
     total_files = len({fname for (fname, _page) in common_keys})
 
@@ -234,24 +217,23 @@ def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
 
 
 def evaluate_results(
-    predictions: list[dict], ground_truth_path: Path, output_dir: Path = Path("evaluation")
+    predictions: list[ProcessorDocumentEntities], ground_truth_path: Path, output_dir: Path = Path("evaluation")
 ) -> dict | None:
     """Evaluate classification predictions against ground truth."""
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    gt_dict = load_ground_truth(ground_truth_path)
-    if gt_dict is None:
-        return None
+    gt_list = load_ground_truth(ground_truth_path)
+    pred_list = [pred.to_ground_truth() for pred in predictions]
 
-    pred_dict = load_predictions(predictions)
-
-    stats, total_files, total_pages = compute_confusion_stats(pred_dict, gt_dict)
+    stats, total_files, total_pages = compute_confusion_stats(pred_list, gt_list)
     stats_path = save_confusion_stats(stats, output_dir)
 
     if mlflow_tracking:
         log_metrics_to_mlflow(stats, total_files, total_pages)
         mlflow.log_artifact(str(stats_path))
-    comparison_data = create_page_comparison(pred_dict, gt_dict, output_dir)
-    save_misclassifications(comparison_data, output_dir)
+
+    # TODO
+    # comparison_data = create_page_comparison(pred_dict, gt_dict, output_dir)
+    # save_misclassifications(comparison_data, output_dir)
 
     return stats
