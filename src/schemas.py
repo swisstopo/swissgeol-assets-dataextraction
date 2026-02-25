@@ -32,7 +32,7 @@ class DocumentGroundTruth(BaseModel):
                 "pages": [
                     {
                         "page": 1,
-                        "title": "Diagram exmaple",
+                        "title": "Diagram example",
                         "classification": {
                             "text": 0,
                             "boreprofile": 0,

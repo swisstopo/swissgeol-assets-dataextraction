@@ -59,6 +59,7 @@ def get_page_image_bytes(page: pymupdf.Page, max_mb: float = 4.5) -> bytes:
     for attempt in range(10):
         # Render and convert to JPEG
         with pymupdf.open() as pdf_doc:
+            # TODO, check logic for page
             pdf_doc.insert_pdf(page.parent, from_page=0, to_page=0)
             page_bytes = pdf_doc.tobytes(deflate=True, garbage=3, use_objstms=1)
 

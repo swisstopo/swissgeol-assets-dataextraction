@@ -69,7 +69,7 @@ def update_ground_truth(
     "--ground-truth",
     type=click.Path(exists=True, path_type=Path),
     required=True,
-    help="System prompt version to use.",
+    help="Path to ground truth JSON file.",
 )
 def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, ground_truth: Path) -> None:
     """CLI command to extract a feature (e.g. title) from every page of every PDF in a directory.
@@ -80,17 +80,12 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
         input_directory (Path): Directory to search recursively for *.pdf files.
         prompt (Path): Path to a YAML prompt file containing versioned prompt dicts.
         prompt_version (str): Key within the prompt YAML selecting the system prompt.
-        ground_truth (Path): PAth to ground truth file.
+        ground_truth (Path): Path to ground truth file.
     """
     # Read input files recursively and check if any
     paths = [p for p in input_directory.rglob("*.pdf")]
     if not paths:
         logger.error(f"No PDF files found in {input_directory}")
-        return
-
-    # Check if prompt file and version exist
-    if not prompt.exists():
-        logger.error(f"System prompt file not found: {prompt}")
         return
 
     prompt_dict = read_params(prompt).get(prompt_version, None)
@@ -112,14 +107,16 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
         gt_list = TypeAdapter(list[DocumentGroundTruth]).validate_python(gt_list)
 
     # Update GT if needed
+    gt_list_new = []
     for gt in gt_list:
         # Look for file in path
         matched_files = list(filter(lambda x: x.name == gt.filename, paths))
-        if not matched_files:
-            continue
+        if matched_files:
+            gt = update_ground_truth(gt, document=matched_files[0], pixtral_interface=pixtral_interface)
 
+        else:
+            gt_updated.append()
         # Compute new features
-        gt = update_ground_truth(gt, document=matched_files[0], pixtral_interface=pixtral_interface)
 
     # Write updated items
     with open(ground_truth, "w", encoding="utf-8") as f:

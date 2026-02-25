@@ -140,7 +140,7 @@ class PixtralConnector:
         """
         attempt = 0
         while True:
-            self._rl.acquire()  # ensure we dont exceed QPS
+            self._rl.acquire()  # ensure we don't exceed QPS
             try:
                 answer = self.client.converse(
                     modelId=self.model_id,
@@ -264,7 +264,7 @@ class PixtralClassifier(PixtralConnector, Classifier):
         """Build the user message containing few-shot examples and the target image.
 
         Args:
-            image_bytes: Eencoded bytes of the page to classify.
+            image_bytes: Encoded bytes of the page to classify.
 
         Returns:
             PixtralMessageStack: A user turn ready to send.
@@ -303,7 +303,7 @@ class PixtralFeatureExtraction(PixtralConnector):
         Args:
             config (dict): Pixtral configuration dict.
             aws_config (dict): AWS settings dict.
-            system_prompt (Callable): Instruction text sent as the system message for
+            system_prompt (str): Instruction text sent as the system message for
                 every extraction request.
         """
         # Create connection to remote model
@@ -319,7 +319,6 @@ class PixtralFeatureExtraction(PixtralConnector):
         Returns:
             PixtralMessageStack: A 'user' turn with a single image content block.
         """
-        # List of examples for pixtral model
         return PixtralMessageStack(
             role="user",
             content=[

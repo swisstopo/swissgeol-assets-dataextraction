@@ -206,7 +206,7 @@ def forward_document_entities_group(
     """
     if classification == PageClasses.BOREPROFILE:
         return document_to_boreprofiles(pdf_file=pdf_file, page_start=page_start, page_end=page_end, lang=language)
-    elif classification == PageClasses.TITLE_PAGE or classification == PageClasses.SECTION_HEADER:
+    elif classification in (PageClasses.TITLE_PAGE, PageClasses.SECTION_HEADER):
         return document_to_titlepages(
             pdf_file=pdf_file, classification=classification, page_start=page_start, page_end=page_end, lang=language
         )

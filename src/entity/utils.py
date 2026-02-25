@@ -4,7 +4,7 @@ import pymupdf
 from pymupdf import Document
 
 
-def _select_pages(pdf_document: Document, page_start: int, page_end: int) -> Document:
+def select_pages(pdf_document: Document, page_start: int, page_end: int) -> Document:
     """Select pages from PDF.
 
     Args:

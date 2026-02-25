@@ -7,7 +7,7 @@ import pymupdf
 from pymupdf import Rect
 from swissgeol_doc_processing.text.textblock import TextBlock
 
-from src.entity.utils import _select_pages
+from src.entity.utils import select_pages
 from src.models.feature_engineering import extract_and_cache_page_data
 from src.page_classes import PageClasses
 from src.page_structure import ProcessedEntities
@@ -16,10 +16,10 @@ from src.utils.text_clustering import create_text_blocks
 
 @dataclass
 class TitleCandidateTextBlock:
-    """Normalize text block size to document resolution."""
+    """A scale-invariant text block candidate for title detection."""
 
     text: str
-    n_lines: int
+    line_count: int
     rect: pymupdf.Rect
 
     def __init__(self, text_block: TextBlock, rect: Rect):
@@ -73,7 +73,7 @@ class TitleCandidateTextBlock:
     def score(self) -> float:
         """Combined title-likelihood score.
 
-        The metric is based on horizontal centrality, font size, and vertical position
+        The metric is based on horizontal centrality, font size, and vertical position.
 
         Returns:
             float: Estimated title-likelihood score. Higher means more likely a title.
@@ -81,7 +81,7 @@ class TitleCandidateTextBlock:
         return self.horizontal_centrality * self.font * self.highness
 
 
-def _extract_title_from_page(page) -> str:
+def _extract_title_from_page(page: pymupdf.Page) -> str:
     """Extract the most likely title string from a single PDF page.
 
     Builds text blocks from the page's text lines, wraps them as
@@ -126,15 +126,15 @@ def document_to_titlepages(
     """
     # Open the PDF file, select pages and save
     with pymupdf.Document(pdf_file) as doc:
-        pdf_document_select = _select_pages(doc, page_start, page_end)
+        pdf_document_select = select_pages(doc, page_start, page_end)
 
-    return [
-        ProcessedEntities(
-            classification=classification,
-            page_start=page_start,
-            page_end=page_end,
-            language=lang,
-            title=_extract_title_from_page(page=page),
-        )
-        for page in pdf_document_select.pages()
-    ]
+        return [
+            ProcessedEntities(
+                classification=classification,
+                page_start=page_start,
+                page_end=page_end,
+                language=lang,
+                title=_extract_title_from_page(page=page),
+            )
+            for page in pdf_document_select.pages()
+        ]
