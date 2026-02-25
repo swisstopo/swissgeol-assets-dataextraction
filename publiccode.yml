@@ -15,13 +15,12 @@ description:
       Classification pipeline for categorising PDF pages from geological
       reports into document classes
     longDescription: >-
-      A classification pipeline to categorise PDF pages from geological reports
-      into document classes, supporting document understanding and metadata
-      extraction for the swissgeol.ch Assets platform. The classification maps
-      individual pages in a document to facilitate identification of borehole
-      profiles, maps and other categories in PDFs. It supports two classifier
-      approaches: a feature-based XGBoost model (default) and Pixtral Large via
-      Amazon Bedrock.
+      A pipeline that classifies pages from geological PDF files into various categories
+      such as "map" or "borehole profile", and extracts relevant metadata from the files.
+      The output can be used to automatically generate a table of contents for each document.
+      The pipeline is used in this way for the geological documents that are published on the
+      web application assets.swissgeol.ch. The repository supports two classifier approaches:
+      a feature-based XGBoost model (default) and Pixtral Large via Amazon Bedrock.
     features:
       - Classify PDF pages into 8 geological document classes
       - Feature-based XGBoost classifier with SHAP explainability

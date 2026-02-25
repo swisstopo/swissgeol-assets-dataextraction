@@ -75,13 +75,14 @@ For detailed endpoint documentation, output formats, and local S3 setup, see the
 
 | Document | Description |
 |----------|-------------|
+| [API Architecture](api/README.md) | API versioning and OpenAPI spec |
 | [API Usage Guide](docs/api-usage.md) | Endpoints, output formats, MinIO setup |
 | [Docker Deployment](docs/docker-deployment.md) | Building and running Docker images |
-| [Training Classifier](docs/training.md) | Data, XGBoost training, hyperparameter tuning |
-| [Pixtral Setup](docs/pixtral-setup.md) | AWS Bedrock configuration |
-| [Model Explainability](src/models/treebased/README.md) | SHAP interpretation for tree-based models |
-| [API Architecture](api/README.md) | API versioning and OpenAPI spec |
 | [Model Overview](models/stable/README.md) | Stable model features and usage |
+| [Model Explainability](src/models/treebased/README.md) | SHAP interpretation for tree-based models |
+| [Model Training](docs/training.md) | Data, XGBoost training, hyperparameter tuning |
+| [Pixtral Setup](docs/pixtral-setup.md) | AWS Bedrock configuration |
+
 
 ## Repository Structure
 
