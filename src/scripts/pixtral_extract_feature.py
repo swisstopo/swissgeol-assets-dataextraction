@@ -5,6 +5,7 @@ from pathlib import Path
 import click
 import pymupdf
 from pydantic import TypeAdapter
+from tqdm import tqdm
 
 from src.classifiers.pixtral_classifier import PixtralFeatureExtraction
 from src.schemas import DocumentGroundTruth
@@ -108,19 +109,17 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
 
     # Update GT if needed
     gt_list_new = []
-    for gt in gt_list:
+    for gt in tqdm(gt_list, desc="Computing feautres"):
         # Look for file in path
         matched_files = list(filter(lambda x: x.name == gt.filename, paths))
         if matched_files:
             gt = update_ground_truth(gt, document=matched_files[0], pixtral_interface=pixtral_interface)
-
-        else:
-            gt_updated.append()
         # Compute new features
+        gt_list_new.append(gt)
 
     # Write updated items
     with open(ground_truth, "w", encoding="utf-8") as f:
-        json.dump([gt.model_dump(exclude_none=True) for gt in gt_list], f, ensure_ascii=False, indent=4)
+        json.dump([gt.model_dump(exclude_none=True) for gt in gt_list_new], f, ensure_ascii=False, indent=4)
 
 
 if __name__ == "__main__":
