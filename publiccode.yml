@@ -25,7 +25,7 @@ description:
       - Classify PDF pages into 8 geological document classes
       - Feature-based XGBoost classifier with SHAP explainability
       - Pixtral Large classifier via Amazon Bedrock
-      - Versioned REST API (V1 and V2)
+      - Versioned REST API
       - Local MLflow experiment tracking
 legal:
   license: AGPL-3.0-only
