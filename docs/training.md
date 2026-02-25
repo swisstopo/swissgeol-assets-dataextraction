@@ -56,7 +56,7 @@ data/single_pages/
 
 ### 2. Prepare the ground truth
 
-The ground truth file is a JSON list of labeled documents. Follow the same format as `data/gt_single_pages.json`:
+The ground truth file is a JSON list of labeled documents.
 
 ```jsonc
 [

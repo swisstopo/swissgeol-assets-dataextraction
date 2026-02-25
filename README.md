@@ -46,22 +46,32 @@ cp .env.template .env
 
 ### 4. Running as CLI
 
+We base our running pipeline on the command:
+
 ```bash
-python main.py -i <input_path> -g <ground_truth_path> -c <classifier_name> -p <model_path>
+python main.py -i <input_path> [-g <ground_truth_path>] [-c <classifier_name>] [-p <model_path>] [-w]
 ```
 
-If no classifier is specified, the treebased classifier is used by default. For the `treebased` classifier, `--model_path` must be specified to locate the trained model.
+The input path `-i` is mandatory and can be either a single PDF file or a directory. In the latter case, all PDF files in that directory will be processed. To simply obtain predictions, use `-w` to write the results to `data/prediction.json`.
+
+```bash
+python main.py -i path/to/document.pdf -w
+```
+
+If no classifier is specified `-c`, the default `treebased` classifier is used. The model path (`-p` / `--model_path`) defaults to `models/stable/model.joblib`. The ground truth file `-g` is optional and only required to compute accuracy metrics:
+
+```bash
+python main.py -i data/single_pages/ -g data/gt_single_pages.json
+```
+
+See [Model Training](docs/training.md) for the ground truth file format.
+
 
 | Classifier | Description |
 |------------|-------------|
 | `treebased` | Default. Feature-based XGBoost model |
 | `pixtral` | Uses Pixtral Large via Amazon Bedrock |
 
-Example:
-
-```bash
-python main.py -i data/single_pages/ -g data/gt_single_pages.json -c treebased -p models/stable/model.joblib
-```
 
 ### 5. Running as API
 
