@@ -112,10 +112,21 @@ ground_truth_file_path: "data/gt_single_pages.json"
 
 ### 5. Train the model
 
+To train the classifier, use:
+
 ```bash
 python -m src.models.treebased.train \
     --config-file-path config/xgboost_config.yml \
     --out-directory models/xgboost_model
+```
+
+For faster training, use `train_parallel.py` which parallelizes the feature extraction step:
+
+```bash
+python -m src.models.treebased.train_parallel \
+    --config-file-path config/xgboost_config.yml \
+    --out-directory models/xgboost_model \
+	  --max-workers 8
 ```
 
 The trained model will be saved under `models/xgboost_model`. For macOS users, if you encounter OpenMP issues, install the library via Homebrew first:
