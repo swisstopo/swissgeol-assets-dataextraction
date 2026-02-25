@@ -1,6 +1,5 @@
 # Ignore all data and outputs
 /data/*
-!data/gt_*.jsons
 /evaluation/
 /mlruns/
 /mlartifacts/
