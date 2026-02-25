@@ -123,7 +123,7 @@ This repository is managed by the Swiss Federal Office of Topography [swisstopo]
 
 We welcome suggestions, bug reports and code contributions from third parties. However, the priority of any external request will have to be evaluated based on compatibility with our legal mandate as a government agency.
 
-## Licence
+## License
 
 This project is released as open-source software, under the principle of "*public money, public code*", in accordance with the 2023 federal law "[*EMBAG*](https://www.fedlex.admin.ch/eli/fga/2023/787/de)", and following the guidance of the [tools for OSS published by the Federal Chancellery](https://www.bk.admin.ch/bk/en/home/digitale-transformation-ikt-lenkung/bundesarchitektur/open_source_software/hilfsmittel_oss.html).
 

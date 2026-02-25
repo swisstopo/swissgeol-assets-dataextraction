@@ -2,11 +2,11 @@
 
 To train the classification, the development package needs to be installed and MLflow tracking activated.
 
-The dataset used to train the provided model (`models/stable/model.joblib`) is internal and not publicly available. It is stored in a private S3 bucket (`stijnvermeeren-assets-data`) accessible only to the project team. The dataset is composed of 1011 labeled single-page PDF across 9 classes, with ground truth available under `data/gt_single_pages.json`. The distribution of the pages is listed below.
+The dataset used to train the provided model (`models/stable/model.joblib`) is internal and not publicly available. It is stored in a private S3 bucket (`stijnvermeeren-assets-data`) accessible only to the project team. The dataset is composed of 1011 labeled single-page PDFs across 9 classes. The distribution of the pages is listed below.
 
 | Class           | Number | Percentage |
 |-----------------|-------:|-----------:|
-| boreprofile     |    115 |       13.4 |
+| boreprofile     |    115 |       11.4 |
 | diagram         |    106 |       10.5 |
 | geo_profile     |     74 |        7.3 |
 | map             |    126 |       12.5 |
@@ -126,13 +126,14 @@ For faster training, use `train_parallel.py` which parallelizes the feature extr
 python -m src.models.treebased.train_parallel \
     --config-file-path config/xgboost_config.yml \
     --out-directory models/xgboost_model \
-	  --max-workers 8
+    --max-workers 8
 ```
 
 Use `--max-workers N` to limit the number of parallel workers (defaults to CPU count) and `--tuning` to enable hyperparameter tuning for the XGBoost algorithm.
 
 
 The trained model will be saved under `models/xgboost_model`. For macOS users, if you encounter OpenMP issues, install the library via Homebrew first:
- ```bash
+
+```bash
  brew install libomp
 ```

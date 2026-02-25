@@ -80,9 +80,10 @@ The output of the pipeline depends on the version queried.
 		"entities": [								// List of elements present in file
 			{
 				"classification": "boreprofile",	// Type of element (PageClasses)
+				"language": "de",					// Detected language
 				"page_start": 1,					// Starting page
 				"page_end": 3,						// Ending page
-				"language": "de"			    	// Detected language
+				"title": "BS1"						// Entity title (None if not found)
 			}
 		]
 	}
