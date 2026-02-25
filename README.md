@@ -58,7 +58,7 @@ The input path `-i` is mandatory and can be either a single PDF file or a direct
 python main.py -i path/to/document.pdf -w
 ```
 
-If no classifier is specified `-c`, the default `treebased` classifier is used. The model path (`-p` / `--model_path`) defaults to `models/stable/model.joblib`. The ground truth file `-g` is optional and only required to compute accuracy metrics:
+If no classifier (`-c`) is specified, the default `treebased` classifier is used. The model path (`-p` / `--model_path`) defaults to `models/stable/model.joblib`. The ground truth file (`-g`) is optional and only required to compute accuracy metrics:
 
 ```bash
 python main.py -i data/single_pages/ -g data/gt_single_pages.json
