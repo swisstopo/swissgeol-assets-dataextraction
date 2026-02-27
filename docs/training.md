@@ -1,12 +1,12 @@
-# XGBoost Classification
+# Training XGBoost Classifier
 
 To train the classification, the development package needs to be installed and MLflow tracking activated.
 
-The dataset used to train the provided model (`models/stable/model.joblib`) is internal and not publicly available. It is stored in a private S3 bucket (`stijnvermeeren-assets-data`) accessible only to the project team. The dataset is composed of 1011 labeled single-page PDF across 9 classes, with ground truth available under `data/gt_single_pages_2026.json`. The distribution of the pages is listed below.
+The dataset used to train the provided model (`models/stable/model.joblib`) is internal and not publicly available. It is stored in a private S3 bucket (`stijnvermeeren-assets-data`) accessible only to the project team. The dataset is composed of 1011 labeled single-page PDFs across 9 classes. The distribution of the pages is listed below.
 
 | Class           | Number | Percentage |
 |-----------------|-------:|-----------:|
-| boreprofile     |    115 |       13.4 |
+| boreprofile     |    115 |       11.4 |
 | diagram         |    106 |       10.5 |
 | geo_profile     |     74 |        7.3 |
 | map             |    126 |       12.5 |
@@ -33,6 +33,8 @@ The classification results on the validation set are reported below.
 | Overall (macro) |      77.0 |   78.2 |     77.1 |
 
 
+The `section_header` class is used internally as section title pages and does not appear as a classified entity in the API output. It is merged into the following page class.
+
 ## Train with your own data
 
 ### 1. Prepare the folder structure
@@ -54,7 +56,7 @@ data/single_pages/
 
 ### 2. Prepare the ground truth
 
-The ground truth file is a JSON list of labeled documents. Follow the same format as `data/gt_single_pages.json`:
+The ground truth file is a JSON list of labeled documents.
 
 ```jsonc
 [
@@ -110,13 +112,28 @@ ground_truth_file_path: "data/gt_single_pages.json"
 
 ### 5. Train the model
 
+To train the classifier, use:
+
 ```bash
 python -m src.models.treebased.train \
     --config-file-path config/xgboost_config.yml \
     --out-directory models/xgboost_model
 ```
 
+For faster training, use `train_parallel.py` which parallelizes the feature extraction step:
+
+```bash
+python -m src.models.treebased.train_parallel \
+    --config-file-path config/xgboost_config.yml \
+    --out-directory models/xgboost_model \
+    --max-workers 8
+```
+
+Use `--max-workers N` to limit the number of parallel workers (defaults to CPU count) and `--tuning` to enable hyperparameter tuning for the XGBoost algorithm.
+
+
 The trained model will be saved under `models/xgboost_model`. For macOS users, if you encounter OpenMP issues, install the library via Homebrew first:
- ```bash
+
+```bash
  brew install libomp
 ```

@@ -1,6 +1,5 @@
 # Ignore all data and outputs
 /data/*
-!data/gt_*.jsons
 /evaluation/
 /mlruns/
 /mlartifacts/
@@ -21,6 +20,7 @@ venv/
 minio
 
 # IDE config
+.claude
 .idea/
 .vscode/*
 !.vscode/launch.json.template.jsonc
