@@ -4,11 +4,7 @@ import logging
 import os
 from pathlib import Path
 
-import pandas as pd
 from dotenv import load_dotenv
-from extraction.evaluation.benchmark.metrics import OverallMetrics
-from extraction.evaluation.evaluation_dataclasses import Metrics
-from extraction.evaluation.utility import evaluate_single
 from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
