@@ -302,7 +302,7 @@ def main(
 
     # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, ground_truth_path, model_path, matching_params, classifier_name)
+        setup_mlflow(input_path, matching_params, ground_truth_path, model_path, classifier_name)
 
     # Process pages
     pdf_files = get_pdf_files(input_path)
