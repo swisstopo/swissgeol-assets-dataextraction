@@ -23,7 +23,14 @@ LABELS = [cls.value for cls in PageClasses]
 
 
 def load_ground_truth(ground_truth_path: Path) -> list[DocumentGroundTruth] | None:
-    """Loads ground truth data from a JSON file."""
+    """Load ground truth data from a JSON file.
+
+    Args:
+        ground_truth_path (Path): Path to the JSON file containing ground truth annotations.
+
+    Returns:
+        list[DocumentGroundTruth] | None: Parsed list of document ground truths, or None on error.
+    """
     try:
         with open(ground_truth_path) as f:
             gt_list = json.load(f)
@@ -47,6 +54,15 @@ def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, 
 
 
 def compute_classification_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
+    """Compute per-label classification confusion statistics over matched page keys.
+
+    Args:
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truth (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
+
+    Returns:
+        dict: Per-label counts of true_positives, false_negatives, and false_positives.
+    """
     stats = {label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0} for label in LABELS}
     common_keys = predictions.keys() & ground_truth.keys()
 
@@ -68,6 +84,17 @@ def compute_classification_stats(predictions: dict[str, DocumentPage], ground_tr
 
 
 def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
+    """Compute title extraction confusion statistics over matched page keys.
+
+    Only pages with a non-empty ground truth title are evaluated.
+
+    Args:
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truth (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
+
+    Returns:
+        dict: A dict with key "title" containing true_positives, false_negatives, false_positives.
+    """
     stats = {"true_positives": 0, "false_negatives": 0, "false_positives": 0}
     common_keys = predictions.keys() & ground_truth.keys()
 
@@ -91,7 +118,16 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
 def compute_stats(
     predictions: list[DocumentGroundTruth], ground_truths: list[DocumentGroundTruth]
 ) -> tuple[dict, dict]:
-    """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
+    """Compute classification and title extraction statistics against ground truth.
+
+    Args:
+        predictions (list[DocumentGroundTruth]): Predicted document annotations.
+        ground_truths (list[DocumentGroundTruth]): Ground truth document annotations.
+
+    Returns:
+        tuple[dict, dict]: A tuple of (classification_stats, title_stats), each as per-label
+            confusion dictionaries.
+    """
     pred_keyed = groundtruth_doc_to_pages(predictions)
     gt_keyed = groundtruth_doc_to_pages(ground_truths)
 
@@ -112,7 +148,15 @@ def compute_stats(
 
 
 def save_stats(stats_classification: dict, csv_path: Path) -> Path:
-    """Saves confusion matrix to output directory."""
+    """Save per-label confusion statistics to a CSV file.
+
+    Args:
+        stats_classification (dict): Per-label dict with true_positives, false_negatives, false_positives.
+        csv_path (Path): Destination path for the output CSV file.
+
+    Returns:
+        Path: The path to the written CSV file.
+    """
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
@@ -136,7 +180,12 @@ def save_stats(stats_classification: dict, csv_path: Path) -> Path:
 
 
 def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None:
-    """Calculates and logs F1, precision and recall to MLflow."""
+    """Calculate and log F1, precision, and recall metrics to MLflow.
+
+    Args:
+        stats_classification (dict): Per-label classification confusion stats.
+        stats_title (dict): Title extraction confusion stats.
+    """
     if not mlflow_tracking:
         return None
 
@@ -185,7 +234,17 @@ def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None
 def evaluate_results(
     predictions: list[ProcessorDocumentEntities], ground_truth_path: Path, output_dir: Path = Path("evaluation")
 ) -> tuple[Path, Path]:
-    """Evaluate classification predictions against ground truth."""
+    """Evaluate classification and title predictions against ground truth.
+
+    Args:
+        predictions (list[ProcessorDocumentEntities]): Model predictions to evaluate.
+        ground_truth_path (Path): Path to the ground truth JSON file.
+        output_dir (Path): Directory to write evaluation CSV files (default: "evaluation").
+
+    Returns:
+        tuple[Path, Path]: Paths to the classification and title evaluation CSV files,
+            or (None, None) if ground truth or predictions could not be loaded.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
 
     gt_list = load_ground_truth(ground_truth_path)

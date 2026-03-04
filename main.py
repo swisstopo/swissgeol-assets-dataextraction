@@ -198,7 +198,7 @@ def forward_document_entities_group(
         classification (PageClasses): The classification type of the page group.
         page_start (int): First page index in the consecutive group (1-based).
         page_end (int): Last page index in the consecutive group (1-based).
-        language (str): Detected language of the page group.
+        language (str | None): Detected language of the page group.
         pdf_file (Path): Path to the source PDF file.
 
     Returns:

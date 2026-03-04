@@ -86,6 +86,7 @@ class RateLimiter:
 
 
 def is_throttle_error(e) -> bool:
+    """Determine whether a boto3 ClientError is a throttling or overload error."""
     try:
         code = e.response["Error"]["Code"]
         if code in {
@@ -218,9 +219,9 @@ class PixtralClassifier(PixtralConnector, Classifier):
         Falls back to treebased classifier if output is malformed or ClientError.
 
         Args:
-            page: The page of th document that should be classified
-            context_builder: Builds page context (e.g., text blocks, lines) for fallback classifier.
-            page_number: the Page number of the page that should be classified
+            page (pymupdf.Page): The page of th document that should be classified
+            page_number (int): the Page number of the page that should be classified
+            context_builder (Callable): Builds page context (e.g., text blocks, lines) for fallback classifier.
             **kwargs: Additionally passed unused arguments
 
         Returns:
