@@ -7,7 +7,7 @@ from collections.abc import Callable
 import boto3
 import pymupdf
 from botocore.exceptions import ClientError
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
@@ -37,6 +37,13 @@ class PixtralMessage(BaseModel):
 
     text: str | None = None
     image: PixtralImage | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self):
+        """Ensure at least on field (text, image) is present."""
+        if self.text is None and self.image is None:
+            raise ValueError("PixtralMessage must have either 'text' or 'image'")
+        return self
 
 
 class PixtralMessageStack(BaseModel):
@@ -191,7 +198,7 @@ class PixtralClassifier(PixtralConnector, Classifier):
         Args:
             config (dict): Pixtral configuration dict.
             aws_config (dict): AWS settings dict.
-            fallback_classifier (Callable): Optional classifier to use when Pixtral
+            fallback_classifier (Callable | None): Optional classifier to use when Pixtral
                 returns an unrecognised label or errors out.
         """
         # Create connection to remote model
@@ -219,7 +226,7 @@ class PixtralClassifier(PixtralConnector, Classifier):
         Falls back to treebased classifier if output is malformed or ClientError.
 
         Args:
-            page (pymupdf.Page): The page of th document that should be classified
+            page (pymupdf.Page): The page of the document that should be classified
             page_number (int): the Page number of the page that should be classified
             context_builder (Callable): Builds page context (e.g., text blocks, lines) for fallback classifier.
             **kwargs: Additionally passed unused arguments
@@ -341,7 +348,6 @@ class PixtralFeatureExtraction(PixtralConnector):
         Returns:
             str: The raw text returned by the model (e.g. an extracted title).
         """
-        # User prompt with content to classify
         image_bytes = get_page_image_bytes(page, max_mb=self.max_doc_size)
         content_user = self._build_conversation(image_bytes=image_bytes)
 

@@ -18,8 +18,7 @@ def select_pages(pdf_document: Document, page_start: int, page_end: int) -> Docu
     # Create a new PDF for the selected pages
     select_pdf = pymupdf.open()
 
-    page_numbers = list(range(page_start, page_end + 1))
-    for page_number in page_numbers:
+    for page_number in range(page_start, page_end + 1):
         # Insert the page into the new PDF
         select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
 

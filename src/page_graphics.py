@@ -52,7 +52,15 @@ def get_images_from_page(page: pymupdf.Page) -> list[ImageRect]:
 
 
 def get_page_image_bytes(page: pymupdf.Page, max_mb: float = 4.5) -> bytes:
-    """Returns JPEG image bytes of a single PDF page. Downscales if image exceeds allowed size."""
+    """Return JPEG image bytes for a PDF page, downscaling if it exceeds the size limit.
+
+    Args:
+        page (pymupdf.Page): The PDF page to render.
+        max_mb (float): Maximum allowed size in megabytes (default: 4.5).
+
+    Returns:
+        bytes: JPEG-encoded image bytes of the rendered page.
+    """
     max_bytes = int(max_mb * 1024 * 1024)
     scale = 1.0
 

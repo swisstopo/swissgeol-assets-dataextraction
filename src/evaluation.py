@@ -111,6 +111,7 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
             stats["true_positives"] += 1
         else:
             stats["false_positives"] += 1
+            stats["false_negatives"] += 1
 
     return {"title": stats}
 
@@ -190,7 +191,7 @@ def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None
         return None
 
     # Log metrics for title extraction
-    tp, fp, fn = [stats_title["title"][label] for label in ["true_positives", "false_negatives", "false_positives"]]
+    tp, fn, fp = [stats_title["title"][label] for label in ["true_positives", "false_negatives", "false_positives"]]
     precision = tp / (tp + fp) if (tp + fp) else 0.0
     recall = tp / (tp + fn) if (tp + fn) else 0.0
     f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0
@@ -233,7 +234,7 @@ def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None
 
 def evaluate_results(
     predictions: list[ProcessorDocumentEntities], ground_truth_path: Path, output_dir: Path = Path("evaluation")
-) -> tuple[Path, Path]:
+) -> tuple[Path | None, Path | None]:
     """Evaluate classification and title predictions against ground truth.
 
     Args:
@@ -242,7 +243,7 @@ def evaluate_results(
         output_dir (Path): Directory to write evaluation CSV files (default: "evaluation").
 
     Returns:
-        tuple[Path, Path]: Paths to the classification and title evaluation CSV files,
+        tuple[Path | None, Path | None]: Paths to the classification and title evaluation CSV files,
             or (None, None) if ground truth or predictions could not be loaded.
     """
     output_dir.mkdir(parents=True, exist_ok=True)

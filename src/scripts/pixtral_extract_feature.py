@@ -84,7 +84,8 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
         ground_truth (Path): Path to ground truth file.
     """
     # Read input files recursively and check if any
-    paths = [p for p in input_directory.rglob("*.pdf")]
+    paths = list(input_directory.rglob("*.pdf"))
+
     if not paths:
         logger.error(f"No PDF files found in {input_directory}")
         return

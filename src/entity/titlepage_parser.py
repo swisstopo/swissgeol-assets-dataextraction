@@ -14,7 +14,6 @@ from src.page_structure import ProcessedEntities
 from src.utils.text_clustering import create_text_blocks
 
 
-@dataclass
 class TitleCandidateTextBlock:
     """A scale-invariant text block candidate for title detection."""
 
