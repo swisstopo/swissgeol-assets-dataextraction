@@ -1,6 +1,5 @@
 """Convert title / section document to processed entries."""
 
-from dataclasses import dataclass
 from pathlib import Path
 
 import pymupdf

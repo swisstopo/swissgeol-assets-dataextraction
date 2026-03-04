@@ -2,9 +2,12 @@ import csv
 import json
 import logging
 import os
+import re
+import unicodedata
 from pathlib import Path
 
 from dotenv import load_dotenv
+from Levenshtein import distance
 from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
@@ -51,6 +54,43 @@ def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, 
         dict[str, DocumentPage]: Keyed pages.
     """
     return {f"{doc.filename}-{page.page}": page for doc in documents for page in doc.pages}
+
+
+def standardize_text(text: str) -> str:
+    """Standardize text by removing new lines, double spaces and uppercaps.
+
+    Args:
+        text (str): Text to standardize.
+
+    Returns:
+        str: Standardized text.
+    """
+    # Remove new lines
+    text = text.replace("\n", " ")
+    # Remove double spaces
+    text = re.sub(r"\s+", " ", text).strip()
+    # Remove accents "ü" -> "u"
+    text = "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")
+    # Enforce lowercases
+    return text.lower()
+
+
+def are_texts_close(text_gt: str, text_pred: str, r_error: float = 0.25) -> bool:
+    """Check if two texts are similar based on Levenshtein distance.
+
+    Before matching the tiles are standardized.
+
+    Args:
+        text_gt (str): Ground truth text.
+        text_pred (str): Predicted text.
+        r_error (float, optional): Accepted relative error. Defaults to 1e-1.
+
+    Returns:
+        bool: True if both text are consifered close to eachothers.
+    """
+    text_gt = standardize_text(text_gt)
+    text_pred = standardize_text(text_pred)
+    return distance(text_gt, text_pred) / max(1, len(text_gt)) < r_error
 
 
 def compute_classification_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
@@ -101,15 +141,16 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
     for key in common_keys:
         pred_title = predictions[key].title
         gt_title = ground_truth[key].title
-        logger.info(f"{key}: {gt_title} == {pred_title}")
         # Check if GT exists
         if not gt_title:
             continue
 
         # Measure
-        if pred_title == gt_title:
+        if pred_title and are_texts_close(gt_title, pred_title):
             stats["true_positives"] += 1
         else:
+            # TODO: remove before final PR
+            logger.info(f"{key}: {gt_title} == {pred_title}")
             stats["false_positives"] += 1
             stats["false_negatives"] += 1
 
