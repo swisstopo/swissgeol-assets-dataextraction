@@ -183,7 +183,7 @@ class PixtralClassifier(PixtralConnector, Classifier):
         self,
         config: dict,
         aws_config: dict,
-        fallback_classifier: Callable = None,
+        fallback_classifier: Callable | None = None,
     ):
         """Initialise the classifier, loading prompts and example images.
 

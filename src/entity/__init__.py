@@ -1,0 +1,1 @@
+"""Module for entity parsing."""

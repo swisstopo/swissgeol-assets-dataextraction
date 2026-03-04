@@ -56,7 +56,7 @@ class TitleCandidateTextBlock:
         Returns:
             float: Normalized line height in [0, 1] coordinate space.
         """
-        return self.rect.height / self.line_count
+        return self.rect.height / max(self.line_count, 1)
 
     @property
     def highness(self) -> float:
@@ -102,7 +102,8 @@ def _extract_title_from_page(page: pymupdf.Page) -> str:
     # Create list of text candidates and return best
     title_candidates = [TitleCandidateTextBlock(text_block=text_block, rect=page.rect) for text_block in text_blocks]
     title_candidates = sorted(title_candidates, key=lambda x: x.score, reverse=True)
-    return title_candidates[0].text
+
+    return title_candidates[0].text if title_candidates else ""
 
 
 def document_to_titlepages(
@@ -127,14 +128,13 @@ def document_to_titlepages(
     # Open the PDF file, select pages and save
     with pymupdf.Document(pdf_file) as doc:
         pdf_document_select = select_pages(doc, page_start, page_end)
-
         return [
             ProcessedEntities(
                 classification=classification,
-                page_start=page_start,
-                page_end=page_end,
+                page_start=page_start + page_id,
+                page_end=page_start + page_id,
                 language=lang,
                 title=_extract_title_from_page(page=page),
             )
-            for page in pdf_document_select.pages()
+            for page_id, page in enumerate(pdf_document_select.pages())
         ]

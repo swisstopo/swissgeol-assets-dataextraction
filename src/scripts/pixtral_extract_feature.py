@@ -104,10 +104,13 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
 
     # Read ground truth and parse
     gt_list = load_ground_truth(ground_truth)
+    if gt_list is None:
+        logger.error("Could not load ground truth, aborting.")
+        return
 
     # Update GT if needed
     gt_list_new = []
-    for gt in tqdm(gt_list, desc="Computing feautres"):
+    for gt in tqdm(gt_list, desc="Computing features"):
         # Look for file in path
         matched_files = list(filter(lambda x: x.name == gt.filename, paths))
         if matched_files:

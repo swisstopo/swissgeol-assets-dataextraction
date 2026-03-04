@@ -46,16 +46,7 @@ def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, 
     return {f"{doc.filename}-{page.page}": page for doc in documents for page in doc.pages}
 
 
-# def compute_title_metric(title_gt: str, title_pred: str) -> bool | None:
-#     if title_gt is None:
-#         return None
-#     else:
-#         return title_gt.lower().strip() == title_pred.lower().strip()
-
-
-def compute_classification_stats(
-    predictions: dict[str, DocumentGroundTruth], ground_truth: dict[str, DocumentGroundTruth]
-) -> dict:
+def compute_classification_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
     stats = {label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0} for label in LABELS}
     common_keys = predictions.keys() & ground_truth.keys()
 
@@ -76,9 +67,7 @@ def compute_classification_stats(
     return stats
 
 
-def compute_title_stats(
-    predictions: dict[str, DocumentGroundTruth], ground_truth: dict[str, DocumentGroundTruth]
-) -> dict:
+def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
     stats = {"true_positives": 0, "false_negatives": 0, "false_positives": 0}
     common_keys = predictions.keys() & ground_truth.keys()
 
@@ -86,10 +75,14 @@ def compute_title_stats(
         pred_title = predictions[key].title
         gt_title = ground_truth[key].title
         logger.info(f"{key}: {gt_title} == {pred_title}")
-        if pred_title and gt_title and pred_title == gt_title:
+        # Check if GT exists
+        if not gt_title:
+            continue
+
+        # Measure
+        if pred_title == gt_title:
             stats["true_positives"] += 1
         else:
-            stats["false_negatives"] += 1
             stats["false_positives"] += 1
 
     return {"title": stats}
@@ -118,7 +111,7 @@ def compute_stats(
     return classification_stats, title_stats
 
 
-def save_stats(stats_classification: list, csv_path: Path) -> Path:
+def save_stats(stats_classification: dict, csv_path: Path) -> Path:
     """Saves confusion matrix to output directory."""
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
@@ -184,7 +177,7 @@ def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None
 
     mlflow.log_metric("classification/macro_precision", macro_precision)
     mlflow.log_metric("classification/macro_recall", macro_recall)
-    mlflow.log_metric("classification/marco_f1", macro_f1)
+    mlflow.log_metric("classification/macro_f1", macro_f1)
 
     logger.info(f"Classification Macro: F1={macro_f1:.2%}, Precision={macro_precision:.2%}, Recall={macro_recall:.2%}")
 
@@ -198,6 +191,9 @@ def evaluate_results(
     gt_list = load_ground_truth(ground_truth_path)
     pred_list = [pred.to_ground_truth() for pred in predictions]
 
+    if not gt_list or not pred_list:
+        return None, None
+
     stats_classification, stats_title = compute_stats(pred_list, gt_list)
     stats_classification_path = save_stats(stats_classification, output_dir / "evaluation_metrics_classification.csv")
     stats_title_path = save_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
@@ -207,4 +203,4 @@ def evaluate_results(
         mlflow.log_artifact(str(stats_classification_path))
         mlflow.log_artifact(str(stats_title_path))
 
-    return stats_classification, stats_title_path
+    return stats_classification_path, stats_title_path

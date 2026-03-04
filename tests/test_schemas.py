@@ -14,5 +14,6 @@ def test_document_schema() -> None:
 
 
 def test_gt_schema() -> None:
+    """Test ground truth parsing models."""
     example = DocumentGroundTruth.model_json_schema().get("example", None)
     assert DocumentGroundTruth.model_validate(example)

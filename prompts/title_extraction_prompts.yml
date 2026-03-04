@@ -12,4 +12,4 @@ v0:
     # Output instructions:
 
     Return the title text only — no explanations, punctuation wrappers, quotes, or extra formatting
-    Preserve the original capitalization of the title
+    Preserve the original capitalization of the title. If no title can be identified, return an empty string.
