@@ -129,7 +129,8 @@ def extract_feature(input_directory: Path, prompt: Path, prompt_version: str, gr
         matched_files = list(filter(lambda x: x.name == gt.filename, paths))
         if matched_files:
             gt = update_ground_truth(gt, document=matched_files[0], pixtral_interface=pixtral_interface)
-        # Compute new features
+
+        # Accumulate updated ground truth
         gt_list_new.append(gt)
 
     # Write updated items

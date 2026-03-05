@@ -7,7 +7,7 @@ from pymupdf import Document
 
 
 def pages_to_bytes(pdf_document: Document, page_start: int, page_end: int) -> BytesIO:
-    """Select pages from PDF.
+    """Extract a range of pages from a PDF document and return them as a BytesIO buffer.
 
     Args:
         pdf_document (Document): PDF to split.
@@ -22,6 +22,4 @@ def pages_to_bytes(pdf_document: Document, page_start: int, page_end: int) -> By
         for page_number in range(page_start, page_end + 1):
             # Insert the page into the new PDF
             select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
-
-        # Extract bytes and close document
         return BytesIO(select_pdf.tobytes())
