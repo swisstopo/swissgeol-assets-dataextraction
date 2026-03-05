@@ -9,7 +9,7 @@ from Levenshtein import distance
 from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
-from src.page_structure import ProcessorDocument, ProcessorDocumentEntities
+from src.page_structure import ProcessorDocument
 from src.schemas import DocumentGroundTruth, DocumentPage
 from src.utils.utility import standardize_text
 
@@ -58,15 +58,15 @@ def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, 
 def are_texts_close(text_gt: str, text_pred: str, r_error: float = 0.25) -> bool:
     """Check if two texts are similar based on Levenshtein distance.
 
-    Before matching the tiles are standardized.
+    Before matching the texts are standardized.
 
     Args:
         text_gt (str): Ground truth text.
         text_pred (str): Predicted text.
-        r_error (float, optional): Accepted relative error. Defaults to 1e-1.
+        r_error (float, optional): Accepted relative error. Defaults to 0.25.
 
     Returns:
-        bool: True if both text are consifered close to eachothers.
+        bool: True if both text are considered close to eachothers.
     """
     text_gt = standardize_text(text_gt)
     text_pred = standardize_text(text_pred)
@@ -121,12 +121,14 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
     for key in common_keys:
         pred_title = predictions[key].title
         gt_title = ground_truth[key].title
-        # Check if GT exists
-        if not gt_title:
-            continue
-
-        # Measure
-        if pred_title and are_texts_close(gt_title, pred_title):
+        # No GT, but prediction
+        if not gt_title and pred_title:
+            stats["false_positives"]
+        # GT but no prediction available
+        elif gt_title and not pred_title:
+            stats["false_negatives"]
+        # Both GT and pred do match
+        elif not are_texts_close(gt_title, pred_title):
             stats["true_positives"] += 1
         else:
             # TODO: remove before final PR

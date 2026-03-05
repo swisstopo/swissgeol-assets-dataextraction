@@ -1,10 +1,12 @@
 """Base utils for entity extraction."""
 
+from io import BytesIO
+
 import pymupdf
 from pymupdf import Document
 
 
-def select_pages(pdf_document: Document, page_start: int, page_end: int) -> Document:
+def pages_to_bytes(pdf_document: Document, page_start: int, page_end: int) -> BytesIO:
     """Select pages from PDF.
 
     Args:
@@ -13,7 +15,7 @@ def select_pages(pdf_document: Document, page_start: int, page_end: int) -> Docu
         page_end (int): End page (1-based).
 
     Returns:
-        Document: Selected subset.
+        BytesIO: Selected subset of pages as bytes.
     """
     # Create a new PDF for the selected pages
     select_pdf = pymupdf.open()
@@ -22,4 +24,8 @@ def select_pages(pdf_document: Document, page_start: int, page_end: int) -> Docu
         # Insert the page into the new PDF
         select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
 
-    return select_pdf
+    # Extarct bytes and close document
+    select_pdf_bytes = BytesIO(select_pdf.tobytes())
+    select_pdf.close()
+
+    return select_pdf_bytes

@@ -1,6 +1,6 @@
 """Convert title / section document to processed entries."""
 
-from pathlib import Path
+from dataclasses import dataclass
 
 import pymupdf
 from pymupdf import Rect
@@ -11,6 +11,7 @@ from src.utils.text_clustering import create_text_blocks
 from src.utils.utility import standardize_text
 
 
+@dataclass
 class TitleCandidateTextBlock:
     """A scale-invariant text block candidate for title detection."""
 
@@ -84,6 +85,7 @@ class TitleCandidateTextBlock:
         Returns:
             float: Estimated title-likelihood score. Higher means more likely a title.
         """
+        # TODO improve metric
         # return (self.horizontal_centrality * self.font * self.highness) + self.contains_keywords
         # return self.horizontal_centrality * self.font * self.highness
         return self.font

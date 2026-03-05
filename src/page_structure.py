@@ -67,7 +67,7 @@ class ProcessorPage(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     page: int
-    title: str | None
+    title: str | None = None
     classification: PageClasses
     metadata: ProcessorPageMetadata
 
@@ -154,6 +154,7 @@ class ProcessorDocument(BaseModel):
             pages=[
                 DocumentPage(
                     page=page.page,
+                    title=page.title,
                     classification={page_cls: int(page_cls == page.classification) for page_cls in PageClasses},
                 )
                 for page in self.pages

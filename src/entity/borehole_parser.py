@@ -7,7 +7,7 @@ from pathlib import Path
 import pymupdf
 from extraction.runner import extract
 
-from src.entity.utils import select_pages
+from src.entity.utils import pages_to_bytes
 from src.page_classes import PageClasses
 from src.page_structure import ProcessedEntities
 
@@ -96,8 +96,7 @@ def document_to_boreprofiles(
 
     # Open the PDF file, select pages and save
     with pymupdf.Document(pdf_file) as doc:
-        pdf_document_select = select_pages(doc, page_start, page_end)
-        bytes_document_select = BytesIO(pdf_document_select.tobytes())
+        bytes_document_select = pages_to_bytes(doc, page_start, page_end)
 
     # Write file to temp location for inference
     prediction = extract(
