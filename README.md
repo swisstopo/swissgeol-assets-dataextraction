@@ -16,24 +16,23 @@ Features:
 
 ### 1. Installation
 
-Python >=3.11 is required. Example using a virtual environment:
+Python >=3.11 is required. Install [uv](https://docs.astral.sh/uv/) and let it manage the environment:
 
 ```bash
-python -m venv venv
-source venv/bin/activate
+pip install uv
 ```
 
 ### 2. Install dependencies
 To install base dependencies:
 
 ```bash
-pip install .
+uv sync
 ```
 
 For development, install all optional tools:
 
 ```bash
-pip install '.[all]'
+uv sync --all-extras
 ```
 
 ### 3. Configuration
