@@ -24,7 +24,7 @@ def pages_to_bytes(pdf_document: Document, page_start: int, page_end: int) -> By
         # Insert the page into the new PDF
         select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
 
-    # Extarct bytes and close document
+    # Extract bytes and close document
     select_pdf_bytes = BytesIO(select_pdf.tobytes())
     select_pdf.close()
 

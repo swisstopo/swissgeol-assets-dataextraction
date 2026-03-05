@@ -66,7 +66,7 @@ def are_texts_close(text_gt: str, text_pred: str, r_error: float = 0.25) -> bool
         r_error (float, optional): Accepted relative error. Defaults to 0.25.
 
     Returns:
-        bool: True if both text are considered close to eachothers.
+        bool: True if both texts are considered close to each other.
     """
     text_gt = standardize_text(text_gt)
     text_pred = standardize_text(text_pred)
@@ -121,18 +121,17 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
     for key in common_keys:
         pred_title = predictions[key].title
         gt_title = ground_truth[key].title
-        # No GT, but prediction
+        # No GT but prediction exists → false positive
         if not gt_title and pred_title:
-            stats["false_positives"]
-        # GT but no prediction available
+            stats["false_positives"] += 1
+        # GT exists but no prediction → false negative
         elif gt_title and not pred_title:
-            stats["false_negatives"]
-        # Both GT and pred do match
-        elif not are_texts_close(gt_title, pred_title):
+            stats["false_negatives"] += 1
+        # Both exist and match → true positive
+        elif gt_title and pred_title and are_texts_close(gt_title, pred_title):
             stats["true_positives"] += 1
-        else:
-            # TODO: remove before final PR
-            logger.info(f"{key}: {gt_title} == {pred_title}")
+        # Both exist but don't match → false positive + false negative
+        elif gt_title and pred_title:
             stats["false_positives"] += 1
             stats["false_negatives"] += 1
 
