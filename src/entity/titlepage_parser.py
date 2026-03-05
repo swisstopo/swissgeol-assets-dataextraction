@@ -1,5 +1,6 @@
 """Convert title / section document to processed entries."""
 
+import re
 from dataclasses import dataclass
 
 import pymupdf
@@ -8,7 +9,6 @@ from swissgeol_doc_processing.text.textblock import TextBlock
 
 from src.models.feature_engineering import extract_and_cache_page_data
 from src.utils.text_clustering import create_text_blocks
-from src.utils.utility import standardize_text
 
 
 @dataclass
@@ -38,66 +38,53 @@ class TitleCandidateTextBlock:
         )
 
     @property
-    def contains_keywords(self) -> int:
-        """Score item if it contains a keyword.
-
-        Returns:
-            int: 1 if keywords found, 0 otherwise.
-        """
-        std_text = standardize_text(self.text)
-        return int(any([keyword in std_text for keyword in ["bericht", "etude"]]))
+    def length(self) -> float:
+        """Return True if the text contains more than 5 characters."""
+        return float(len(self.text) > 5)
 
     @property
-    def horizontal_centrality(self) -> float:
-        """Horizontal centrality of the block.
-
-        Returns:
-            float: Score in [0, 1] where 1 means the block is perfectly horizontally centered.
-        """
-        return 1 - 2 * abs(0.5 - (self.rect.x1 + self.rect.x0) / 2)
+    def horizontality(self) -> float:
+        """Return True if the block starts in the left 40% of the page width."""
+        return float(self.rect.x0 < 0.4)
 
     @property
-    def horizontal_leftness(self) -> float:
-        """Horizontal leftness score of the block.
+    def verticality(self) -> float:
+        """Return True if the block ends in the upper 75% of the page height."""
+        return float(self.rect.y1 < 0.75)
+
+    @property
+    def non_numericality(self) -> float:
+        """Return the fraction of non-digit characters in the text.
 
         Returns:
-            float: Score in [0, 1] where higher values indicate left position.
+            float: Value in [0, 1]; 1.0 means no digits, 0.0 means all digits.
         """
-        return min(1, 2 - (self.rect.x1 + self.rect.x0))
+        n_digits = len(re.findall(r"\d", self.text))
+        n_total = len(self.text)
+        return 1 - (n_digits / max(n_total, 1))
 
     @property
     def font(self) -> float:
-        """Normalized font size proxy.
-
-        Returns:
-            float: Normalized line height in [0, 1] coordinate space.
-        """
+        """Return an approximate normalised font size (block height per line)."""
         return self.rect.height / max(self.line_count, 1)
 
     @property
     def highness(self) -> float:
-        """Vertical position score.
-
-        Higher values for blocks closer to the top of the page.
-
-        Returns:
-            float: Score in [0, 1] where 1 means the block starts at the very top of the page.
-        """
+        """Return a score favouring blocks near the top of the page."""
         return 1 - self.rect.y0
 
     @property
     def score(self) -> float:
-        """Combined title-likelihood score.
+        """Return a composite title-likelihood score.
 
-        The metric is based on horizontal centrality, font size, and vertical position.
+        Multiplies all heuristic signals: font size, horizontal position,
+        vertical position, text length, non-numericality, and highness.
+        A higher score indicates a stronger title candidate.
 
         Returns:
-            float: Estimated title-likelihood score. Higher means more likely a title.
+            float: Non-negative composite score; 0 if any signal is False/zero.
         """
-        # TODO improve metric
-        # return (self.horizontal_centrality * self.font * self.highness) + self.contains_keywords
-        # return self.horizontal_centrality * self.font * self.highness
-        return self.font
+        return self.font * self.horizontality * self.verticality * self.length * self.non_numericality * self.highness
 
 
 def extract_title_from_page(page: pymupdf.Page) -> str:

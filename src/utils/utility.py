@@ -91,7 +91,7 @@ def get_pdf_files(input_path: Path) -> list[Path]:
 
 
 def standardize_text(text: str) -> str:
-    """Standardize text by removing new lines, double spaces and uppercaps.
+    """Standardize text by removing new lines, double spaces and lowercasing.
 
     Args:
         text (str): Text to standardize.

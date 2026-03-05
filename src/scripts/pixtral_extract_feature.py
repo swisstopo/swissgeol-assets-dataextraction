@@ -1,5 +1,7 @@
 import json
 import logging
+import shutil
+import tempfile
 from pathlib import Path
 
 import click
@@ -23,7 +25,7 @@ AWS_CONFIG = get_aws_config()
 def update_ground_truth(
     ground_truth: DocumentGroundTruth, document: Path, pixtral_interface: PixtralFeatureExtraction
 ) -> DocumentGroundTruth:
-    """Runs Pixtral feature extraction on each page of a document and updates the ground truth in-place.
+    """Run Pixtral feature extraction on each page and update the ground truth pages in-place.
 
     Args:
         ground_truth (DocumentGroundTruth): Ground truth object whose pages will be updated.
@@ -39,14 +41,14 @@ def update_ground_truth(
         for ground_truth_page in ground_truth.pages:
             # Load page
             page = doc.load_page(ground_truth_page.page - 1)
-            # Extarct OCR text
+            # Extract OCR text
             extraction_context = extract_and_cache_page_data(page)
             lines = extraction_context.text_lines
             text_blocks = create_text_blocks(lines)
             text = "\n".join([line.text for block in text_blocks for line in block.lines])
 
             # Extract feature (title)
-            if text and page:
+            if text:
                 ground_truth_page.title = pixtral_interface.find(text=text, page=page)
             else:
                 ground_truth_page.title = None

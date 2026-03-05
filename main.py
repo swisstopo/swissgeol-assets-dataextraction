@@ -331,10 +331,10 @@ def main(
     if mlflow_tracking:
         mlflow.end_run()
 
+    # Reclassify section header pages using the label of their following page
     documents_pages = [reclassify_section_headers(doc) for doc in documents_pages]
 
     if not return_entities:
-        # Reclassify section header pages using the label of their following page
         return documents_pages
     else:
         entities = forward_document_entities(documents=documents_pages)

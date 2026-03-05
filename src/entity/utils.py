@@ -18,14 +18,10 @@ def pages_to_bytes(pdf_document: Document, page_start: int, page_end: int) -> By
         BytesIO: Selected subset of pages as bytes.
     """
     # Create a new PDF for the selected pages
-    select_pdf = pymupdf.open()
+    with pymupdf.open() as select_pdf:
+        for page_number in range(page_start, page_end + 1):
+            # Insert the page into the new PDF
+            select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
 
-    for page_number in range(page_start, page_end + 1):
-        # Insert the page into the new PDF
-        select_pdf.insert_pdf(pdf_document, from_page=page_number - 1, to_page=page_number - 1)
-
-    # Extract bytes and close document
-    select_pdf_bytes = BytesIO(select_pdf.tobytes())
-    select_pdf.close()
-
-    return select_pdf_bytes
+        # Extract bytes and close document
+        return BytesIO(select_pdf.tobytes())

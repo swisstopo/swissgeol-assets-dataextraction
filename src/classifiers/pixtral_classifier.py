@@ -54,7 +54,7 @@ class PixtralMessage(BaseModel):
 
     @model_validator(mode="after")
     def at_least_one_field(self):
-        """Ensure at least on field (text, image) is present."""
+        """Ensure at least one field (text, image) is present."""
         if self.text is None and self.image is None:
             raise ValueError("PixtralMessage must have either 'text' or 'image'")
         return self
@@ -359,7 +359,7 @@ class PixtralFeatureExtraction(PixtralConnector):
         """Build a minimal user message containing only a text and the target page image.
 
         Args:
-            text: Text provided along with image.
+            text (str): Text provided along with the image.
             image_bytes (bytes): Encoded bytes of the page to process.
 
         Returns:
@@ -382,7 +382,7 @@ class PixtralFeatureExtraction(PixtralConnector):
         """Extract a feature from a single PDF page using the Pixtral model.
 
         Args:
-            text (str): Text provided along of image
+            text (str): Text provided along with the image.
             page (pymupdf.Page): The PyMuPDF page object to process.
 
         Returns:
