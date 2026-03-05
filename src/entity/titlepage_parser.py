@@ -6,10 +6,7 @@ import pymupdf
 from pymupdf import Rect
 from swissgeol_doc_processing.text.textblock import TextBlock
 
-from src.entity.utils import select_pages
 from src.models.feature_engineering import extract_and_cache_page_data
-from src.page_classes import PageClasses
-from src.page_structure import ProcessedEntities
 from src.utils.text_clustering import create_text_blocks
 from src.utils.utility import standardize_text
 
@@ -92,7 +89,7 @@ class TitleCandidateTextBlock:
         return self.font
 
 
-def _extract_title_from_page(page: pymupdf.Page) -> str:
+def extract_title_from_page(page: pymupdf.Page) -> str:
     """Extract the most likely title string from a single PDF page.
 
     Builds text blocks from the page's text lines, wraps them as
@@ -115,37 +112,3 @@ def _extract_title_from_page(page: pymupdf.Page) -> str:
     title_candidates = sorted(title_candidates, key=lambda x: x.score, reverse=True)
 
     return title_candidates[0].text if title_candidates else ""
-
-
-def document_to_titlepages(
-    pdf_file: Path, classification: PageClasses, page_start: int, page_end: int, lang: str | None
-) -> list[ProcessedEntities]:
-    """Extract title or section-header entities from a consecutive page range in a PDF.
-
-    Each page is processed individually and yields one ProcessedEntities entry whose `title` field
-    contains detected title.
-
-    Args:
-        pdf_file (Path): Path to the source PDF file.
-        classification (PageClasses): Page class label to assign.
-        page_start (int): First page index of the group (1-based).
-        page_end (int): Last page index of the group (1-based).
-        lang (str | None): Language code for the page group, or None if unknown.
-
-    Returns:
-        list[ProcessedEntities]: One ProcessedEntities per page, each with its `title`
-            field set to the highest-scoring title candidate extracted from that page.
-    """
-    # Open the PDF file, select pages and save
-    with pymupdf.Document(pdf_file) as doc:
-        pdf_document_select = select_pages(doc, page_start, page_end)
-        return [
-            ProcessedEntities(
-                classification=classification,
-                page_start=page_start + page_id,
-                page_end=page_start + page_id,
-                language=lang,
-                title=_extract_title_from_page(page=page),
-            )
-            for page_id, page in enumerate(pdf_document_select.pages())
-        ]

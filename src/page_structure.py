@@ -67,6 +67,7 @@ class ProcessorPage(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     page: int
+    title: str | None
     classification: PageClasses
     metadata: ProcessorPageMetadata
 
@@ -109,11 +110,13 @@ class ProcessorDocument(BaseModel):
                 "pages": [
                     {
                         "page": 1,
+                        "title": None,
                         "classification": "boreprofile",
                         "metadata": {"is_frontpage": True, "language": None},
                     },
                     {
                         "page": 2,
+                        "title": "Quartalbericht",
                         "classification": "text",
                         "metadata": {"is_frontpage": False, "language": "de"},
                     },
@@ -138,6 +141,24 @@ class ProcessorDocument(BaseModel):
 
         for key, group in groupby(self.pages, key=key_fn):
             yield key, list(group)
+
+    def to_ground_truth(self) -> DocumentGroundTruth:
+        """Convert document to ground truth format for evaluation.
+
+        Returns:
+            DocumentGroundTruth: Parsed document to ground truth format.
+        """
+        return DocumentGroundTruth(
+            filename=self.filename,
+            metadata=DocumentMetadata(page_count=self.metadata.page_count),
+            pages=[
+                DocumentPage(
+                    page=page.page,
+                    classification={page_cls: int(page_cls == page.classification) for page_cls in PageClasses},
+                )
+                for page in self.pages
+            ],
+        )
 
 
 class ProcessedEntities(BaseModel):
@@ -184,23 +205,3 @@ class ProcessorDocumentEntities(BaseModel):
             }
         },
     )
-
-    def to_ground_truth(self) -> DocumentGroundTruth:
-        """Convert document entities to ground truth format for evaluation.
-
-        Returns:
-            DocumentGroundTruth: Parsed document to ground truth format.
-        """
-        return DocumentGroundTruth(
-            filename=self.filename,
-            metadata=DocumentMetadata(page_count=self.page_count),
-            pages=[
-                DocumentPage(
-                    page=page_id,
-                    title=entity.title,
-                    classification={page_cls: int(page_cls == entity.classification) for page_cls in PageClasses},
-                )
-                for entity in self.entities
-                for page_id in range(entity.page_start, entity.page_end + 1)
-            ],
-        )

@@ -11,12 +11,12 @@ from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_r
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 from src.entity.borehole_parser import document_to_boreprofiles
-from src.entity.titlepage_parser import document_to_titlepages
 from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
     ProcessorDocument,
     ProcessorDocumentEntities,
+    ProcessorPage,
 )
 from src.pdf_processor import PDFProcessor
 from src.utils.utility import get_pdf_files, read_params
@@ -96,16 +96,18 @@ def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
     return dict(items)
 
 
-def group_consecutive(values: list[int]) -> list[list[int]]:
+def group_consecutive(pages: list[ProcessorPage]) -> list[list[ProcessorPage]]:
     """Group sorted integers into consecutive sequences.
 
     Args:
-        values: Sorted list of integers.
+        pages (list[ProcessorPage]): Pages to group.
 
     Returns:
-        A list of lists, where each sublist contains consecutive integers.
+        list[list[ProcessorPage]]: List of sorted pages group.
     """
-    return [[v for _, v in group] for _, group in groupby(enumerate(values), key=lambda iv: iv[1] - iv[0])]
+    sorted_pages = sorted(pages, key=lambda p: p.page)
+
+    return [[v for _, v in group] for _, group in groupby(enumerate(sorted_pages), key=lambda iv: iv[1].page - iv[0])]
 
 
 def forward_document(
@@ -189,6 +191,7 @@ def forward_document_entities_group(
     classification: PageClasses,
     page_start: int,
     page_end: int,
+    title: str | None,
     language: str | None,
     pdf_file: Path,
 ) -> list[ProcessedEntities]:
@@ -198,6 +201,7 @@ def forward_document_entities_group(
         classification (PageClasses): The classification type of the page group.
         page_start (int): First page index in the consecutive group (1-based).
         page_end (int): Last page index in the consecutive group (1-based).
+        title (str): Title for the given set of documents.
         language (str | None): Detected language of the page group.
         pdf_file (Path): Path to the source PDF file.
 
@@ -206,10 +210,6 @@ def forward_document_entities_group(
     """
     if classification == PageClasses.BOREPROFILE:
         return document_to_boreprofiles(pdf_file=pdf_file, page_start=page_start, page_end=page_end, lang=language)
-    elif classification in (PageClasses.TITLE_PAGE, PageClasses.SECTION_HEADER):
-        return document_to_titlepages(
-            pdf_file=pdf_file, classification=classification, page_start=page_start, page_end=page_end, lang=language
-        )
     else:
         return [
             ProcessedEntities(
@@ -217,6 +217,7 @@ def forward_document_entities_group(
                 page_start=page_start,
                 page_end=page_end,
                 language=language,
+                title=title,
             )
         ]
 
@@ -239,14 +240,14 @@ def forward_document_entities(
         # Iterate over grouped entities types
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
-            page_numbers = sorted([page.page for page in pages])
             entities = [
                 entity
-                for pages_group in group_consecutive(page_numbers)  # Group consecutive [1,2,10] -> [1,2], [10]
+                for pages_group in group_consecutive(pages)  # Group consecutive [1,2,10] -> [1,2], [10]
                 for entity in forward_document_entities_group(
                     classification=pages_type,
-                    page_start=min(pages_group),
-                    page_end=max(pages_group),
+                    page_start=pages_group[0].page,
+                    page_end=pages_group[-1].page,
+                    title=pages_group[0].title,
                     language=lang,
                     pdf_file=document.path,
                 )
@@ -320,13 +321,21 @@ def main(
         explain_model=explain_model,
     )
 
+    # Check if GT need to be computed
+    if ground_truth_path:
+        from src.evaluation import evaluate_results
+
+        evaluate_results(documents_pages, ground_truth_path)
+
     # End mlflow tracking
     if mlflow_tracking:
         mlflow.end_run()
 
+    documents_pages = [reclassify_section_headers(doc) for doc in documents_pages]
+
     if not return_entities:
         # Reclassify section header pages using the label of their following page
-        return [reclassify_section_headers(doc) for doc in documents_pages]
+        return documents_pages
     else:
         entities = forward_document_entities(documents=documents_pages)
 
@@ -338,12 +347,6 @@ def main(
                 json.dumps([r.model_dump() for r in entities], indent=4),
                 encoding="utf-8",
             )
-
-        # Check if GT need to be computed
-        if ground_truth_path:
-            from src.evaluation import evaluate_results
-
-            evaluate_results(entities, ground_truth_path)
 
         return entities
 

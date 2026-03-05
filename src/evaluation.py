@@ -9,7 +9,7 @@ from Levenshtein import distance
 from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
-from src.page_structure import ProcessorDocumentEntities
+from src.page_structure import ProcessorDocument, ProcessorDocumentEntities
 from src.schemas import DocumentGroundTruth, DocumentPage
 from src.utils.utility import standardize_text
 
@@ -254,12 +254,12 @@ def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None
 
 
 def evaluate_results(
-    predictions: list[ProcessorDocumentEntities], ground_truth_path: Path, output_dir: Path = Path("evaluation")
+    predictions: list[ProcessorDocument], ground_truth_path: Path, output_dir: Path = Path("evaluation")
 ) -> tuple[Path | None, Path | None]:
     """Evaluate classification and title predictions against ground truth.
 
     Args:
-        predictions (list[ProcessorDocumentEntities]): Model predictions to evaluate.
+        predictions (list[ProcessorDocument]): Model predictions to evaluate.
         ground_truth_path (Path): Path to the ground truth JSON file.
         output_dir (Path): Directory to write evaluation CSV files (default: "evaluation").
 
