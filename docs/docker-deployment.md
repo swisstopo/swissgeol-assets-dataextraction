@@ -45,3 +45,11 @@ The repository includes a `docker-compose.yml` for convenience:
 ```bash
 docker compose up
 ```
+
+## MinIO
+
+If you are using a local MinIO instance for file serving, `localhost` inside the container refers to the container itself, not your host machine. Update the endpoint in `.env` so the container can reach MinIO running on your host:
+
+```bash
+LOCAL_S3_ENDPOINT="http://host.docker.internal:9000"
+```
