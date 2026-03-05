@@ -11,6 +11,7 @@ from src.models.feature_engineering import extract_and_cache_page_data
 from src.page_classes import PageClasses
 from src.page_structure import ProcessedEntities
 from src.utils.text_clustering import create_text_blocks
+from src.utils.utility import standardize_text
 
 
 class TitleCandidateTextBlock:
@@ -39,6 +40,12 @@ class TitleCandidateTextBlock:
         )
 
     @property
+    def contains_keywords(self) -> int:
+        """Score item if it contains a keyword."""
+        std_text = standardize_text(self.text)
+        return int(any([keyword in std_text for keyword in ["bericht", "etude"]]))
+
+    @property
     def horizontal_centrality(self) -> float:
         """Horizontal centrality of the block.
 
@@ -46,6 +53,10 @@ class TitleCandidateTextBlock:
             float: Score in [0, 1] where 1 means the block is perfectly horizontally centered.
         """
         return 1 - 2 * abs(0.5 - (self.rect.x1 + self.rect.x0) / 2)
+
+    @property
+    def horizontal_leftness(self) -> float:
+        return max(1, 2 - (self.rect.x1 + self.rect.x0))
 
     @property
     def font(self) -> float:
@@ -76,7 +87,9 @@ class TitleCandidateTextBlock:
         Returns:
             float: Estimated title-likelihood score. Higher means more likely a title.
         """
-        return self.horizontal_centrality * self.font * self.highness
+        # return (self.horizontal_centrality * self.font * self.highness) + self.contains_keywords
+        # return self.horizontal_centrality * self.font * self.highness
+        return self.font
 
 
 def _extract_title_from_page(page: pymupdf.Page) -> str:

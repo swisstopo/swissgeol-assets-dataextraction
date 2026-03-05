@@ -2,8 +2,6 @@ import csv
 import json
 import logging
 import os
-import re
-import unicodedata
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -13,6 +11,7 @@ from pydantic import TypeAdapter
 from src.page_classes import PageClasses
 from src.page_structure import ProcessorDocumentEntities
 from src.schemas import DocumentGroundTruth, DocumentPage
+from src.utils.utility import standardize_text
 
 load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
@@ -54,25 +53,6 @@ def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, 
         dict[str, DocumentPage]: Keyed pages.
     """
     return {f"{doc.filename}-{page.page}": page for doc in documents for page in doc.pages}
-
-
-def standardize_text(text: str) -> str:
-    """Standardize text by removing new lines, double spaces and uppercaps.
-
-    Args:
-        text (str): Text to standardize.
-
-    Returns:
-        str: Standardized text.
-    """
-    # Remove new lines
-    text = text.replace("\n", " ")
-    # Remove double spaces
-    text = re.sub(r"\s+", " ", text).strip()
-    # Remove accents "ü" -> "u"
-    text = "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")
-    # Enforce lowercases
-    return text.lower()
 
 
 def are_texts_close(text_gt: str, text_pred: str, r_error: float = 0.25) -> bool:

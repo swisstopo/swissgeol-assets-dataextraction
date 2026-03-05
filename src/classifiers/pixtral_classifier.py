@@ -318,10 +318,11 @@ class PixtralFeatureExtraction(PixtralConnector):
         PixtralConnector.__init__(self, config=config, aws_config=aws_config)
         self.system_prompt = PixtralMessage(text=system_prompt)
 
-    def _build_conversation(self, image_bytes: bytes) -> PixtralMessageStack:
-        """Build a minimal user message containing only the target page image.
+    def _build_conversation(self, text: str, image_bytes: bytes) -> PixtralMessageStack:
+        """Build a minimal user message containing only a text and the target page image.
 
         Args:
+            text: Text provided along with image.
             image_bytes (bytes): Encoded bytes of the page to process.
 
         Returns:
@@ -335,21 +336,23 @@ class PixtralFeatureExtraction(PixtralConnector):
                         format="jpeg",
                         source=PixtralImageSource(bytes=image_bytes),
                     )
-                )
+                ),
+                PixtralMessage(text=text),
             ],
         )
 
-    def find(self, page: pymupdf.Page) -> str:
+    def find(self, text: str, page: pymupdf.Page) -> str:
         """Extract a feature from a single PDF page using the Pixtral model.
 
         Args:
+            text (str): Text provided along of image
             page (pymupdf.Page): The PyMuPDF page object to process.
 
         Returns:
             str: The raw text returned by the model (e.g. an extracted title).
         """
         image_bytes = get_page_image_bytes(page, max_mb=self.max_doc_size)
-        content_user = self._build_conversation(image_bytes=image_bytes)
+        content_user = self._build_conversation(text=text, image_bytes=image_bytes)
 
         response = self._send_conversation(message=content_user, system=self.system_prompt)
         return response.output.message.content[0].text

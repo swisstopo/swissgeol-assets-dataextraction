@@ -8,7 +8,9 @@ from tqdm import tqdm
 
 from src.classifiers.pixtral_classifier import PixtralFeatureExtraction
 from src.evaluation import load_ground_truth
+from src.models.feature_engineering import extract_and_cache_page_data
 from src.schemas import DocumentGroundTruth
+from src.utils.text_clustering import create_text_blocks
 from src.utils.utility import get_aws_config, read_params
 
 logger = logging.getLogger(__name__)
@@ -37,8 +39,17 @@ def update_ground_truth(
         for ground_truth_page in ground_truth.pages:
             # Load page
             page = doc.load_page(ground_truth_page.page - 1)
+            # Extarct OCR text
+            extraction_context = extract_and_cache_page_data(page)
+            lines = extraction_context.text_lines
+            text_blocks = create_text_blocks(lines)
+            text = "\n".join([line.text for block in text_blocks for line in block.lines])
+
             # Extract feature (title)
-            ground_truth_page.title = pixtral_interface.find(page=page)
+            if text and page:
+                ground_truth_page.title = pixtral_interface.find(text=text, page=page)
+            else:
+                ground_truth_page.title = None
 
     return ground_truth
 
