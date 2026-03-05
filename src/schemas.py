@@ -4,13 +4,23 @@ from src.page_classes import PageClasses
 
 
 class DocumentMetadata(BaseModel):
-    """Document-level metadata extracted from a PDF."""
+    """Document-level metadata extracted from a PDF.
+
+    Attributes:
+        page_count (int): Total number of pages in the document.
+    """
 
     page_count: int
 
 
 class DocumentPage(BaseModel):
-    """Classification annotation for a single page."""
+    """Classification annotation for a single page.
+
+    Attributes:
+        page (int): Page number.
+        title (str | None): Extracted title for the page.
+        classification (dict[PageClasses, int]): Per-label binary classification (0 or 1).
+    """
 
     page: int
     title: str | None = None
@@ -18,7 +28,13 @@ class DocumentPage(BaseModel):
 
 
 class DocumentGroundTruth(BaseModel):
-    """Ground-truth annotation for a complete PDF document."""
+    """Ground-truth annotation for a complete PDF document.
+
+    Attributes:
+        filename (str): Name of the PDF file.
+        metadata (DocumentMetadata): Document-level metadata.
+        pages (list[DocumentPage]): Per-page annotations.
+    """
 
     filename: str
     metadata: DocumentMetadata

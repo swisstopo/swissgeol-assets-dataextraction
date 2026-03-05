@@ -20,20 +20,34 @@ logger = logging.getLogger(__name__)
 
 
 class PixtralImageSource(BaseModel):
-    """Raw bytes payload for an image."""
+    """Raw bytes payload for an image.
+
+    Attributes:
+        bytes_ (bytes): Raw image bytes.
+    """
 
     bytes_: bytes = Field(alias="bytes")
 
 
 class PixtralImage(BaseModel):
-    """Image content block containing its format and raw bytes source."""
+    """Image content block containing its format and raw bytes source.
+
+    Attributes:
+        format_ (str): Image format (e.g., 'jpeg').
+        source (PixtralImageSource): Container for image bytes.
+    """
 
     format_: str = Field(alias="format")
     source: PixtralImageSource
 
 
 class PixtralMessage(BaseModel):
-    """A single content block in a Pixtral conversation, either text or image."""
+    """A single content block in a Pixtral conversation, either text or image.
+
+    Attributes:
+        text (str | None): Text content, or None if image is provided.
+        image (PixtralImage | None): Image content, or None if text is provided.
+    """
 
     text: str | None = None
     image: PixtralImage | None = None
@@ -47,20 +61,33 @@ class PixtralMessage(BaseModel):
 
 
 class PixtralMessageStack(BaseModel):
-    """A full conversation turn with a role (e.g. 'user') and a list of content blocks."""
+    """A full conversation turn with a role and a list of content blocks.
+
+    Attributes:
+        role (str): Role identifier (e.g., 'user').
+        content (list[PixtralMessage]): List of content blocks in this turn.
+    """
 
     role: str
     content: list[PixtralMessage]
 
 
 class PixtralResponseOutput(BaseModel):
-    """The output field of response, wrapping the assistant message."""
+    """The output field of a response, wrapping the assistant message.
+
+    Attributes:
+        message (PixtralMessageStack): The assistant's response message.
+    """
 
     message: PixtralMessageStack
 
 
 class PixtralResponse(BaseModel):
-    """Top-level response, containing the model output."""
+    """Top-level response containing the model output.
+
+    Attributes:
+        output (PixtralResponseOutput): Response output wrapper.
+    """
 
     output: PixtralResponseOutput
 
@@ -92,8 +119,15 @@ class RateLimiter:
             time.sleep(0.01)
 
 
-def is_throttle_error(e) -> bool:
-    """Determine whether a boto3 ClientError is a throttling or overload error."""
+def is_throttle_error(e: ClientError) -> bool:
+    """Determine whether a boto3 ClientError is a throttling or overload error.
+
+    Args:
+        e (ClientError): A boto3 ClientError exception.
+
+    Returns:
+        bool: True if the error is a throttling/overload error, False otherwise.
+    """
     try:
         code = e.response["Error"]["Code"]
         if code in {
@@ -145,6 +179,9 @@ class PixtralConnector:
 
         Returns:
             PixtralResponse: The validated model response.
+
+        Raises:
+            ClientError: If API call fails after max retries.
         """
         attempt = 0
         while True:
@@ -221,15 +258,15 @@ class PixtralClassifier(PixtralConnector, Classifier):
     def determine_class(
         self, page: pymupdf.Page, page_number: int, context_builder: Callable[[], PageContext] = None, **kwargs
     ) -> PageClasses:
-        """Determines the class of a document page using the Pixtral model.
+        """Determine the page class using Pixtral vision model.
 
-        Falls back to treebased classifier if output is malformed or ClientError.
+        Falls back to fallback classifier if output is malformed or API error occurs.
 
         Args:
-            page (pymupdf.Page): The page of the document that should be classified
-            page_number (int): the Page number of the page that should be classified
+            page (pymupdf.Page): The PDF page to classify.
+            page_number (int): The page number.
             context_builder (Callable): Builds page context (e.g., text blocks, lines) for fallback classifier.
-            **kwargs: Additionally passed unused arguments
+            **kwargs: Additionally passed arguments if needed.
 
         Returns:
             PageClasses: The predicted page class.
@@ -272,10 +309,10 @@ class PixtralClassifier(PixtralConnector, Classifier):
         """Build the user message containing few-shot examples and the target image.
 
         Args:
-            image_bytes: Encoded bytes of the page to classify.
+            image_bytes (bytes): JPEG-encoded bytes of the page to classify.
 
         Returns:
-            PixtralMessageStack: A user turn ready to send.
+            PixtralMessageStack: A user turn ready to send to the model.
         """
         # List of examples for pixtral model
         content_examples = [

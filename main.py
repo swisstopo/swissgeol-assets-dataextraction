@@ -97,13 +97,13 @@ def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
 
 
 def group_consecutive(pages: list[ProcessorPage]) -> list[list[ProcessorPage]]:
-    """Group sorted integers into consecutive sequences.
+    """Group sorted pages into consecutive sequences.
 
     Args:
-        pages (list[ProcessorPage]): Pages to group.
+        pages (list[ProcessorPage]): Pages to group by consecutive page numbers.
 
     Returns:
-        list[list[ProcessorPage]]: List of sorted pages group.
+        list[list[ProcessorPage]]: List of consecutive page groups.
     """
     sorted_pages = sorted(pages, key=lambda p: p.page)
 
@@ -201,7 +201,7 @@ def forward_document_entities_group(
         classification (PageClasses): The classification type of the page group.
         page_start (int): First page index in the consecutive group (1-based).
         page_end (int): Last page index in the consecutive group (1-based).
-        title (str): Title for the given set of documents.
+        title (str | None): Title for the given set of documents.
         language (str | None): Detected language of the page group.
         pdf_file (Path): Path to the source PDF file.
 

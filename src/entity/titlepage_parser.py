@@ -39,7 +39,11 @@ class TitleCandidateTextBlock:
 
     @property
     def contains_keywords(self) -> int:
-        """Score item if it contains a keyword."""
+        """Score item if it contains a keyword.
+
+        Returns:
+            int: 1 if keywords found, 0 otherwise.
+        """
         std_text = standardize_text(self.text)
         return int(any([keyword in std_text for keyword in ["bericht", "etude"]]))
 
@@ -54,7 +58,12 @@ class TitleCandidateTextBlock:
 
     @property
     def horizontal_leftness(self) -> float:
-        return max(1, 2 - (self.rect.x1 + self.rect.x0))
+        """Horizontal leftness score of the block.
+
+        Returns:
+            float: Score in [0, 1] where higher values indicate left position.
+        """
+        return min(1, 2 - (self.rect.x1 + self.rect.x0))
 
     @property
     def font(self) -> float:
