@@ -1,7 +1,6 @@
 """Convert boreprofile document to processed entries."""
 
 import logging
-from io import BytesIO
 from pathlib import Path
 
 import pymupdf
