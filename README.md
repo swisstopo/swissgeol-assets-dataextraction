@@ -19,7 +19,7 @@ Features:
 Python >=3.11 is required. Install [uv](https://docs.astral.sh/uv/) and let it manage the environment:
 
 ```bash
-pip install uv
+curl -LsSf https://astral.sh/uv/install.sh | sh
 ```
 
 ### 2. Install dependencies
@@ -33,6 +33,11 @@ For development, install all optional tools:
 
 ```bash
 uv sync --all-extras
+```
+
+Then activate your environment:
+```bash
+source .venv/bin/activate
 ```
 
 ### 3. Configuration
