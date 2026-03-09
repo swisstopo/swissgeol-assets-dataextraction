@@ -12,7 +12,7 @@ from src.utils.utility import read_params
 xg_boost_config = read_params("config/xgboost_config.yml")
 
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 
 logger = logging.getLogger(__name__)
 

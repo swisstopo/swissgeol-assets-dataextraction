@@ -22,7 +22,7 @@ from src.utils.utility import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 
 if mlflow_tracking:
     import mlflow
