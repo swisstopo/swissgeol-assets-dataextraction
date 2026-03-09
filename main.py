@@ -260,9 +260,10 @@ def main(
 
     Returns:
         list[ProcessorDocument] | tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
-            * A list of `ProcessorDocument` containing per-page classifications, or
-            * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
-            when `return_entities=True`.
+            * A list of `ProcessorDocument` containing per-page classifications (when `return_entities=False`), or
+            * A tuple of (list[ProcessorDocument], list[ProcessorDocumentEntities]) containing both
+            per-page results and grouped entities (when `return_entities=True`).
+
 
     Raises:
         ValueError: If an unsupported classifier is specified.

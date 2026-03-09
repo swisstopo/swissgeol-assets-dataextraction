@@ -16,7 +16,7 @@ def reference_document() -> str:
     return "examples/reference_document.pdf"
 
 
-def test_end_to_end(reference_document: str):
+def test_end_to_end(reference_document: str) -> None:
     """Test main pipeline end to end.
 
     Args:
@@ -33,29 +33,27 @@ def test_end_to_end(reference_document: str):
     assert documents_pages and len(documents_pages) == 1
     assert documents_entities and len(documents_entities) == 1
 
-    # Remove hierarchy
+    # Unpack single-document results
     document_pages = documents_pages[0]
     document_entities = documents_entities[0]
 
     # ---- Check pages output
     n_pages = document_pages.metadata.page_count
-    # All pages appear at least / most once
+    # All pages appear exactly once
     assert len(document_pages.pages) == n_pages
-    assert len(set([page.page for page in document_pages.pages])) == n_pages
+    assert len(set(page.page for page in document_pages.pages)) == n_pages
 
     # ---- Check entity output
     # Check that all pages are within range and in order
     assert all(
-        [
-            entity.page_start > 0 and entity.page_start <= n_pages and entity.page_start <= entity.page_end
-            for entity in document_entities.entities
-        ]
+        0 < entity.page_start <= n_pages and entity.page_start <= entity.page_end
+        for entity in document_entities.entities
     )
 
     # ---- Check coherence page - entity output
     # Test 1: Same number of pages
     assert document_entities.page_count == n_pages
     # Test 2: Test that detected classes are the same after processing
-    assert set([page.classification for page in document_pages.pages]) == set(
-        [entity.classification for entity in document_entities.entities]
+    assert set(page.classification for page in document_pages.pages) == set(
+        entity.classification for entity in document_entities.entities
     )

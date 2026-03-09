@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pymupdf
 
-# Append one page from each class
 REFERENCE_PAGES = [
     "data/single_pages/boreprofile/742_7.pdf",
     "data/single_pages/diagram/250_3.pdf",
