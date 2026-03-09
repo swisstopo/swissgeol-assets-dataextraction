@@ -246,7 +246,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
+) -> list[ProcessorDocument] | tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -259,7 +259,7 @@ def main(
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Returns:
-        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
+        list[ProcessorDocument] | tuple[list[ProcessorDocument], list[ProcessorDocumentEntities]]:
             * A list of `ProcessorDocument` containing per-page classifications, or
             * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
             when `return_entities=True`.
@@ -317,7 +317,7 @@ def main(
                 json.dumps([r.model_dump() for r in entities], indent=4),
                 encoding="utf-8",
             )
-        return entities
+        return documents_pages, entities
 
 
 if __name__ == "__main__":
