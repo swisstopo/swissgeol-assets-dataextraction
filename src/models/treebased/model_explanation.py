@@ -166,9 +166,7 @@ def verify_dependencies_and_flags():
         bool: True if dependencies are met and MLflow tracking is enabled, False otherwise.
     """
     if not EXPLANATION_DEPENDENCIES:
-        logger.warning(
-            "Model explanation requested but dependencies not available. Install with: pip install '.[dev]'"
-        )
+        logger.warning("Model explanation requested but dependencies not available. Install with: uv sync --extra dev")
         return False
     if not mlflow_tracking:
         logger.warning(
