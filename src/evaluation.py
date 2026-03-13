@@ -5,7 +5,7 @@ import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from Levenshtein import distance
+from Levenshtein import ratio
 from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
@@ -55,7 +55,7 @@ def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, 
     return {f"{doc.filename}-{page.page}": page for doc in documents for page in doc.pages}
 
 
-def are_texts_close(text_gt: str, text_pred: str, r_error: float = 0.25) -> bool:
+def are_texts_close(text_gt: str, text_pred: str, score_cutoff: float = 0.75) -> bool:
     """Check if two texts are similar based on Levenshtein distance.
 
     Before matching the texts are standardized.
@@ -63,14 +63,16 @@ def are_texts_close(text_gt: str, text_pred: str, r_error: float = 0.25) -> bool
     Args:
         text_gt (str): Ground truth text.
         text_pred (str): Predicted text.
-        r_error (float, optional): Accepted relative error. Defaults to 0.25.
+        score_cutoff (float, optional): Ratio score threshold. Defaults to 0.75.
 
     Returns:
         bool: True if both texts are considered close to each other.
     """
     text_gt = standardize_text(text_gt)
     text_pred = standardize_text(text_pred)
-    return distance(text_gt, text_pred) / max(1, len(text_gt)) < r_error
+    logger.info(f"{ratio(text_gt, text_pred):.3f}: {text_gt} == {text_pred}")
+
+    return bool(ratio(text_gt, text_pred, score_cutoff=score_cutoff))
 
 
 def compute_classification_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
