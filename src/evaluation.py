@@ -68,11 +68,7 @@ def are_texts_close(text_gt: str, text_pred: str, score_cutoff: float = 0.75) ->
     Returns:
         bool: True if both texts are considered close to each other.
     """
-    text_gt = standardize_text(text_gt)
-    text_pred = standardize_text(text_pred)
-    logger.info(f"{ratio(text_gt, text_pred):.3f}: {text_gt} == {text_pred}")
-
-    return bool(ratio(text_gt, text_pred, score_cutoff=score_cutoff))
+    return bool(ratio(s1=standardize_text(text_gt), s2=standardize_text(text_pred), score_cutoff=score_cutoff))
 
 
 def compute_classification_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:

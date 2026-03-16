@@ -5,9 +5,9 @@ from dataclasses import dataclass
 
 import pymupdf
 from pymupdf import Rect
+from swissgeol_doc_processing.text.extract_text import extract_text_lines
 from swissgeol_doc_processing.text.textblock import TextBlock
 
-from src.models.feature_engineering import extract_and_cache_page_data
 from src.utils.text_clustering import create_text_blocks
 
 
@@ -100,9 +100,8 @@ def extract_title_from_page(page: pymupdf.Page) -> str:
     Returns:
         str: Detected title for the page.
     """
-    # Extract text block from page
-    extraction_context = extract_and_cache_page_data(page)
-    lines = extraction_context.text_lines
+    # Extract text segments from page and convert to text blocks
+    lines = extract_text_lines(page)
     text_blocks = create_text_blocks(lines)
 
     # Create list of text candidates and return best
