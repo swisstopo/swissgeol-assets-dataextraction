@@ -104,7 +104,7 @@ def process(
         str(input_path),
     )
 
-    documents = script(
+    documents, _ = script(
         input_path=tmp_dir,
         classifier_name="treebased",
         model_path=DEFAULT_TREEBASED_MODEL_PATH,

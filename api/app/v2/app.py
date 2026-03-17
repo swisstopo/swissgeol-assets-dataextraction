@@ -101,8 +101,8 @@ def process(
             input_path,
         )
 
-        # Process file in local directory
-        entities = script(
+        # Only entity grouping is needed for the API v2 response
+        _, entities = script(
             input_path=temp_dir,
             classifier_name="treebased",
             model_path=DEFAULT_TREEBASED_MODEL_PATH,

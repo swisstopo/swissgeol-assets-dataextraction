@@ -22,7 +22,7 @@ from src.utils.utility import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 
 if mlflow_tracking:
     import mlflow
@@ -246,7 +246,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
+) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities] | None]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -259,10 +259,10 @@ def main(
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Returns:
-        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
-            * A list of `ProcessorDocument` containing per-page classifications, or
-            * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
-            when `return_entities=True`.
+        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities] | None]:
+            * A list of `ProcessorDocument` containing per-page classifications, and
+            * A list of `ProcessorDocumentEntities` containing grouped entities (when `return_entities=True`).
+
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -304,9 +304,8 @@ def main(
     if mlflow_tracking:
         mlflow.end_run()
 
-    if not return_entities:
-        return documents_pages
-    else:
+    entities: list[ProcessorDocumentEntities] = None
+    if return_entities:
         entities = forward_document_entities(documents=documents_pages)
 
         # Check if data needs to be saved
@@ -317,7 +316,9 @@ def main(
                 json.dumps([r.model_dump() for r in entities], indent=4),
                 encoding="utf-8",
             )
-        return entities
+
+    # Return final predictions
+    return documents_pages, entities
 
 
 if __name__ == "__main__":
