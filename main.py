@@ -8,14 +8,15 @@ from pathlib import Path
 from dotenv import load_dotenv
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
-from src.boreprofile.entity_parser import document_to_boreprofiles
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
 from src.constants import DEFAULT_TREEBASED_MODEL_PATH
+from src.entity.borehole_parser import document_to_boreprofiles
 from src.page_classes import PageClasses
 from src.page_structure import (
     ProcessedEntities,
     ProcessorDocument,
     ProcessorDocumentEntities,
+    ProcessorPage,
 )
 from src.pdf_processor import PDFProcessor
 from src.utils.utility import get_pdf_files, read_params
@@ -34,8 +35,22 @@ logger = logging.getLogger(__name__)
 
 
 def setup_mlflow(
-    input_path: Path, ground_truth_path: Path, model_path: str, matching_params: dict, classifier_name: str
+    input_path: Path,
+    matching_params: dict,
+    ground_truth_path: Path | None,
+    model_path: str | None = None,
+    classifier_name: str | None = None,
 ):
+    """Configure MLflow tracking with experiment metadata and git information.
+
+    Args:
+        input_path (Path): Path to input PDF directory.
+        matching_params (dict): Dictionary of matching parameters.
+        ground_truth_path (Path | None): Path to ground truth JSON file, or None to skip.
+        model_path (str | None): Path to pretrained model file, or None to use the default.
+        classifier_name (str | None): Name of the classifier being used, or None if not applicable.
+
+    """
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
@@ -60,7 +75,17 @@ def setup_mlflow(
         logger.warning(f"Could not attach Git metadata to MLflow: {e}")
 
 
-def flatten_dict(d, parent_key="", sep=".") -> dict:
+def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
+    """Flatten a nested dictionary into a single-level dictionary.
+
+    Args:
+        d (dict): Dictionary to flatten.
+        parent_key (str): Parent key prefix for nested keys.
+        sep (str): Separator character for joining keys (default ".").
+
+    Returns:
+        dict: A flattened dictionary with separated keys.
+    """
     items = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
@@ -71,16 +96,18 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
-def group_consecutive(values: list[int]) -> list[list[int]]:
-    """Group sorted integers into consecutive sequences.
+def group_consecutive(pages: list[ProcessorPage]) -> list[list[ProcessorPage]]:
+    """Group sorted pages into consecutive sequences.
 
     Args:
-        values: Sorted list of integers.
+        pages (list[ProcessorPage]): Pages to group by consecutive page numbers.
 
     Returns:
-        A list of lists, where each sublist contains consecutive integers.
+        list[list[ProcessorPage]]: List of consecutive page groups.
     """
-    return [[v for _, v in group] for _, group in groupby(enumerate(values), key=lambda iv: iv[1] - iv[0])]
+    sorted_pages = sorted(pages, key=lambda p: p.page)
+
+    return [[v for _, v in group] for _, group in groupby(enumerate(sorted_pages), key=lambda iv: iv[1].page - iv[0])]
 
 
 def forward_document(
@@ -115,8 +142,7 @@ def forward_document(
     processor = PDFProcessor(classifier)
     documents_pages = processor.process_batch(pdf_files)
 
-    # Reclassify section header pages using the label of their following page
-    return [reclassify_section_headers(doc) for doc in documents_pages]
+    return documents_pages
 
 
 def reclassify_section_headers(document: ProcessorDocument) -> ProcessorDocument:
@@ -165,6 +191,7 @@ def forward_document_entities_group(
     classification: PageClasses,
     page_start: int,
     page_end: int,
+    title: str | None,
     language: str | None,
     pdf_file: Path,
 ) -> list[ProcessedEntities]:
@@ -174,7 +201,8 @@ def forward_document_entities_group(
         classification (PageClasses): The classification type of the page group.
         page_start (int): First page index in the consecutive group (1-based).
         page_end (int): Last page index in the consecutive group (1-based).
-        language (str): Detected language of the page group.
+        title (str | None): Title for the given set of documents.
+        language (str | None): Detected language of the page group.
         pdf_file (Path): Path to the source PDF file.
 
     Returns:
@@ -189,6 +217,7 @@ def forward_document_entities_group(
                 page_start=page_start,
                 page_end=page_end,
                 language=language,
+                title=title,
             )
         ]
 
@@ -211,14 +240,14 @@ def forward_document_entities(
         # Iterate over grouped entities types
         for (pages_type, lang), pages in document.group_pages_by_type():
             # Get pages sequences
-            page_numbers = sorted([page.page for page in pages])
             entities = [
                 entity
-                for pages_group in group_consecutive(page_numbers)  # Group consecutive [1,2,10] -> [1,2], [10]
+                for pages_group in group_consecutive(pages)  # Group consecutive [1,2,10] -> [1,2], [10]
                 for entity in forward_document_entities_group(
                     classification=pages_type,
-                    page_start=min(pages_group),
-                    page_end=max(pages_group),
+                    page_start=pages_group[0].page,
+                    page_end=pages_group[-1].page,
+                    title=pages_group[0].title,
                     language=lang,
                     pdf_file=document.path,
                 )
@@ -246,7 +275,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities] | None]:
+) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -259,10 +288,10 @@ def main(
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Returns:
-        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities] | None]:
-            * A list of `ProcessorDocument` containing per-page classifications, and
-            * A list of `ProcessorDocumentEntities` containing grouped entities (when `return_entities=True`).
-
+        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
+            * A list of `ProcessorDocument` containing per-page classifications, or
+            * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
+            when `return_entities=True`.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -274,7 +303,7 @@ def main(
 
     # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, ground_truth_path, model_path, matching_params, classifier_name)
+        setup_mlflow(input_path, matching_params, ground_truth_path, model_path, classifier_name)
 
     # Process pages
     pdf_files = get_pdf_files(input_path)
@@ -296,13 +325,14 @@ def main(
     if ground_truth_path:
         from src.evaluation import evaluate_results
 
-        evaluate_results(
-            [result.model_dump(context={"legacy": True}) for result in documents_pages], ground_truth_path
-        )
+        evaluate_results(documents_pages, ground_truth_path)
 
     # End mlflow tracking
     if mlflow_tracking:
         mlflow.end_run()
+
+    # Reclassify section header pages using the label of their following page
+    documents_pages = [reclassify_section_headers(doc) for doc in documents_pages]
 
     entities: list[ProcessorDocumentEntities] = None
     if return_entities:

@@ -10,6 +10,7 @@ from tqdm import tqdm
 
 from src.bounding_box import get_page_bbox, merge_bounding_boxes
 from src.classifiers.classifier_types import Classifier
+from src.entity.titlepage_parser import extract_title_from_page
 from src.language_detection.detect_language import (
     extract_cleaned_text,
     predict_language,
@@ -129,10 +130,11 @@ class PDFProcessor:
 
                 classification_language = select_classification_language(language_prediction, word_count)
                 classification = self.classify_page(page, page_number, classification_language)
-
+                title = extract_title_from_page(page=page) if classification == PageClasses.SECTION_HEADER else None
                 pages.append(
                     ProcessorPage(
                         page=page_number,
+                        title=title,
                         classification=classification,
                         metadata=ProcessorPageMetadata(language=language_prediction, is_frontpage=is_frontpage),
                     )

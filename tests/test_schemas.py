@@ -1,6 +1,7 @@
 """Test function for document processing."""
 
 from src.page_structure import ProcessorDocument, ProcessorDocumentEntities
+from src.schemas import DocumentGroundTruth
 
 
 def test_document_schema() -> None:
@@ -10,3 +11,9 @@ def test_document_schema() -> None:
 
     example = ProcessorDocumentEntities.model_json_schema().get("example", None)
     assert ProcessorDocumentEntities.model_validate(example)
+
+
+def test_gt_schema() -> None:
+    """Test ground truth parsing models."""
+    example = DocumentGroundTruth.model_json_schema().get("example", None)
+    assert DocumentGroundTruth.model_validate(example)

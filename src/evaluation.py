@@ -3,12 +3,15 @@ import json
 import logging
 import os
 from pathlib import Path
-from typing import Any
 
-import pandas as pd
 from dotenv import load_dotenv
+from Levenshtein import ratio
+from pydantic import TypeAdapter
 
 from src.page_classes import PageClasses
+from src.page_structure import ProcessorDocument
+from src.schemas import DocumentGroundTruth, DocumentPage
+from src.utils.utility import standardize_text
 
 load_dotenv()
 mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
@@ -21,66 +24,72 @@ logger = logging.getLogger(__name__)
 LABELS = [cls.value for cls in PageClasses]
 
 
-def load_predictions(predictions: list[dict[str, Any]]) -> dict[tuple[str, int], dict[str, int]]:
-    """Normalizes predictions list.
+def load_ground_truth(ground_truth_path: Path) -> list[DocumentGroundTruth] | None:
+    """Load ground truth data from a JSON file.
 
-    { (filename, page_number): classification_dict }
-    Works for both model predictions and ground-truth lists.
+    Args:
+        ground_truth_path (Path): Path to the JSON file containing ground truth annotations.
+
+    Returns:
+        list[DocumentGroundTruth] | None: Parsed list of document ground truths, or None on error.
     """
-    pred_dict: dict[tuple[str, int], dict[str, int]] = {}
-
-    for entry in predictions:
-        filename = entry.get("filename")
-        pages = entry.get("pages", [])
-
-        for page_entry in pages:
-            page_number = page_entry.get("page")
-            classification = page_entry.get("classification")
-
-            key = (filename, page_number)
-            if key in pred_dict:
-                logger.warning(f"Duplicate entry for {key}; overwriting previous value.")
-            pred_dict[key] = classification
-    return pred_dict
-
-
-def load_ground_truth(ground_truth_path: Path) -> dict | None:
-    """Loads ground truth data from a JSON file."""
     try:
         with open(ground_truth_path) as f:
             gt_list = json.load(f)
-            return load_predictions(gt_list)
+            gt_list = TypeAdapter(list[DocumentGroundTruth]).validate_python(gt_list)
+            return gt_list
     except Exception as e:
         logger.error(f"Invalid ground truth path or JSON: {e}")
         return None
 
 
-def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict, int, int]:
-    """Computes confusion matrix entries, total pages and files processed for evaluating classification results."""
+def groundtruth_doc_to_pages(documents: list[DocumentGroundTruth]) -> dict[str, DocumentPage]:
+    """Convert list of documents to list of keyed pages.
+
+    Args:
+        documents (list[DocumentGroundTruth]): Documents with pages to flatten
+
+    Returns:
+        dict[str, DocumentPage]: Keyed pages.
+    """
+    return {f"{doc.filename}-{page.page}": page for doc in documents for page in doc.pages}
+
+
+def are_texts_close(text_gt: str, text_pred: str, score_cutoff: float = 0.75) -> bool:
+    """Check if two texts are similar based on Levenshtein distance.
+
+    Before matching the texts are standardized.
+
+    Args:
+        text_gt (str): Ground truth text.
+        text_pred (str): Predicted text.
+        score_cutoff (float, optional): Ratio score threshold. Defaults to 0.75.
+
+    Returns:
+        bool: True if both texts are considered close to each other.
+    """
+    return bool(ratio(s1=standardize_text(text_gt), s2=standardize_text(text_pred), score_cutoff=score_cutoff))
+
+
+def compute_classification_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
+    """Compute per-label classification confusion statistics over matched page keys.
+
+    Args:
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truth (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
+
+    Returns:
+        dict: Per-label counts of true_positives, false_negatives, and false_positives.
+    """
     stats = {label: {"true_positives": 0, "false_negatives": 0, "false_positives": 0} for label in LABELS}
-
-    pred_keys = set(predictions.keys())
-    gt_keys = set(ground_truth.keys())
-
-    # Evaluate on the intersection so we don't crash when pages are missing
-    common_keys = pred_keys & gt_keys
-
-    missing_in_pred = gt_keys - pred_keys
-    missing_in_gt = pred_keys - gt_keys
-    if missing_in_pred:
-        logger.info(f"{len(missing_in_pred)} GT pages have no prediction (e.g., {next(iter(missing_in_pred))}).")
-    if missing_in_gt:
-        logger.info(f"{len(missing_in_gt)} predicted pages missing in GT (e.g., {next(iter(missing_in_gt))}).")
-
-    total_pages = len(common_keys)
-    total_files = len({fname for (fname, _page) in common_keys})
+    common_keys = predictions.keys() & ground_truth.keys()
 
     for key in common_keys:
         pred_page = predictions.get(key, {})
         gt_page = ground_truth.get(key, {})
         for label in LABELS:
-            pred = int(pred_page.get(label, 0))
-            gt = int(gt_page.get(label, 0))
+            pred = int(pred_page.classification.get(label, 0))
+            gt = int(gt_page.classification.get(label, 0))
 
             if gt == 1 and pred == 1:
                 stats[label]["true_positives"] += 1
@@ -89,24 +98,97 @@ def compute_confusion_stats(predictions: dict, ground_truth: dict) -> tuple[dict
             elif gt == 0 and pred == 1:
                 stats[label]["false_positives"] += 1
 
-    return stats, total_files, total_pages
+    return stats
 
 
-def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
-    """Saves confusion matrix to output directory."""
-    csv_path = output_dir / "evaluation_metrics.csv"
+def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> dict:
+    """Compute title extraction confusion statistics over matched page keys.
 
+    Only pages with a non-empty ground truth title are evaluated.
+
+    Args:
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truth (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
+
+    Returns:
+        dict: A dict with key "title" containing true_positives, false_negatives, false_positives.
+    """
+    stats = {"true_positives": 0, "false_negatives": 0, "false_positives": 0}
+    common_keys = predictions.keys() & ground_truth.keys()
+
+    for key in common_keys:
+        pred_title = predictions[key].title
+        gt_title = ground_truth[key].title
+        # No GT but prediction exists → false positive
+        if not gt_title and pred_title:
+            stats["false_positives"] += 1
+        # GT exists but no prediction → false negative
+        elif gt_title and not pred_title:
+            stats["false_negatives"] += 1
+        # Both exist and match → true positive
+        elif gt_title and pred_title and are_texts_close(gt_title, pred_title):
+            stats["true_positives"] += 1
+        # Both exist but don't match → false positive + false negative
+        elif gt_title and pred_title:
+            stats["false_positives"] += 1
+            stats["false_negatives"] += 1
+
+    return {"title": stats}
+
+
+def compute_stats(
+    predictions: list[DocumentGroundTruth], ground_truths: list[DocumentGroundTruth]
+) -> tuple[dict, dict]:
+    """Compute classification and title extraction statistics against ground truth.
+
+    Args:
+        predictions (list[DocumentGroundTruth]): Predicted document annotations.
+        ground_truths (list[DocumentGroundTruth]): Ground truth document annotations.
+
+    Returns:
+        tuple[dict, dict]: A tuple of (classification_stats, title_stats), each as per-label
+            confusion dictionaries.
+    """
+    pred_keyed = groundtruth_doc_to_pages(predictions)
+    gt_keyed = groundtruth_doc_to_pages(ground_truths)
+
+    # Evaluate on the intersection so we don't crash when pages are missing
+    pred_keys, gt_keys = set(pred_keyed.keys()), set(gt_keyed.keys())
+
+    missing_in_pred = gt_keys - pred_keys
+    missing_in_gt = pred_keys - gt_keys
+    if missing_in_pred:
+        logger.info(f"{len(missing_in_pred)} GT pages have no prediction (e.g., {next(iter(missing_in_pred))}).")
+    if missing_in_gt:
+        logger.info(f"{len(missing_in_gt)} predicted pages missing in GT (e.g., {next(iter(missing_in_gt))}).")
+
+    classification_stats = compute_classification_stats(pred_keyed, gt_keyed)
+    title_stats = compute_title_stats(pred_keyed, gt_keyed)
+
+    return classification_stats, title_stats
+
+
+def save_stats(stats_classification: dict, csv_path: Path) -> Path:
+    """Save per-label confusion statistics to a CSV file.
+
+    Args:
+        stats_classification (dict): Per-label dict with true_positives, false_negatives, false_positives.
+        csv_path (Path): Destination path for the output CSV file.
+
+    Returns:
+        Path: The path to the written CSV file.
+    """
     with open(csv_path, "w", newline="") as f:
         writer = csv.writer(f)
         writer.writerow(
             [
-                "Class",
+                "Label",
                 "True_Positives",
                 "False_Negatives",
                 "False_Positives",
             ]
         )
-        for label, s in stats.items():
+        for label, s in stats_classification.items():
             writer.writerow(
                 [
                     label,
@@ -118,15 +200,32 @@ def save_confusion_stats(stats: dict, output_dir: Path) -> Path:
     return csv_path
 
 
-def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> None:
-    """Calculates and logs F1, precision and recall to MLflow."""
+def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None:
+    """Calculate and log F1, precision, and recall metrics to MLflow.
+
+    Args:
+        stats_classification (dict): Per-label classification confusion stats.
+        stats_title (dict): Title extraction confusion stats.
+    """
     if not mlflow_tracking:
         return None
 
+    # Log metrics for title extraction
+    tp, fn, fp = [stats_title["title"][label] for label in ["true_positives", "false_negatives", "false_positives"]]
+    precision = tp / (tp + fp) if (tp + fp) else 0.0
+    recall = tp / (tp + fn) if (tp + fn) else 0.0
+    f1 = 2 * (precision * recall) / (precision + recall) if (precision + recall) else 0.0
+    mlflow.log_metric("title/f1", f1)
+    mlflow.log_metric("title/precision", precision)
+    mlflow.log_metric("title/recall", recall)
+
+    logger.info(f"Title: F1={f1:.2%}, Precision={precision:.2%}, Recall={recall:.2%}")
+
+    # Log metrics for classification output
     precisions = []
     recalls = []
     f1_scores = []
-    for label, s in stats.items():
+    for label, s in stats_classification.items():
         tp, fn, fp = s["true_positives"], s["false_negatives"], s["false_positives"]
         precision = tp / (tp + fp) if (tp + fp) else 0.0
         recall = tp / (tp + fn) if (tp + fn) else 0.0
@@ -136,9 +235,9 @@ def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> No
         recalls.append(recall)
         f1_scores.append(f1)
 
-        mlflow.log_metric(f"F1 {label}", f1)
-        mlflow.log_metric(f"{label}_precision", precision)
-        mlflow.log_metric(f"{label}_recall", recall)
+        mlflow.log_metric(f"classification/{label}_f1", f1)
+        mlflow.log_metric(f"classification/{label}_precision", precision)
+        mlflow.log_metric(f"classification/{label}_recall", recall)
 
         logger.info(f"{label}: F1={f1:.2%}, Precision={precision:.2%}, Recall={recall:.2%}")
 
@@ -146,112 +245,42 @@ def log_metrics_to_mlflow(stats: dict, total_files: int, total_pages: int) -> No
     macro_recall = sum(recalls) / len(recalls) if recalls else 0.0
     macro_f1 = sum(f1_scores) / len(f1_scores) if f1_scores else 0.0
 
-    mlflow.log_metric("Macro Avg Precision", macro_precision)
-    mlflow.log_metric("Macro Avg Recall", macro_recall)
-    mlflow.log_metric("Macro Avg F1", macro_f1)
+    mlflow.log_metric("classification/macro_precision", macro_precision)
+    mlflow.log_metric("classification/macro_recall", macro_recall)
+    mlflow.log_metric("classification/macro_f1", macro_f1)
 
-    logger.info(f"Macro Avg: F1={macro_f1:.2%}, Precision={macro_precision:.2%}, Recall={macro_recall:.2%}")
-
-    mlflow.log_metric("total_pages", total_pages)
-    mlflow.log_metric("total_files", total_files)
-
-
-def create_page_comparison(pred_dict: dict, gt_dict: dict, output_dir: Path) -> pd.DataFrame:
-    """Create a per-page comparison CSV/DF for pages present in both predictions and ground truth (intersection)."""
-    output_dir.mkdir(parents=True, exist_ok=True)
-    report_path = output_dir / "per_page_comparison.csv"
-
-    columns = (
-        ["Filename", "Page"]
-        + [f"{label}_pred" for label in LABELS]
-        + [f"{label}_gt" for label in LABELS]
-        + [f"{label}_match" for label in LABELS]
-        + ["All_labels_match", "Status"]
-    )
-
-    pred_keys = set(pred_dict.keys())
-    gt_keys = set(gt_dict.keys())
-
-    # Only evaluate files/pages that are in predictions.
-    keys = pred_keys & gt_keys
-
-    rows = []
-    for filename, page_num in sorted(keys, key=lambda k: (k[0], k[1])):
-        pred_page = pred_dict[(filename, page_num)]
-        gt_page = gt_dict[(filename, page_num)]
-
-        preds = [int(pred_page.get(label, 0)) for label in LABELS]
-        gts = [int(gt_page.get(label, 0)) for label in LABELS]
-        matches = [int(p == g) for p, g in zip(preds, gts, strict=True)]
-        all_match = int(all(matches))
-
-        # Only keep misclassifications
-        if not all_match:
-            status = "mismatch"
-            row = [filename, page_num] + preds + gts + matches + [all_match, status]
-            rows.append(row)
-
-    df = pd.DataFrame(rows, columns=columns)
-
-    # Write to csv file
-    with open(report_path, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(columns)
-        writer.writerows(rows)
-
-    if mlflow_tracking:
-        mlflow.log_artifact(str(report_path))
-    logger.info(f"Logged misclassifications to {report_path}")
-
-    return df
-
-
-def save_misclassifications(df: pd.DataFrame, output_dir: Path) -> None:
-    """Save misclassified pages and per-class CSVs."""
-
-    def get_active_labels(row, suffix):
-        return [label for label in LABELS if row[f"{label}_{suffix}"] == 1]
-
-    df["Predicted_labels"] = df.apply(lambda row: get_active_labels(row, suffix="pred"), axis=1)
-    df["Ground_truth_labels"] = df.apply(lambda row: get_active_labels(row, suffix="gt"), axis=1)
-
-    misclassified = df[df["All_labels_match"] == 0][["Filename", "Page", "Ground_truth_labels", "Predicted_labels"]]
-
-    mis_path = output_dir / "misclassifications.csv"
-    misclassified.to_csv(mis_path, index=False)
-    if mlflow_tracking:
-        mlflow.log_artifact(str(mis_path))
-
-    for true_class in LABELS:
-        class_mis = misclassified[
-            misclassified["Ground_truth_labels"].apply(lambda labels, cls=true_class: cls in labels)
-        ]
-        if not class_mis.empty:
-            path = output_dir / f"misclassified_{true_class}.csv"
-            class_mis.to_csv(path, index=False)
-            if mlflow_tracking:
-                mlflow.log_artifact(str(path))
+    logger.info(f"Classification Macro: F1={macro_f1:.2%}, Precision={macro_precision:.2%}, Recall={macro_recall:.2%}")
 
 
 def evaluate_results(
-    predictions: list[dict], ground_truth_path: Path, output_dir: Path = Path("evaluation")
-) -> dict | None:
-    """Evaluate classification predictions against ground truth."""
+    predictions: list[ProcessorDocument], ground_truth_path: Path, output_dir: Path = Path("evaluation")
+) -> tuple[Path | None, Path | None]:
+    """Evaluate classification and title predictions against ground truth.
+
+    Args:
+        predictions (list[ProcessorDocument]): Model predictions to evaluate.
+        ground_truth_path (Path): Path to the ground truth JSON file.
+        output_dir (Path): Directory to write evaluation CSV files (default: "evaluation").
+
+    Returns:
+        tuple[Path | None, Path | None]: Paths to the classification and title evaluation CSV files,
+            or (None, None) if ground truth or predictions could not be loaded.
+    """
     output_dir.mkdir(parents=True, exist_ok=True)
 
-    gt_dict = load_ground_truth(ground_truth_path)
-    if gt_dict is None:
-        return None
+    gt_list = load_ground_truth(ground_truth_path)
+    pred_list = [pred.to_ground_truth() for pred in predictions]
 
-    pred_dict = load_predictions(predictions)
+    if not gt_list or not pred_list:
+        return None, None
 
-    stats, total_files, total_pages = compute_confusion_stats(pred_dict, gt_dict)
-    stats_path = save_confusion_stats(stats, output_dir)
+    stats_classification, stats_title = compute_stats(pred_list, gt_list)
+    stats_classification_path = save_stats(stats_classification, output_dir / "evaluation_metrics_classification.csv")
+    stats_title_path = save_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
 
     if mlflow_tracking:
-        log_metrics_to_mlflow(stats, total_files, total_pages)
-        mlflow.log_artifact(str(stats_path))
-    comparison_data = create_page_comparison(pred_dict, gt_dict, output_dir)
-    save_misclassifications(comparison_data, output_dir)
+        log_metrics_to_mlflow(stats_classification, stats_title)
+        mlflow.log_artifact(str(stats_classification_path))
+        mlflow.log_artifact(str(stats_title_path))
 
-    return stats
+    return stats_classification_path, stats_title_path

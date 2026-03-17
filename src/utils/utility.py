@@ -2,6 +2,8 @@
 
 import logging
 import os
+import re
+import unicodedata
 from pathlib import Path
 
 import pymupdf
@@ -86,3 +88,22 @@ def get_pdf_files(input_path: Path) -> list[Path]:
 
     logging.error("Invalid input path: must be a PDF file or a directory containing PDFs.")
     return []
+
+
+def standardize_text(text: str) -> str:
+    """Standardize text by removing newlines, collapsing whitespace, stripping accents, and lowercasing.
+
+    Args:
+        text (str): Text to standardize.
+
+    Returns:
+        str: Standardized text.
+    """
+    # Remove new lines
+    text = text.replace("\n", " ")
+    # Remove double spaces
+    text = re.sub(r"\s+", " ", text).strip()
+    # Remove accents "ü" -> "u"
+    text = "".join(c for c in unicodedata.normalize("NFD", text) if unicodedata.category(c) != "Mn")
+    # Enforce lowercases
+    return text.lower()

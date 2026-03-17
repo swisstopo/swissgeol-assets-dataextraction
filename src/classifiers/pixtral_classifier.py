@@ -7,6 +7,7 @@ from collections.abc import Callable
 import boto3
 import pymupdf
 from botocore.exceptions import ClientError
+from pydantic import BaseModel, Field, model_validator
 
 from src.classifiers.classifier_types import Classifier, ClassifierTypes
 from src.classifiers.utils import clean_label, map_string_to_page_class, read_image_bytes
@@ -18,16 +19,95 @@ from src.utils.utility import read_params
 logger = logging.getLogger(__name__)
 
 
+class PixtralImageSource(BaseModel):
+    """Raw bytes payload for an image.
+
+    Attributes:
+        bytes_ (bytes): Raw image bytes.
+    """
+
+    bytes_: bytes = Field(alias="bytes")
+
+
+class PixtralImage(BaseModel):
+    """Image content block containing its format and raw bytes source.
+
+    Attributes:
+        format_ (str): Image format (e.g., 'jpeg').
+        source (PixtralImageSource): Container for image bytes.
+    """
+
+    format_: str = Field(alias="format")
+    source: PixtralImageSource
+
+
+class PixtralMessage(BaseModel):
+    """A single content block in a Pixtral conversation, either text or image.
+
+    Attributes:
+        text (str | None): Text content, or None if image is provided.
+        image (PixtralImage | None): Image content, or None if text is provided.
+    """
+
+    text: str | None = None
+    image: PixtralImage | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_field(self):
+        """Ensure at least one field (text, image) is present."""
+        if self.text is None and self.image is None:
+            raise ValueError("PixtralMessage must have either 'text' or 'image'")
+        return self
+
+
+class PixtralMessageStack(BaseModel):
+    """A full conversation turn with a role and a list of content blocks.
+
+    Attributes:
+        role (str): Role identifier (e.g., 'user').
+        content (list[PixtralMessage]): List of content blocks in this turn.
+    """
+
+    role: str
+    content: list[PixtralMessage]
+
+
+class PixtralResponseOutput(BaseModel):
+    """The output field of a response, wrapping the assistant message.
+
+    Attributes:
+        message (PixtralMessageStack): The assistant's response message.
+    """
+
+    message: PixtralMessageStack
+
+
+class PixtralResponse(BaseModel):
+    """Top-level response containing the model output.
+
+    Attributes:
+        output (PixtralResponseOutput): Response output wrapper.
+    """
+
+    output: PixtralResponseOutput
+
+
 class RateLimiter:
     """Simple token bucket QPS limiter."""
 
     def __init__(self, qps: float):
+        """Initialise the rate limiter with a target queries-per-second rate.
+
+        Args:
+            qps (float): Maximum number of requests allowed per second.
+        """
         self.qps = max(0.1, qps)
         self.lock = threading.Lock()
         self.tokens = 0.0
         self.last = time.monotonic()
 
     def acquire(self):
+        """Block until a token is available, then consume it."""
         while True:
             with self.lock:
                 now = time.monotonic()
@@ -39,7 +119,15 @@ class RateLimiter:
             time.sleep(0.01)
 
 
-def is_throttle_error(e) -> bool:
+def is_throttle_error(e: ClientError) -> bool:
+    """Determine whether a boto3 ClientError is a throttling or overload error.
+
+    Args:
+        e (ClientError): A boto3 ClientError exception.
+
+    Returns:
+        bool: True if the error is a throttling/overload error, False otherwise.
+    """
     try:
         code = e.response["Error"]["Code"]
         if code in {
@@ -53,23 +141,110 @@ def is_throttle_error(e) -> bool:
         return False
 
 
-class PixtralClassifier(Classifier):
-    """Page Classifier using Pixtral Large."""
+class PixtralConnector:
+    """Low-level client for the Pixtral model.
+
+    Handles authentication, rate limiting, and retries with exponential
+    back-off and full jitter when API throttles requests.
+    """
 
     def __init__(
         self,
         config: dict,
         aws_config: dict,
-        fallback_classifier=None,
     ):
-        self.type = ClassifierTypes.PIXTRAL
-        self.config = config
-        self.prompts_dict = read_params(config["prompt_path"])[config["prompt_version"]]
-        self.client = boto3.client("bedrock-runtime", region_name=aws_config["region"])
-        self.fallback_classifier = fallback_classifier
-        self.model_id = aws_config["model_id"]
+        """Initialise client and rate-limiting settings.
 
-        self.system_content = [{"text": self.prompts_dict["system_prompt"]}]
+        Args:
+            config (dict): Pixtral configuration dict.
+            aws_config (dict): AWS settings dict.
+        """
+        self.config = config
+        self.client = boto3.client("bedrock-runtime", region_name=aws_config["region"])
+        self.model_id = aws_config["model_id"]
+        self._stats = {"throttles": 0, "retries": 0}
+        self.qps = config.get("qps", 2.0)
+        self.max_retries = config.get("max_retries", 6)
+        self.backoff_base = config.get("backoff_base", 0.4)
+        self.backoff_cap = config.get("backoff_cap", 8.0)
+        self._rl = RateLimiter(self.qps)
+        self.max_doc_size = self.config["max_document_size_mb"] - self.config["slack_size_mb"]
+
+    def _send_conversation(self, message: PixtralMessageStack, system: PixtralMessage) -> PixtralResponse:
+        """Send a single-turn conversation to the Pixtral model.
+
+        Args:
+            message (PixtralMessageStack): The user message stack to send.
+            system (PixtralMessage): The system prompt message.
+
+        Returns:
+            PixtralResponse: The validated model response.
+
+        Raises:
+            ClientError: If API call fails after max retries.
+        """
+        attempt = 0
+        while True:
+            self._rl.acquire()  # ensure we don't exceed QPS
+            try:
+                answer = self.client.converse(
+                    modelId=self.model_id,
+                    messages=[message.model_dump(by_alias=True, exclude_none=True)],
+                    system=[system.model_dump(by_alias=True, exclude_none=True)],
+                    inferenceConfig={
+                        "maxTokens": self.config.get("max_tokens", 5),
+                        "temperature": self.config.get("temperature", 0.2),
+                    },
+                )
+                return PixtralResponse.model_validate(answer)
+            except ClientError as e:
+                # Retry on throttling
+                if is_throttle_error(e) and attempt < self.max_retries:
+                    delay = min(self.backoff_cap, self.backoff_base * (2**attempt))
+                    # full jitter
+                    delay *= random.uniform(0.5, 1.5)
+                    logger.warning(f"Bedrock throttled (attempt {attempt + 1}/{self.max_retries}); sleep {delay:.2f}s")
+                    time.sleep(delay)
+                    attempt += 1
+
+                    self._stats["retries"] += 1
+                    if "Throttl" in str(e):
+                        self._stats["throttles"] += 1
+                    continue
+                raise  # not retryable or out of retries
+            except Exception:
+                # Non-ClientError; retry a couple of times
+                if attempt < 2:
+                    time.sleep(0.5 * (attempt + 1))
+                    attempt += 1
+                    continue
+                raise
+
+
+class PixtralClassifier(PixtralConnector, Classifier):
+    """Page classifier that uses the Pixtral vision model."""
+
+    def __init__(
+        self,
+        config: dict,
+        aws_config: dict,
+        fallback_classifier: Callable | None = None,
+    ):
+        """Initialise the classifier, loading prompts and example images.
+
+        Args:
+            config (dict): Pixtral configuration dict.
+            aws_config (dict): AWS settings dict.
+            fallback_classifier (Callable | None): Optional classifier to use when Pixtral
+                returns an unrecognised label or errors out.
+        """
+        # Create connection to remote model
+        PixtralConnector.__init__(self, config=config, aws_config=aws_config)
+
+        self.type = ClassifierTypes.PIXTRAL
+        self.prompts_dict = read_params(config["prompt_path"])[config["prompt_version"]]
+        self.fallback_classifier = fallback_classifier
+        self.system_content = PixtralMessage(text=self.prompts_dict["system_prompt"])
         self.examples_bytes = {
             "borehole": read_image_bytes(config["borehole_img_path"]),
             "text": read_image_bytes(config["text_img_path"]),
@@ -79,37 +254,29 @@ class PixtralClassifier(Classifier):
             "diagram": read_image_bytes(config["diagram_img_path"]),
             "table": read_image_bytes(config["table_img_path"]),
         }
-        self._stats = {"throttles": 0, "retries": 0}
-        self.qps = config.get("qps", 2.0)
-        self.max_retries = config.get("max_retries", 6)
-        self.backoff_base = config.get("backoff_base", 0.4)
-        self.backoff_cap = config.get("backoff_cap", 8.0)
-        self._rl = RateLimiter(self.qps)
 
     def determine_class(
         self, page: pymupdf.Page, page_number: int, context_builder: Callable[[], PageContext] = None, **kwargs
     ) -> PageClasses:
-        """Determines the class of a document page using the Pixtral model.
+        """Determine the page class using Pixtral vision model.
 
-        Falls back to treebased classifier if output is malformed or ClientError.
+        Falls back to fallback classifier if output is malformed or API error occurs.
 
         Args:
-            page: The page of th document that should be classified
-            context_builder: Builds page context (e.g., text blocks, lines) for fallback classifier.
-            page_number: the Page number of the page that should be classified
-            **kwargs: Additionally passed unused arguments
+            page (pymupdf.Page): The PDF page to classify.
+            page_number (int): The page number.
+            context_builder (Callable): Builds page context (e.g., text blocks, lines) for fallback classifier.
+            **kwargs: Additionally passed arguments if needed.
 
         Returns:
             PageClasses: The predicted page class.
         """
-        max_doc_size = self.config["max_document_size_mb"] - self.config["slack_size_mb"]
-        image_bytes = get_page_image_bytes(page, page_number, max_mb=max_doc_size)
-
-        conversation = self._build_conversation(image_bytes=image_bytes)
+        image_bytes = get_page_image_bytes(page, max_mb=self.max_doc_size)
+        message = self._build_conversation(image_bytes=image_bytes)
 
         try:
-            response = self._send_conversation(conversation)
-            raw_label = response["output"]["message"]["content"][0]["text"]
+            response = self._send_conversation(message=message, system=self.system_content)
+            raw_label = response.output.message.content[0].text
 
             label = clean_label(raw_label)
             category = map_string_to_page_class(label)
@@ -138,52 +305,91 @@ class PixtralClassifier(Classifier):
                 )
             return PageClasses.UNKNOWN
 
-    def _build_conversation(self, image_bytes: bytes) -> list[dict]:
-        content = [
-            {"image": {"format": "jpeg", "source": {"bytes": self.examples_bytes[text.strip("@")]}}}
-            if text.startswith("@")  # @category encodes the image of the category and adds it to the content
-            else {"text": text}
+    def _build_conversation(self, image_bytes: bytes) -> PixtralMessageStack:
+        """Build the user message containing few-shot examples and the target image.
+
+        Args:
+            image_bytes (bytes): JPEG-encoded bytes of the page to classify.
+
+        Returns:
+            PixtralMessageStack: A user turn ready to send to the model.
+        """
+        # List of examples for pixtral model
+        content_examples = [
+            PixtralMessage(
+                image=PixtralImage(
+                    format="jpeg",
+                    source=PixtralImageSource(bytes=self.examples_bytes[text.strip("@")]),
+                )
+            )
+            if text.startswith("@")
+            else PixtralMessage(text=text)
             for text in self.prompts_dict.get("examples_prompt", [])
         ]
-        content.append({"text": self.prompts_dict["user_prompt"]})
-        content.append({"image": {"format": "jpeg", "source": {"bytes": image_bytes}}})
 
-        return [{"role": "user", "content": content}]
+        # User prompt with content to classify
+        content_user_text = PixtralMessage(text=self.prompts_dict["user_prompt"])
+        content_user_img = PixtralMessage(
+            image=PixtralImage(
+                format="jpeg",
+                source=PixtralImageSource(bytes=image_bytes),
+            ),
+        )
 
-    def _send_conversation(self, conversation: list) -> dict:
-        """Sends the conversation to Bedrock with retry-on-throttle."""
-        attempt = 0
-        while True:
-            self._rl.acquire()  # ensure we dont exceed QPS
-            try:
-                return self.client.converse(
-                    modelId=self.model_id,
-                    messages=conversation,
-                    system=self.system_content,
-                    inferenceConfig={
-                        "maxTokens": self.config.get("max_tokens", 5),
-                        "temperature": self.config.get("temperature", 0.2),
-                    },
-                )
-            except ClientError as e:
-                # Retry on throttling
-                if is_throttle_error(e) and attempt < self.max_retries:
-                    delay = min(self.backoff_cap, self.backoff_base * (2**attempt))
-                    # full jitter
-                    delay *= random.uniform(0.5, 1.5)
-                    logger.warning(f"Bedrock throttled (attempt {attempt + 1}/{self.max_retries}); sleep {delay:.2f}s")
-                    time.sleep(delay)
-                    attempt += 1
+        return PixtralMessageStack(role="user", content=content_examples + [content_user_text, content_user_img])
 
-                    self._stats["retries"] += 1
-                    if "Throttl" in str(e):
-                        self._stats["throttles"] += 1
-                    continue
-                raise  # not retryable or out of retries
-            except Exception:
-                # Non-ClientError; retry a couple of times
-                if attempt < 2:
-                    time.sleep(0.5 * (attempt + 1))
-                    attempt += 1
-                    continue
-                raise
+
+class PixtralFeatureExtraction(PixtralConnector):
+    """Uses the Pixtral vision model to extract features from PDF pages."""
+
+    def __init__(self, config: dict, aws_config: dict, system_prompt: str):
+        """Initialise the extractor with a custom system prompt.
+
+        Args:
+            config (dict): Pixtral configuration dict.
+            aws_config (dict): AWS settings dict.
+            system_prompt (str): Instruction text sent as the system message for
+                every extraction request.
+        """
+        # Create connection to remote model
+        PixtralConnector.__init__(self, config=config, aws_config=aws_config)
+        self.system_prompt = PixtralMessage(text=system_prompt)
+
+    def _build_conversation(self, text: str, image_bytes: bytes) -> PixtralMessageStack:
+        """Build a minimal user message containing only a text and the target page image.
+
+        Args:
+            text (str): Text provided along with the image.
+            image_bytes (bytes): Encoded bytes of the page to process.
+
+        Returns:
+            PixtralMessageStack: A 'user' turn with a single image content block.
+        """
+        return PixtralMessageStack(
+            role="user",
+            content=[
+                PixtralMessage(
+                    image=PixtralImage(
+                        format="jpeg",
+                        source=PixtralImageSource(bytes=image_bytes),
+                    )
+                ),
+                PixtralMessage(text=text),
+            ],
+        )
+
+    def find(self, text: str, page: pymupdf.Page) -> str:
+        """Extract a feature from a single PDF page using the Pixtral model.
+
+        Args:
+            text (str): Text provided along with the image.
+            page (pymupdf.Page): The PyMuPDF page object to process.
+
+        Returns:
+            str: The raw text returned by the model (e.g. an extracted title).
+        """
+        image_bytes = get_page_image_bytes(page, max_mb=self.max_doc_size)
+        content_user = self._build_conversation(text=text, image_bytes=image_bytes)
+
+        response = self._send_conversation(message=content_user, system=self.system_prompt)
+        return response.output.message.content[0].text
