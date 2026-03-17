@@ -275,7 +275,7 @@ def main(
     write_result: bool = False,
     explain_model: bool = False,
     return_entities: bool = False,
-) -> tuple[list[ProcessorDocument], list[ProcessorDocumentEntities] | None]:
+) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
     """Run the page classification pipeline on input documents.
 
     Args:
@@ -288,10 +288,10 @@ def main(
         return_entities (bool): If True, return grouped entities instead of per-page results.
 
     Returns:
-        tuple[list[ProcessorDocument], list[ProcessorDocumentEntities] | None]:
-            * A list of `ProcessorDocument` containing per-page classifications, and
-            * A list of `ProcessorDocumentEntities` containing grouped entities (when `return_entities=True`).
-
+        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
+            * A list of `ProcessorDocument` containing per-page classifications, or
+            * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
+            when `return_entities=True`.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
@@ -330,6 +330,9 @@ def main(
     # End mlflow tracking
     if mlflow_tracking:
         mlflow.end_run()
+
+    # Reclassify section header pages using the label of their following page
+    documents_pages = [reclassify_section_headers(doc) for doc in documents_pages]
 
     entities: list[ProcessorDocumentEntities] = None
     if return_entities:
