@@ -36,5 +36,4 @@ minio
 .DS_Store
 
 /tmp
-uv.lock
 *.iml

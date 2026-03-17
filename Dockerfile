@@ -1,4 +1,4 @@
-FROM python:3.13-slim-bookworm AS builder
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -10,11 +10,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 
 # Install production dependencies only
-RUN python -m pip install --root-user-action=ignore --no-cache-dir --upgrade pip setuptools wheel \
- && pip install --use-pep517 --root-user-action=ignore --no-cache-dir --prefix=/install .
+RUN uv sync --frozen --no-dev --no-install-project
 
 
 FROM python:3.13-slim-bookworm AS runtime
@@ -32,7 +31,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder /install /usr/local
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 
 COPY src/ ./src/
 COPY api/ ./api/
