@@ -202,7 +202,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
             trainer.prepare_model()
 
         trainer.train()
-        explain_model(trainer.model, trainer.X_train, trainer.id2label)
+        explain_model(trainer.model, trainer.X_train)
         trainer.save_model()
 
         y_pred = trainer.model.predict(X_val)

@@ -10,10 +10,10 @@ from dotenv import load_dotenv
 from sklearn.model_selection import RandomizedSearchCV
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
-from xgboost import XGBClassifier
 
 from src.models.feature_engineering import get_features
 from src.models.treebased.basetrainer import TreeBasedTrainer
+from src.models.treebased.model import XGBClassifier, XGBOODClassifier
 from src.models.treebased.model_explanation import explain_model
 from src.page_classes import label2id
 from src.utils.utility import get_pdf_files, read_params
@@ -43,7 +43,8 @@ class XGBoostTrainer(TreeBasedTrainer):
     def prepare_model(self):
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
-        self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+        # self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+        self.model = XGBOODClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
 
     def tune_hyperparameters(
         self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
@@ -75,6 +76,14 @@ class XGBoostTrainer(TreeBasedTrainer):
         )
         search.fit(self.X_train, self.y_train)
         return search.best_params_, search.best_score_
+
+    def plot_and_log_confusion_matrix(self, y_pred: list):
+        """Plots and logs the confusion matrix for the validation set predictions.
+
+        Args:
+            y_pred (list): Predicted labels for the validation set.
+        """
+        super().plot_and_log_confusion_matrix(y_pred, id2label=self.model.id2label)
 
 
 def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int]):
@@ -183,7 +192,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
             trainer.prepare_model()
 
         trainer.train()
-        explain_model(trainer.model, trainer.X_train, trainer.id2label)
+        explain_model(trainer.model, trainer.X_train)
         trainer.save_model()
 
         y_pred = trainer.model.predict(X_val)

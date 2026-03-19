@@ -13,13 +13,7 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 
-from src.page_classes import (
-    enum2id,
-    id2enum,
-    id2label,
-    label2id,
-    num_labels,
-)
+from src.page_classes import num_labels
 
 
 class TreeBasedTrainer(abc.ABC):
@@ -31,10 +25,6 @@ class TreeBasedTrainer(abc.ABC):
     Subclasses should implement the `prepare_model` method to initialize their specific model type.
 
     Attributes:
-        label2id (dict): Mapping from label names to IDs.
-        id2label (dict): Mapping from IDs to label names.
-        enum2id (dict): Mapping from enum names to IDs.
-        id2enum (dict): Mapping from IDs to enum names.
         num_labels (int): Number of unique labels.
         config (dict): Configuration dictionary containing model parameters.
         model (object): The machine learning model to be trained.
@@ -49,12 +39,7 @@ class TreeBasedTrainer(abc.ABC):
             config (dict): Configuration dictionary containing model parameters.
             output_path (Path): Directory where the trained model will be saved.
         """
-        self.label2id = label2id
-        self.id2label = id2label
-        self.enum2id = enum2id
-        self.id2enum = id2enum
         self.num_labels = num_labels
-
         self.config = config
         self.model = None
         self.feature_names = config.get("feature_names")
@@ -104,13 +89,10 @@ class TreeBasedTrainer(abc.ABC):
 
     def plot_and_log_feature_importance(self):
         """Plots and logs the feature importance of the trained model."""
-        if not hasattr(self.model, "feature_importances_"):
-            raise ValueError("Model does not have feature importances. Ensure it is a tree-based model.")
-
         # Get feature importances and sort them
         if self.feature_names is None:
             raise ValueError("Feature names are not provided in the configuration.")
-        importances = self.model.feature_importances_
+        importances = self.model.get_model_feature_importances()
         indices = np.argsort(importances)[::-1]
         sorted_names = [self.feature_names[i] for i in indices]
 
@@ -125,13 +107,14 @@ class TreeBasedTrainer(abc.ABC):
         plt.close()
         mlflow.log_artifact(str(fig_path))
 
-    def plot_and_log_confusion_matrix(self, y_pred: list):
+    def plot_and_log_confusion_matrix(self, y_pred: list, id2label: dict):
         """Plots and logs the confusion matrix for the validation set predictions.
 
         Args:
             y_pred (list): Predicted labels for the validation set.
+            id2label (dict): Index to label correspondence.
         """
-        class_names = [self.id2label[i] for i in sorted(self.id2label)]
+        class_names = [id2label[i] for i in sorted(id2label)]
         cm = confusion_matrix(self.y_val, y_pred)
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
         disp.plot(xticks_rotation="vertical")
