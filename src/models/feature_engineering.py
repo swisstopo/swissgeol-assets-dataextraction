@@ -16,6 +16,7 @@ from src.language_detection.detect_language import (
     predict_language,
     select_classification_language,
 )
+from src.language_detection.pages_to_ignore import max_title_page_keyword_score
 from src.page_structure import PageContext
 from src.utils.diagrams import Entry, detect_entries, is_mostly_increasing
 from src.utils.map import compute_angle_entropy, find_map_scales, map_lines_score, split_lines_by_orientation
@@ -59,7 +60,7 @@ def get_features(
         ctx: Optional pre-built PageContext with cached extraction data.
 
     Returns:
-        list[float]: A list of 23 computed features.
+        list[float]: A list of 24 computed features.
     """
     if ctx is not None and ctx.extraction_context is not None:
         # INFERENCE PATH: Reuse cached data from PageContext
@@ -105,10 +106,10 @@ def compute_text_features(
     borehole_matching_params: dict,
     extraction_context: ExtractionContext | None = None,
 ) -> list[float]:
-    """Computes 23 numerical features used for XGBoost page classification models.
+    """Computes 24 numerical features used for XGBoost page classification models.
 
     The features are derived from:
-    - Text/word features (6): words per line, density, position, width, indentation, capitalization
+    - Text/word features (7): words per line, density, position, width, indentation, capitalization
     - Map features (5): keyword lines, grid/non-grid line lengths, angle entropy, line score
     - Geo profile and diagram features (4): keywords, units, axis scales
     - Borehole features (8): descriptions, strip logs, tables, boreholes, sidebars, geometric lines
@@ -125,10 +126,16 @@ def compute_text_features(
         extraction_context: Optional ExtractionContext for caching intermediate results.
 
     Returns:
-        list: A list of 23 computed feature values for the page. If no text lines are found, returns a zero vector.
+        list: A list of 24 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
+    """Computes 24 numerical features used for XGBoost page classification models."""
     if not lines:
-        return [0.0] * 23  # Handle empty pages (15 base + 8 borehole features)
+        return [0.0] * 24
+    # if not lines:
+    #     return [0.0] * 23  # Handle empty pages (15 base + 8 borehole features)
+
+    page_text = page.get_text("text") or ""
+    keywords_list_score = max_title_page_keyword_score(page_text)
 
     (
         word_per_line,
@@ -152,6 +159,7 @@ def compute_text_features(
     num_unit, y_ok, x_ok = get_diagram_features(lines, matching_params)
 
     features = [
+        keywords_list_score,
         word_per_line,
         word_density,
         mean_left,

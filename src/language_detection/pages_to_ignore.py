@@ -105,6 +105,37 @@ title_page_substrings = {
     ],
 }
 
+def normalize_text(text: str) -> str:
+    """Normalize page text before keyword matching."""
+    return " ".join(text.upper().split())
+
+
+def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
+    """Return the fraction of substring groups that match the text.
+
+    A group matches if at least one alternative in that group is present.
+    """
+    if not substrings:
+        return 0.0
+
+    normalized_text = normalize_text(text)
+    matches = [
+        any(candidate.upper() in normalized_text for candidate in substring_group)
+        for substring_group in substrings
+    ]
+    return sum(matches) / len(matches)
+
+
+def max_title_page_keyword_score(text: str) -> float:
+    """Return the best keyword-match score across all predefined title-page patterns."""
+    if not text:
+        return 0.0
+
+    return max(
+        substring_match_ratio(text, pattern_substrings)
+        for pattern_substrings in title_page_substrings.values()
+    )
+
 
 def is_belegblatt(text: str) -> bool:
     """Check if the text matches any of the Belegblatt patterns."""
