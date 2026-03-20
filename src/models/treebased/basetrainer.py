@@ -52,24 +52,24 @@ class TreeBasedTrainer(abc.ABC):
         self.model_dir.mkdir(parents=True, exist_ok=True)
 
     @abc.abstractmethod
-    def prepare_model(self):
+    def prepare_model(self) -> None:
         """Prepares the model for training. This method should be implemented by subclasses."""
         pass
 
-    def load_data(self, X_train, y_train, X_val, y_val):
+    def load_data(self, X_train, y_train, X_val, y_val) -> None:
         """Loads training and validation data into numpy arrays."""
         self.X_train = np.array(X_train)
         self.y_train = np.array(y_train)
         self.X_val = np.array(X_val)
         self.y_val = np.array(y_val)
 
-    def train(self):
+    def train(self) -> None:
         """Trains the model using the loaded training data."""
         if self.model is None:
             raise ValueError("Model is not prepared. Call prepare_model() before training.")
         self.model.fit(self.X_train, self.y_train)
 
-    def evaluate(self, y_pred):
+    def evaluate(self, y_pred) -> None:
         """Evaluates the model's performance on the validation set.
 
         Args:
@@ -84,7 +84,7 @@ class TreeBasedTrainer(abc.ABC):
         _, _, f1_macro, _ = precision_recall_fscore_support(self.y_val, y_pred, average="macro", zero_division=0)
         return {"precision_micro": precision, "recall_micro": recall, "f1_micro": f1, "f1_macro": f1_macro}
 
-    def save_model(self, filename: str = "model.joblib"):
+    def save_model(self, filename: str = "model.joblib") -> None:
         """Saves the trained model to the specified file."""
         path = self.model_dir / filename
         joblib.dump(self.model, path)
@@ -149,7 +149,7 @@ class XGBoostTrainer(TreeBasedTrainer):
 
     model_name = "xgboost_model"
 
-    def prepare_model(self):
+    def prepare_model(self) -> None:
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
         # self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)

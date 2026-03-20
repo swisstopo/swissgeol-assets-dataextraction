@@ -68,13 +68,15 @@ class TreeBasedModel:
 class XGBOODClassifier(XGBClassifier):
     """Out of distribution (OOD) XGBoost classifier."""
 
-    def __init__(self, mode: str = "hnorm", **kwargs):
+    def __init__(self, mode: str = "gmm", **kwargs):
         """Initialisation of the XGBoostOOD classifier.
 
         Args:
             mode (str): Mode used to estimate threshold. Defaults to "gmm".
             kwargs (dict): Additional parameters.
         """
+        if kwargs.get("num_class") is None:
+            raise ValueError("num_class must be provided")
         self.mode = mode
         self.id_ood = label2id[PageClasses.UNKNOWN]
         self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
@@ -123,7 +125,7 @@ class XGBOODClassifier(XGBClassifier):
         gmm.fit(np.concatenate([p, p_ood]).reshape(-1, 1))
         id_class = np.argmax(gmm.means_)
 
-        # Find threshold: ie where probability if 0.5 for both mixtures
+        # Find threshold: i.e., where probability is conf for p mixtures
         x_sweep = np.linspace(0, 1, num=n_estimate, endpoint=False).reshape(-1, 1)
         p_sweep = gmm.predict_proba(x_sweep)
         err_sweep = (p_sweep[:, id_class] - conf) ** 2

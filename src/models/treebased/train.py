@@ -18,8 +18,6 @@ from src.models.feature_engineering import get_features
 from src.models.treebased.basetrainer import XGBoostTrainer
 from src.models.treebased.model_explanation import explain_model
 from src.page_classes import label2id
-
-# Reuse trainer classes from train.py to avoid duplication
 from src.utils.utility import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)
