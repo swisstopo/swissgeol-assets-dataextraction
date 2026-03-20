@@ -68,7 +68,7 @@ class TreeBasedModel:
 class XGBOODClassifier(XGBClassifier):
     """Out of distribution (OOD) XGBoost classifier."""
 
-    def __init__(self, mode: str = "gmm", **kwargs):
+    def __init__(self, mode: str = "hnorm", **kwargs):
         """Initialisation of the XGBoostOOD classifier.
 
         Args:
@@ -99,7 +99,9 @@ class XGBOODClassifier(XGBClassifier):
         return 1 - halfnorm.ppf(conf, scale=sigma)
 
     @staticmethod
-    def _estimate_from_gmm(p: NDArray[np.float64], p_ood: NDArray[np.float64], n_estimate: int = 1000) -> float:
+    def _estimate_from_gmm(
+        p: NDArray[np.float64], p_ood: NDArray[np.float64], conf: float = 0.5, n_estimate: int = 1000
+    ) -> float:
         """Estimate the OOD threshold between two distributions using a Gaussian Mixture Model.
 
         Fits a 2-component GMM to the combined probability scores of in-distribution (`p`) and
@@ -109,6 +111,7 @@ class XGBOODClassifier(XGBClassifier):
         Args:
             p (NDArray[np.float64]): In-distribution class probabilities for samples of that class.
             p_ood (NDArray[np.float64]): OOD class probabilities for the OOD samples.
+            conf (float, optional): Confidence quantile used to set the threshold. Defaults to 0.5.
             n_estimate (int, optional): Number of points used to sweep [0, 1] when searching for the
                 decision boundary. Defaults to 1000.
 
@@ -118,16 +121,17 @@ class XGBOODClassifier(XGBClassifier):
         # Fit GMM to estimate distribution (assume Gaussian, even if not really)
         gmm = GaussianMixture(n_components=2, random_state=0)
         gmm.fit(np.concatenate([p, p_ood]).reshape(-1, 1))
+        id_class = np.argmax(gmm.means_)
 
         # Find threshold: ie where probability if 0.5 for both mixtures
         x_sweep = np.linspace(0, 1, num=n_estimate, endpoint=False).reshape(-1, 1)
         p_sweep = gmm.predict_proba(x_sweep)
-        err_sweep = ((p_sweep - 0.5) ** 2).sum(axis=1)
+        err_sweep = (p_sweep[:, id_class] - conf) ** 2
 
         return x_sweep[err_sweep.argmin()].item()
 
     def _estimate_thresholds(self, X: NDArray[np.float64], y: NDArray[np.float64]) -> NDArray[np.float64]:
-        """Estimate thresholds for each classed in OOD detection.
+        """Estimate thresholds for each class in OOD detection.
 
         Args:
             X (NDArray[np.float64]): Data features.
@@ -167,7 +171,7 @@ class XGBOODClassifier(XGBClassifier):
         """
         # Step 1: Fit XGBoost with all classes except OOD
         super().fit(X[self.id_ood != y, :], y[self.id_ood != y], **kwargs)
-        # Step 2: Estimate OOD threhsiold based on class distribution
+        # Step 2: Estimate OOD threshold based on class distribution
         self.thresholds = self._estimate_thresholds(X, y)
         return self
 
@@ -185,6 +189,6 @@ class XGBOODClassifier(XGBClassifier):
         y_proba = super().predict_proba(X, **kwargs)
         y_label = y_proba.argmax(axis=1)
         y_label_th = y_proba.max(axis=1)
-        # Replace prediction where threshold is not meet
+        # Replace prediction where threshold is not met
         y_label[self.thresholds[y_label] > y_label_th] = self.id_ood
         return y_label

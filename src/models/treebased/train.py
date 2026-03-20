@@ -1,4 +1,4 @@
-"""Parallelized version of train.py with multiprocessing for feature extraction."""
+"""Training script for XGBoost-based page classifier with optional parallel feature extraction."""
 
 import argparse
 import json
@@ -180,8 +180,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
     label_lookup = build_filename_to_label_map(ground_truth_path)
 
     print(f"\nFeature extraction mode: {'PARALLEL' if parallel else 'SEQUENTIAL'}")
-    trainer = XGBoostTrainer(config, model_out_directory)
-    trainer.prepare_model()
+
     # Choose loading strategy
     start_time = time.time()
     load_fn = (

@@ -121,7 +121,7 @@ python -m src.models.treebased.train \
     --max-workers 8
 ```
 
-Use `--max-workers N` to limit the number of parallel workers (defaults to CPU count) and `--tuning` to enable hyperparameter tuning for the XGBoost algorithm. You can disable parallele data loading using the flag `--sequential`. The trained model will be saved under `models/xgboost_model`. 
+Use `--max-workers N` to limit the number of parallel workers (defaults to CPU count) and `--tuning` to enable hyperparameter tuning for the XGBoost algorithm. You can disable parallel data loading using the flag `--sequential`. The trained model will be saved under `models/xgboost_model`. 
 
 For macOS users, if you encounter OpenMP issues, install the library via Homebrew first:
 ```bash

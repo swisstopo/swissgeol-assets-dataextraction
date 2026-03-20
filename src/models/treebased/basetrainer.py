@@ -92,7 +92,7 @@ class TreeBasedTrainer(abc.ABC):
         mlflow.sklearn.log_model(self.model, name=self.model_name, signature=signature)
         return path
 
-    def plot_and_log_feature_importance(self):
+    def plot_and_log_feature_importance(self) -> None:
         """Plots and logs the feature importance of the trained model."""
         # Get feature importances and sort them
         if not hasattr(self.model, "feature_importances_"):
@@ -116,12 +116,11 @@ class TreeBasedTrainer(abc.ABC):
         plt.close()
         mlflow.log_artifact(str(fig_path))
 
-    def plot_and_log_confusion_matrix(self, y_pred: list):
+    def plot_and_log_confusion_matrix(self, y_pred: list) -> None:
         """Plots and logs the confusion matrix for the validation set predictions.
 
         Args:
             y_pred (list): Predicted labels for the validation set.
-            id2label (dict): Index to label correspondence.
         """
         class_names = [self.id2label[i] for i in sorted(self.id2label)]
         cm = confusion_matrix(self.y_val, y_pred)
