@@ -6,6 +6,7 @@ import joblib
 import numpy as np
 from numpy.typing import NDArray
 from scipy.stats import halfnorm
+from sklearn.mixture import GaussianMixture
 from xgboost import XGBClassifier
 
 from src.page_classes import (
@@ -67,19 +68,63 @@ class TreeBasedModel:
 class XGBOODClassifier(XGBClassifier):
     """Out of distribution (OOD) XGBoost classifier."""
 
-    def __init__(self, prob_ood: float = 0.95, **kwargs):
+    def __init__(self, mode: str = "gmm", **kwargs):
         """Initialisation of the XGBoostOOD classifier.
 
         Args:
-            num_class (int): Number of classes (with OOD).
-            prob_ood (float, optional): Probability for OOD detection. Defaults to 0.95.
+            mode (str): Mode used to estimate threshold. Defaults to "gmm".
             kwargs (dict): Additional parameters.
         """
+        self.mode = mode
         self.id_ood = label2id[PageClasses.UNKNOWN]
-        self.prob_ood = prob_ood
         self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
         # XGBoost's init can overwrite attrs set after it
         super().__init__(**kwargs)
+
+    @staticmethod
+    def _estimate_from_half_normal(p: NDArray[np.float64], conf: float = 0.95) -> float:
+        """Estimate the OOD threshold for a class using a half-normal distribution fit.
+
+        Fits a half-normal distribution to the complement of the class probabilities (1 - p1),
+        then returns the threshold at the given confidence quantile.
+
+        Args:
+            p (NDArray[np.float64]): In-distribution class probabilities for samples of that class.
+            conf (float, optional): Confidence quantile used to set the threshold. Defaults to 0.95.
+
+        Returns:
+            float: Probability threshold below which a sample is considered out-of-distribution.
+        """
+        _, sigma = halfnorm.fit(1 - p, floc=0)
+        return 1 - halfnorm.ppf(conf, scale=sigma)
+
+    @staticmethod
+    def _estimate_from_gmm(p: NDArray[np.float64], p_ood: NDArray[np.float64], n_estimate: int = 1000) -> float:
+        """Estimate the OOD threshold between two distributions using a Gaussian Mixture Model.
+
+        Fits a 2-component GMM to the combined probability scores of in-distribution (`p`) and
+        out-of-distribution (`p_ood`) samples, then finds the decision boundary where both components
+        have equal probability (i.e., the crossing point near 0.5 each).
+
+        Args:
+            p (NDArray[np.float64]): In-distribution class probabilities for samples of that class.
+            p_ood (NDArray[np.float64]): OOD class probabilities for the OOD samples.
+            n_estimate (int, optional): Number of points used to sweep [0, 1] when searching for the
+                decision boundary. Defaults to 1000.
+
+        Returns:
+            float: Probability threshold that best separates in-distribution from OOD samples.
+        """
+        # Fit GMM to estimate distribution (assume Gaussian, even if not really)
+        gmm = GaussianMixture(n_components=2, random_state=0)
+        gmm.fit(np.concatenate([p, p_ood]).reshape(-1, 1))
+
+        # Find threshold: ie where probability if 0.5 for both mixtures
+        x_sweep = np.linspace(0, 1, num=n_estimate, endpoint=False).reshape(-1, 1)
+        p_sweep = gmm.predict_proba(x_sweep)
+        err_sweep = ((p_sweep - 0.5) ** 2).sum(axis=1)
+
+        return x_sweep[err_sweep.argmin()].item()
 
     def _estimate_thresholds(self, X: NDArray[np.float64], y: NDArray[np.float64]) -> NDArray[np.float64]:
         """Estimate thresholds for each classed in OOD detection.
@@ -89,15 +134,24 @@ class XGBOODClassifier(XGBClassifier):
             y (NDArray[np.float64]): Data classes.
 
         Returns:
-            NDArray[np.float64]: _description_
+            NDArray[np.float64]: Per-class probability thresholds. Predictions whose max probability
+                falls below the threshold for their predicted class are reassigned to OOD.
         """
         thresholds = np.zeros_like(self.thresholds)
         for c in range(len(thresholds)):
-            # Fit probability for given class to half normal distribution
-            Xc_proba = super().predict_proba(X[y == c, :])
-            _, sigma = halfnorm.fit(1 - Xc_proba[:, c], floc=0)
-            # Define threshold as prob_ood confidence
-            thresholds[c] = 1 - halfnorm.ppf(self.prob_ood, scale=sigma)
+            # Extract probability for class and OOD
+            p_xc = self.predict_proba(X[y == c, :])[:, c]
+            p_ood = self.predict_proba(X[y == self.id_ood, :])[:, c]
+
+            # Estimate threshold based on selected mode
+            if self.mode == "gmm":
+                threshold = self._estimate_from_gmm(p=p_xc, p_ood=p_ood)
+            elif self.mode == "hnorm":
+                threshold = self._estimate_from_half_normal(p=p_xc)
+            else:
+                raise NotImplementedError(f"Unknown mode {self.mode=}")
+
+            thresholds[c] = threshold
         return thresholds
 
     def fit(self, X: NDArray[np.float64], y: NDArray[np.float64], **kwargs) -> Self:

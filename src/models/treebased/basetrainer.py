@@ -14,7 +14,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import RandomizedSearchCV
 
-from src.models.treebased.model import XGBClassifier
+from src.models.treebased.model import XGBClassifier, XGBOODClassifier
 from src.page_classes import id2label, num_labels
 
 
@@ -153,8 +153,8 @@ class XGBoostTrainer(TreeBasedTrainer):
     def prepare_model(self):
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
-        self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
-        # self.model = XGBOODClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+        # self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+        self.model = XGBOODClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
 
     def tune_hyperparameters(
         self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
