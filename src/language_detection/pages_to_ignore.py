@@ -105,6 +105,7 @@ title_page_substrings = {
     ],
 }
 
+
 def normalize_text(text: str) -> str:
     """Normalize page text before keyword matching."""
     return " ".join(text.upper().split())
@@ -120,8 +121,7 @@ def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
 
     normalized_text = normalize_text(text)
     matches = [
-        any(candidate.upper() in normalized_text for candidate in substring_group)
-        for substring_group in substrings
+        any(candidate.upper() in normalized_text for candidate in substring_group) for substring_group in substrings
     ]
     return sum(matches) / len(matches)
 
@@ -132,8 +132,7 @@ def max_title_page_keyword_score(text: str) -> float:
         return 0.0
 
     return max(
-        substring_match_ratio(text, pattern_substrings)
-        for pattern_substrings in title_page_substrings.values()
+        substring_match_ratio(text, pattern_substrings) for pattern_substrings in title_page_substrings.values()
     )
 
 
