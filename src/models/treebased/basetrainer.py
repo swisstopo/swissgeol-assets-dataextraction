@@ -12,8 +12,10 @@ from sklearn.metrics import (
     confusion_matrix,
     precision_recall_fscore_support,
 )
+from sklearn.model_selection import RandomizedSearchCV
 
-from src.page_classes import num_labels
+from src.models.treebased.model import XGBClassifier
+from src.page_classes import id2label, num_labels
 
 
 class TreeBasedTrainer(abc.ABC):
@@ -25,6 +27,7 @@ class TreeBasedTrainer(abc.ABC):
     Subclasses should implement the `prepare_model` method to initialize their specific model type.
 
     Attributes:
+        id2label (dict): Mapping from IDs to label names.
         num_labels (int): Number of unique labels.
         config (dict): Configuration dictionary containing model parameters.
         model (object): The machine learning model to be trained.
@@ -39,7 +42,9 @@ class TreeBasedTrainer(abc.ABC):
             config (dict): Configuration dictionary containing model parameters.
             output_path (Path): Directory where the trained model will be saved.
         """
+        self.id2label = id2label
         self.num_labels = num_labels
+
         self.config = config
         self.model = None
         self.feature_names = config.get("feature_names")
@@ -90,9 +95,13 @@ class TreeBasedTrainer(abc.ABC):
     def plot_and_log_feature_importance(self):
         """Plots and logs the feature importance of the trained model."""
         # Get feature importances and sort them
+        if not hasattr(self.model, "feature_importances_"):
+            raise ValueError("Model does not have feature importances. Ensure it is a tree-based model.")
+
         if self.feature_names is None:
             raise ValueError("Feature names are not provided in the configuration.")
-        importances = self.model.get_model_feature_importances()
+
+        importances = self.model.feature_importances_
         indices = np.argsort(importances)[::-1]
         sorted_names = [self.feature_names[i] for i in indices]
 
@@ -107,14 +116,14 @@ class TreeBasedTrainer(abc.ABC):
         plt.close()
         mlflow.log_artifact(str(fig_path))
 
-    def plot_and_log_confusion_matrix(self, y_pred: list, id2label: dict):
+    def plot_and_log_confusion_matrix(self, y_pred: list):
         """Plots and logs the confusion matrix for the validation set predictions.
 
         Args:
             y_pred (list): Predicted labels for the validation set.
             id2label (dict): Index to label correspondence.
         """
-        class_names = [id2label[i] for i in sorted(id2label)]
+        class_names = [self.id2label[i] for i in sorted(self.id2label)]
         cm = confusion_matrix(self.y_val, y_pred)
         disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
         disp.plot(xticks_rotation="vertical")
@@ -130,3 +139,50 @@ class TreeBasedTrainer(abc.ABC):
         with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=2)
         mlflow.log_artifact(str(report_path))
+
+
+class XGBoostTrainer(TreeBasedTrainer):
+    """Trainer for XGBoost models.
+
+    This class extends the TreeBasedTrainer to implement specific methods for training and evaluating
+    XGBoost models using the provided configuration and data.
+    """
+
+    model_name = "xgboost_model"
+
+    def prepare_model(self):
+        """Prepares the XGBoost model for training."""
+        hyperparams = self.config.get("hyperparameters", {})
+        self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+        # self.model = XGBOODClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+
+    def tune_hyperparameters(
+        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
+    ) -> tuple[dict, float]:
+        """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
+
+        Args:
+            param_dist: Dictionary with parameters to search.
+            n_iter: Number of parameter settings that are sampled.
+            scoring: Scoring method to use for evaluation.
+            cv: Number of folds in cross-validation.
+            random_state (int): Random seed for reproducibility.
+
+        Returns:
+                best_params: Best hyperparameters found during tuning.
+                best_score: Best score achieved during tuning.
+        """
+        # Initialize XGBoost model with default parameters
+        model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
+        search = RandomizedSearchCV(
+            estimator=model,
+            param_distributions=param_dist,
+            n_iter=n_iter,
+            scoring=scoring,
+            cv=cv,
+            verbose=1,
+            random_state=random_state,
+            n_jobs=-1,
+        )
+        search.fit(self.X_train, self.y_train)
+        return search.best_params_, search.best_score_

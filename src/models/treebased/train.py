@@ -1,21 +1,25 @@
+"""Parallelized version of train.py with multiprocessing for feature extraction."""
+
 import argparse
 import json
 import logging
 import os
 import time
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from functools import partial
 from pathlib import Path
 
 import pymupdf
 from dotenv import load_dotenv
-from sklearn.model_selection import RandomizedSearchCV
 from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 from tqdm import tqdm
 
 from src.models.feature_engineering import get_features
-from src.models.treebased.basetrainer import TreeBasedTrainer
-from src.models.treebased.model import XGBClassifier, XGBOODClassifier
+from src.models.treebased.basetrainer import XGBoostTrainer
 from src.models.treebased.model_explanation import explain_model
 from src.page_classes import label2id
+
+# Reuse trainer classes from train.py to avoid duplication
 from src.utils.utility import get_pdf_files, read_params
 
 logger = logging.getLogger(__name__)
@@ -29,93 +33,6 @@ if mlflow_tracking:
 MATCHING_PARAMS_PATH = "config/local_matching_params.yml"
 matching_params = read_params(MATCHING_PARAMS_PATH)
 borehole_matching_params = swissgeol_read_params("matching_params.yml")
-
-
-class XGBoostTrainer(TreeBasedTrainer):
-    """Trainer for XGBoost models.
-
-    This class extends the TreeBasedTrainer to implement specific methods for training and evaluating
-    XGBoost models using the provided configuration and data.
-    """
-
-    model_name = "xgboost_model"
-
-    def prepare_model(self):
-        """Prepares the XGBoost model for training."""
-        hyperparams = self.config.get("hyperparameters", {})
-        # self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
-        self.model = XGBOODClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
-
-    def tune_hyperparameters(
-        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
-    ) -> tuple[dict, float]:
-        """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
-
-        Args:
-            param_dist: Dictionary with parameters to search.
-            n_iter: Number of parameter settings that are sampled.
-            scoring: Scoring method to use for evaluation.
-            cv: Number of folds in cross-validation.
-            random_state (int): Random seed for reproducibility.
-
-        Returns:
-                best_params: Best hyperparameters found during tuning.
-                best_score: Best score achieved during tuning.
-        """
-        # Initialize XGBoost model with default parameters
-        model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
-        search = RandomizedSearchCV(
-            estimator=model,
-            param_distributions=param_dist,
-            n_iter=n_iter,
-            scoring=scoring,
-            cv=cv,
-            verbose=1,
-            random_state=random_state,
-            n_jobs=-1,
-        )
-        search.fit(self.X_train, self.y_train)
-        return search.best_params_, search.best_score_
-
-    def plot_and_log_confusion_matrix(self, y_pred: list):
-        """Plots and logs the confusion matrix for the validation set predictions.
-
-        Args:
-            y_pred (list): Predicted labels for the validation set.
-        """
-        super().plot_and_log_confusion_matrix(y_pred, id2label=self.model.id2label)
-
-
-def load_data_and_labels(folder_path: Path, label_map: dict[tuple[str, int], int]):
-    """Loads data and labels from PDF files in the specified folder.
-
-    Args:
-        folder_path (Path): Path to the folder containing PDF files.
-        label_map (dict): Mapping from (filename, page_number) to label ID.
-
-    Returns:
-        tuple: A tuple containing a list of features and a list of labels.
-    """
-    file_paths = get_pdf_files(folder_path)
-    all_features = []
-    labels = []
-
-    for file_path in tqdm(file_paths, desc="Loading data ..."):
-        filename = os.path.basename(file_path)
-
-        with pymupdf.Document(file_path) as doc:
-            for page_number, page in enumerate(doc, start=1):
-                key = (filename, page_number)
-                if key not in label_map:
-                    raise ValueError(f"Missing label for file: {key}")
-
-                # Extract feature for given document page
-                features = get_features(page, page_number, matching_params, borehole_matching_params)
-
-                labels.append(label_map[key])
-                all_features.append(features)
-
-    return all_features, labels
 
 
 def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int]:
@@ -138,13 +55,113 @@ def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int
     return label_lookup
 
 
-def main(config_path: str, out_directory: str, tuning: bool = False):
-    """Main function to train the XGBoost model based on the provided configuration.
+def extract_features_from_page(args):
+    """Extract features from a single page (used for multiprocessing).
 
     Args:
-        config_path (str): Path to the YAML configuration file.
-        out_directory (str): Directory where the trained model and logs will be saved.
-        tuning (bool): Whether to perform hyperparameter tuning. Default is False.
+        args: Tuple of (file_path, page_number, matching_params, borehole_matching_params)
+
+    Returns:
+        Tuple of (filename, page_number, features) or None if error
+    """
+    file_path, page_number, matching_params, borehole_matching_params = args
+    filename = os.path.basename(file_path)
+
+    try:
+        with pymupdf.Document(file_path) as doc:
+            # Page numbers are 1-indexed for user, 0-indexed for pymupdf
+            page = doc[page_number - 1]
+            features = get_features(page, page_number, matching_params, borehole_matching_params)
+            return (filename, page_number, features)
+    except Exception as e:
+        logger.exception(f"Error processing {filename} page {page_number}: {e}")
+        return None
+
+
+def load_data_and_labels_parallel(folder_path: Path, label_map: dict[tuple[str, int], int], max_workers: int = None):
+    """Loads data and labels from PDF files using parallel processing.
+
+    Args:
+        folder_path: Path to the folder containing PDF files.
+        label_map: Mapping from (filename, page_number) to label ID.
+        max_workers: Maximum number of parallel workers. If None, uses CPU count.
+
+    Returns:
+        Tuple of (features_list, labels_list) in deterministic order.
+    """
+    file_paths = get_pdf_files(folder_path)
+
+    # Build ordered list of tasks with keys to preserve order
+    tasks = []
+    task_keys = []  # Store (filename, page_number) in submission order
+    for file_path in file_paths:
+        filename = os.path.basename(file_path)
+        with pymupdf.Document(file_path) as doc:
+            page_count = len(doc)
+            for page_number in range(1, page_count + 1):
+                if (filename, page_number) in label_map:
+                    tasks.append((file_path, page_number, matching_params, borehole_matching_params))
+                    task_keys.append((filename, page_number))
+
+    print(f"Processing {len(tasks)} pages from {len(file_paths)} files...")
+
+    # Process pages in parallel, collecting results by key
+    results = {}  # Map (filename, page_number) -> features
+
+    with ProcessPoolExecutor(max_workers=max_workers) as executor:
+        # Submit all tasks
+        future_to_task = {executor.submit(extract_features_from_page, task): task for task in tasks}
+
+        # Collect results with progress bar (order doesn't matter here, we'll sort later)
+        for future in tqdm(as_completed(future_to_task), total=len(tasks), desc="Extracting features"):
+            result = future.result()
+            if result is not None:
+                filename, page_number, features = result
+                results[(filename, page_number)] = features
+
+    # Reconstruct features and labels in ORIGINAL ORDER (deterministic)
+    all_features = []
+    labels = []
+    for key in task_keys:
+        if key in results:
+            all_features.append(results[key])
+            labels.append(label_map[key])
+        else:
+            logger.warning(f"Missing result for {key}, skipping")
+
+    return all_features, labels
+
+
+def load_data_and_labels_sequential(folder_path: Path, label_map: dict[tuple[str, int], int]):
+    """Sequential version for comparison/fallback."""
+    file_paths = get_pdf_files(folder_path)
+    all_features = []
+    labels = []
+
+    for file_path in tqdm(file_paths, desc="Processing files"):
+        filename = os.path.basename(file_path)
+
+        with pymupdf.Document(file_path) as doc:
+            for page_number, page in enumerate(doc, start=1):
+                key = (filename, page_number)
+                if key not in label_map:
+                    continue  # Skip pages without labels
+                features = get_features(page, page_number, matching_params, borehole_matching_params)
+                all_features.append(features)
+                labels.append(label_map[key])
+
+    return all_features, labels
+
+
+def main(config_path: str, out_directory: str, tuning: bool = False, parallel: bool = True, max_workers: int = None):
+    """Main function to train the Random Forest or XGBoost model.
+
+    Args:
+        config_path: Path to the YAML configuration file.
+        out_directory: Directory where the trained model and logs will be saved.
+        tuning: Whether to perform hyperparameter tuning. Default is False.
+        parallel: Whether to use parallel feature extraction. Default is True.
+        max_workers: Maximum number of parallel workers. If None, uses CPU count.
     """
     if not mlflow_tracking:
         raise RuntimeError("MLflow tracking is disabled. Set MLFLOW_TRACKING=True in .env to enable it.")
@@ -159,40 +176,58 @@ def main(config_path: str, out_directory: str, tuning: bool = False):
 
     model_out_directory = Path(out_directory) / time.strftime("%Y%m%d-%H%M%S")
 
-    # Create dataset
+    # --- Step 1: Load dataset train and validation
     label_lookup = build_filename_to_label_map(ground_truth_path)
-    X_train, y_train = load_data_and_labels(train_folder, label_lookup)
-    X_val, y_val = load_data_and_labels(val_folder, label_lookup)
 
+    print(f"\nFeature extraction mode: {'PARALLEL' if parallel else 'SEQUENTIAL'}")
+    trainer = XGBoostTrainer(config, model_out_directory)
+    trainer.prepare_model()
+    # Choose loading strategy
+    start_time = time.time()
+    load_fn = (
+        partial(load_data_and_labels_parallel, max_workers=max_workers)
+        if parallel
+        else load_data_and_labels_sequential
+    )
+
+    X_train, y_train = load_fn(train_folder, label_lookup)
+    X_val, y_val = load_fn(val_folder, label_lookup)
+
+    elapsed = time.time() - start_time
+    print(f"\nFeature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
+
+    # --- Step 2: Build model trained
     if trainer_name != "xgboost":
         raise ValueError(f"Unsupported trainer: '{trainer_name}'. Only 'xgboost' is supported.")
 
     trainer = XGBoostTrainer(config, model_out_directory)
 
+    # --- Step 3: Train model
     with mlflow.start_run(run_name=trainer_name):
         trainer.load_data(X_train, y_train, X_val, y_val)
-        if tuning:
-            search_params = config["tuning"]["param_grid"]
-            n_iter = config["tuning"].get("n_iter", 20)
-            scoring = config["tuning"].get("scoring", "f1_micro")
-            cv = config["tuning"].get("cv", 3)
+        # if tuning:
+        #     # TODO check tuning ?
+        #     search_params = config["tuning"]["param_grid"]
+        #     n_iter = config["tuning"].get("n_iter", 20)
+        #     scoring = config["tuning"].get("scoring", "f1_micro")
+        #     cv = config["tuning"].get("cv", 3)
 
-            best_params, best_score = trainer.tune_hyperparameters(
-                param_dist=search_params,
-                n_iter=n_iter,
-                scoring=scoring,
-                cv=cv,
-            )
-            trainer.config["hyperparameters"].update(best_params)
-            trainer.prepare_model()  # with best params
+        #     best_params, best_score = trainer.tune_hyperparameters(
+        #         param_dist=search_params,
+        #         n_iter=n_iter,
+        #         scoring=scoring,
+        #         cv=cv,
+        #     )
+        #     trainer.config["hyperparameters"].update(best_params)
+        #     trainer.prepare_model()  # with best params
 
-            mlflow.log_params(best_params)
-            mlflow.log_metric("best_cv_score", best_score)
-        else:
-            trainer.prepare_model()
+        #     mlflow.log_params(best_params)
+        #     mlflow.log_metric("best_cv_score", best_score)
+        # else:
+        trainer.prepare_model()
 
         trainer.train()
-        explain_model(trainer.model, trainer.X_train)
+        explain_model(trainer.model, trainer.X_train, trainer.id2label)
         trainer.save_model()
 
         y_pred = trainer.model.predict(X_val)
@@ -216,5 +251,14 @@ if __name__ == "__main__":
     parser.add_argument("--config-file-path", required=True, help="Path to YAML config file")
     parser.add_argument("--out-directory", required=True, help="Output directory root")
     parser.add_argument("--tuning", action="store_true", help="Enable hyperparameter tuning")
+    parser.add_argument("--sequential", action="store_true", help="Disable parallel processing (use sequential)")
+    parser.add_argument("--max-workers", type=int, default=None, help="Maximum number of parallel workers")
     args = parser.parse_args()
-    main(args.config_file_path, args.out_directory, args.tuning)
+
+    main(
+        config_path=args.config_file_path,
+        out_directory=args.out_directory,
+        tuning=args.tuning,
+        parallel=not args.sequential,
+        max_workers=args.max_workers,
+    )

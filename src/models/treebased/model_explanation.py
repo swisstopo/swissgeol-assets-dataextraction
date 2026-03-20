@@ -5,8 +5,8 @@ import tempfile
 
 import numpy as np
 from dotenv import load_dotenv
+from xgboost import XGBClassifier
 
-from src.models.treebased.model import XGBClassifier
 from src.utils.utility import read_params
 
 xg_boost_config = read_params("config/xgboost_config.yml")
@@ -97,18 +97,19 @@ def explain_prediction(
         log_plt_fig_to_mlflow(tmpdir, f"{page_name}.png", "stacked_force", dpi=300)
 
 
-def explain_model(model: XGBClassifier, X_train: list[list[float]]):
+def explain_model(model: XGBClassifier, X_train: list[list[float]], id2label: dict[int, str]):
     """Generates global SHAP explanations for the model and logs the plots to MLflow.
 
     Args:
         model (BaseEstimator): The trained Tree-based model.
         X_train (list[list[float]]): The training features data used for the model.
+        id2label (dict[int, str]): Mapping from class IDs to class labels.
     """
     if not verify_dependencies_and_flags():
         return
     with tempfile.TemporaryDirectory() as tmpdir:
         feature_names = xg_boost_config["feature_names"]
-        explainer = shap.TreeExplainer(model.get_tree_model(), feature_names=feature_names)
+        explainer = shap.TreeExplainer(model, feature_names=feature_names)
         shap_values = explainer(X_train)
         artifact_path = "global_explanation_plots"
 
@@ -125,7 +126,8 @@ def explain_model(model: XGBClassifier, X_train: list[list[float]]):
         fig.tight_layout()
         log_plt_fig_to_mlflow(tmpdir, "abs_beeswarm_overall.png", artifact_path, pad_inches=1)
 
-        for class_id, label in model.id2label.items():
+        for class_id in range(shap_values.values.shape[-1]):
+            label = id2label.get(class_id)
             class_explanation = shap.Explanation(
                 values=shap_values.values[..., class_id],
                 base_values=shap_values.base_values[..., class_id],
