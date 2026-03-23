@@ -152,11 +152,11 @@ class TreeBasedTrainer(abc.ABC):
 
         # Create output table structure
         output_table = [["Filename", "Page", "Ground truth", "Prediction"]]
-        for y_pr, y_gt, key in zip(y_pred, self.y_val, self.k_val, strict=True):
-            output_table.append([key[0], key[1], class_names[y_pr], class_names[y_gt]])
+        for y_gt, y_pr, key in zip(self.y_val, y_pred, self.k_val, strict=True):
+            output_table.append([key[0], key[1], class_names[y_gt], class_names[y_pr]])
 
         # Log results to CSV file
-        report_path = self.model_dir / "file_report.csv"
+        report_path = self.model_dir / "summary_files.csv"
         save_csv(output_table, report_path)
 
         # Save to mlflow
