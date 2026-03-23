@@ -5,7 +5,7 @@ val_folder_path: "data/single_pages_splits/validation"
 ground_truth_file_path: "data/gt_single_pages.json"
 
 # Parameters for out of distribution (OOD) detection
-# Enable OOD (use unknown class as ouliers)
+# Enable OOD (use unknown class as outliers)
 ood_use: True
 # Mode used to determine confidence threshold ("gmm" or "hnorm")
 ood_mode: "gmm"

@@ -66,7 +66,13 @@ class TreeBasedModel:
 
 
 class XGBOODClassifier(XGBClassifier):
-    """Out of distribution (OOD) XGBoost classifier."""
+    """XGBoost classifier with out-of-distribution (OOD) detection.
+
+    Extends `XGBClassifier` to filter low-confidence predictions.
+    Any sample whose predicted-class probability falls below that class threshold is
+    reassigned to the OOD class (`PageClasses.UNKNOWN`).
+
+    """
 
     def __init__(self, **kwargs):
         """Initialisation of the XGBoostOOD classifier.
@@ -80,10 +86,9 @@ class XGBOODClassifier(XGBClassifier):
         if kwargs.get("mode") is None:
             raise ValueError("mode must be provided")
 
-        self.mode = kwargs.get("mode")
+        self.mode = kwargs.pop("mode")
         self.id_ood = label2id[PageClasses.UNKNOWN]
         self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
-        # XGBoost's init can overwrite attrs set after it
         super().__init__(**kwargs)
 
     @staticmethod
@@ -168,11 +173,12 @@ class XGBOODClassifier(XGBClassifier):
 
         Args:
             X (NDArray[np.float64]): Training features.
-            y (NDArray[np.float64]): Training label.
-            kwargs (dict): Additional parameters.
+            y (NDArray[np.float64]): Training labels (integer class IDs).
+            **kwargs: Additional keyword arguments passed to
+                `XGBClassifier.fit()`.
 
         Returns:
-            Self: Fitted model
+            Self: The fitted classifier.
         """
         # Step 1: Fit XGBoost with all classes except OOD
         super().fit(X[self.id_ood != y, :], y[self.id_ood != y], **kwargs)

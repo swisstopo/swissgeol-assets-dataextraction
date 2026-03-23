@@ -4,6 +4,7 @@ import logging
 import os
 from collections.abc import Iterable
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from Levenshtein import ratio
@@ -169,11 +170,11 @@ def compute_stats(
     return classification_stats, title_stats
 
 
-def save_csv(content: Iterable[Iterable[any]], csv_path: Path) -> Path:
+def save_csv(content: Iterable[Iterable[Any]], csv_path: Path) -> Path:
     """Save content as a csv file.
 
     Args:
-        content (Iterable[Iterable[any]]): Content to write.
+        content (Iterable[Iterable[Any]]): Content to write.
         csv_path (Path): Path where to store results.
 
     Returns:

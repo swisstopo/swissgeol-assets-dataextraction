@@ -57,8 +57,25 @@ class TreeBasedTrainer(abc.ABC):
         """Prepares the model for training. This method should be implemented by subclasses."""
         pass
 
-    def load_data(self, X_train, y_train, k_train, X_val, y_val, k_val) -> None:
-        """Loads training and validation data into numpy arrays."""
+    def load_data(
+        self,
+        X_train: list[list[float]],
+        y_train: list[int],
+        k_train: list[tuple[str, int]],
+        X_val: list[list[float]],
+        y_val: list[int],
+        k_val: list[tuple[str, int]],
+    ) -> None:
+        """Loads training and validation data into numpy arrays.
+
+        Args:
+            X_train (list[list[float]]): Training features.
+            y_train (list[int]): Training labels.
+            k_train (list[tuple[str, int]]):  Keys (filename, page number) for each training sample.
+            X_val (list[list[float]]): Validation features.
+            y_val (list[int]): Validation labels.
+            k_val (list[tuple[str, int]]): Keys (filename, page number) for each validation sample.
+        """
         self.X_train = np.array(X_train)
         self.y_train = np.array(y_train)
         self.X_val = np.array(X_val)
@@ -72,14 +89,14 @@ class TreeBasedTrainer(abc.ABC):
             raise ValueError("Model is not prepared. Call prepare_model() before training.")
         self.model.fit(self.X_train, self.y_train)
 
-    def evaluate(self, y_pred) -> None:
+    def evaluate(self, y_pred) -> dict:
         """Evaluates the model's performance on the validation set.
 
         Args:
             y_pred (list): Predicted labels for the validation set.
 
         Returns:
-            dict: A dictionary containing precision, recall, and F1 score.
+            dict: A dictionary containing precision, recall, and F1 score (micro, macro).
         """
         precision, recall, f1, _ = precision_recall_fscore_support(
             self.y_val, y_pred, average="micro", zero_division=0
@@ -87,7 +104,7 @@ class TreeBasedTrainer(abc.ABC):
         _, _, f1_macro, _ = precision_recall_fscore_support(self.y_val, y_pred, average="macro", zero_division=0)
         return {"precision_micro": precision, "recall_micro": recall, "f1_micro": f1, "f1_macro": f1_macro}
 
-    def save_model(self, filename: str = "model.joblib") -> None:
+    def save_model(self, filename: Path = "model.joblib") -> Path:
         """Saves the trained model to the specified file."""
         path = self.model_dir / filename
         joblib.dump(self.model, path)
@@ -143,10 +160,10 @@ class TreeBasedTrainer(abc.ABC):
         mlflow.log_artifact(str(report_path))
 
     def plot_and_file_predictions(self, y_pred: list) -> None:
-        """Create a per page classification report as CSV.
+        """Create a per-page classification report and save it as a CSV.
 
         Args:
-            y_pred (list): List of class predictions.
+            y_pred (list): List of predicted class IDs for the validation set.
         """
         class_names = [self.id2label[i] for i in sorted(self.id2label)]
 
@@ -173,6 +190,15 @@ class XGBoostTrainer(TreeBasedTrainer):
     model_name = "xgboost_model"
 
     def prepare_model(self, ood_use: bool, ood_mode: str) -> None:
+        """Prepares the XGBoost model for training.
+
+        Args:
+            ood_use (bool): If True, uses `XGBOODClassifier` with OOD
+                detection; otherwise uses a standard `XGBClassifier`.
+            ood_mode (str): OOD threshold estimation strategy. One of
+                `gmm` (Gaussian Mixture Model) or `hnorm`
+                (half-normal distribution).
+        """
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
 
@@ -196,8 +222,9 @@ class XGBoostTrainer(TreeBasedTrainer):
             random_state (int): Random seed for reproducibility.
 
         Returns:
-                best_params: Best hyperparameters found during tuning.
-                best_score: Best score achieved during tuning.
+            tuple[dict, float]: A tuple of (best_params, best_score) where
+                * best_params: Best hyperparameters found during tuning.
+                * best_score: Best score achieved during tuning.
         """
         # Initialize XGBoost model with default parameters
         search = RandomizedSearchCV(

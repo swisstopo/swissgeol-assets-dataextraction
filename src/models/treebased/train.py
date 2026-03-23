@@ -78,7 +78,7 @@ def extract_features_from_page(args):
 
 def load_data_and_labels_parallel(
     folder_path: Path, label_map: dict[tuple[str, int], int], max_workers: int = None
-) -> tuple[list[list[float]], list[int], list[tuple[str, str]]]:
+) -> tuple[list[list[float]], list[int], list[tuple[str, int]]]:
     """Loads data and labels from PDF files using parallel processing.
 
     Args:
@@ -87,10 +87,10 @@ def load_data_and_labels_parallel(
         max_workers (int): Maximum number of parallel workers. If None, uses CPU count.
 
     Returns:
-        tuple[list[list[float]], list[int], list[tuple[str, str]]]: For each item in the lists returns,
+        tuple[list[list[float]], list[int], list[tuple[str, int]]]: For each item in the lists returns,
             * list[float]: Extracted features
             * int: Class label
-            * tuple[str, str]: Item key as filename and page index
+            * tuple[str, int]: Item key as filename and page index
     """
     file_paths = get_pdf_files(folder_path)
 
@@ -106,7 +106,7 @@ def load_data_and_labels_parallel(
                     tasks.append((file_path, page_number, matching_params, borehole_matching_params))
                     task_keys.append((filename, page_number))
 
-    print(f"Processing {len(tasks)} pages from {len(file_paths)} files...")
+    logger.info(f"Processing {len(tasks)} pages from {len(file_paths)} files...")
 
     # Process pages in parallel, collecting results by key
     results = {}  # Map (filename, page_number) -> features
@@ -174,14 +174,21 @@ def load_data_and_labels_sequential(
 
 
 def main(config_path: str, out_directory: str, tuning: bool = False, parallel: bool = True, max_workers: int = None):
-    """Main function to train the Random Forest or XGBoost model.
+    """Train an XGBoost page classifier.
+
+    Loads features from PDF files, trains an XGBoost model (with optional
+    OOD detection), evaluates it on the validation set, and saves the model
+    and artefacts to `out_directory`. All metrics and artefacts are logged
+    to MLflow.
 
     Args:
-        config_path: Path to the YAML configuration file.
-        out_directory: Directory where the trained model and logs will be saved.
-        tuning: Whether to perform hyperparameter tuning. Default is False.
-        parallel: Whether to use parallel feature extraction. Default is True.
-        max_workers: Maximum number of parallel workers. If None, uses CPU count.
+        config_path (str): Path to the YAML configuration file.
+        out_directory (str): Root directory for trained model output.
+        tuning (bool): Whether to perform hyperparameter tuning before
+            training. Default is False.
+        parallel (bool): Whether to extract features in parallel. Default is True.
+        max_workers (int): Maximum number of worker processes for parallel
+            feature extraction. If None, uses the CPU count.
     """
     if not mlflow_tracking:
         raise RuntimeError("MLflow tracking is disabled. Set MLFLOW_TRACKING=True in .env to enable it.")
@@ -230,7 +237,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
         trainer.load_data(X_train, y_train, k_train, X_val, y_val, k_val)
         trainer.prepare_model(ood_use=ood_use, ood_mode=ood_mode)
 
-        # If tunning, run seach for best params first
+        # If tuning, run search for best params first
         if tuning:
             # Create dummy model that will be tuned
             best_params, best_score = trainer.tune_hyperparameters(
@@ -245,7 +252,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
             mlflow.log_params(best_params)
             mlflow.log_metric("best_cv_score", best_score)
 
-        # Train model with daat and run explain
+        # Train model with data and run explain
         trainer.train()
         explain_model(trainer.model, trainer.X_train, trainer.id2label)
         trainer.save_model()
