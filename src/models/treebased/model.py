@@ -187,11 +187,12 @@ class XGBOODClassifier(XGBClassifier):
         return self
 
     def predict(self, X: NDArray[np.float64], **kwargs) -> NDArray[np.int64]:
-        """Predict classes based on input features.
+        """Predict class labels with OOD reassignment.
 
         Args:
-            X (NDArray[np.float64]): Features to predict.
-            kwargs (dict): Additional parameters.
+            X (NDArray[np.float64]): Input features.
+            **kwargs: Additional keyword arguments passed to
+                `XGBClassifier.predict_proba()`.
 
         Returns:
             NDArray[np.int64]: Predicted classes
