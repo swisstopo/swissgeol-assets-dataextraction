@@ -14,6 +14,7 @@ from sklearn.metrics import (
 )
 from sklearn.model_selection import RandomizedSearchCV
 
+from src.evaluation import save_csv
 from src.models.treebased.model import XGBClassifier, XGBOODClassifier
 from src.page_classes import id2label, num_labels
 
@@ -56,12 +57,14 @@ class TreeBasedTrainer(abc.ABC):
         """Prepares the model for training. This method should be implemented by subclasses."""
         pass
 
-    def load_data(self, X_train, y_train, X_val, y_val) -> None:
+    def load_data(self, X_train, y_train, k_train, X_val, y_val, k_val) -> None:
         """Loads training and validation data into numpy arrays."""
         self.X_train = np.array(X_train)
         self.y_train = np.array(y_train)
         self.X_val = np.array(X_val)
         self.y_val = np.array(y_val)
+        self.k_train = k_train
+        self.k_val = k_val
 
     def train(self) -> None:
         """Trains the model using the loaded training data."""
@@ -139,6 +142,26 @@ class TreeBasedTrainer(abc.ABC):
             json.dump(report_dict, f, indent=2)
         mlflow.log_artifact(str(report_path))
 
+    def plot_and_file_predictions(self, y_pred: list) -> None:
+        """Create a per page classification report as CSV.
+
+        Args:
+            y_pred (list): List of class predictions.
+        """
+        class_names = [self.id2label[i] for i in sorted(self.id2label)]
+
+        # Create output table structure
+        output_table = [["Filename", "Page", "Ground truth", "Prediction"]]
+        for y_pr, y_gt, key in zip(y_pred, self.y_val, self.k_val, strict=True):
+            output_table.append([key[0], key[1], class_names[y_pr], class_names[y_gt]])
+
+        # Log results to CSV file
+        report_path = self.model_dir / "file_report.csv"
+        save_csv(output_table, report_path)
+
+        # Save to mlflow
+        mlflow.log_artifact(str(report_path))
+
 
 class XGBoostTrainer(TreeBasedTrainer):
     """Trainer for XGBoost models.
@@ -149,11 +172,16 @@ class XGBoostTrainer(TreeBasedTrainer):
 
     model_name = "xgboost_model"
 
-    def prepare_model(self) -> None:
+    def prepare_model(self, ood_use: bool, ood_mode: str) -> None:
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
-        # self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
-        self.model = XGBOODClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+
+        if not ood_use:
+            self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+        else:
+            self.model = XGBOODClassifier(
+                objective="multi:softprob", mode=ood_mode, num_class=self.num_labels, **hyperparams
+            )
 
     def tune_hyperparameters(
         self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
@@ -172,9 +200,8 @@ class XGBoostTrainer(TreeBasedTrainer):
                 best_score: Best score achieved during tuning.
         """
         # Initialize XGBoost model with default parameters
-        model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, eval_metric="mlogloss")
         search = RandomizedSearchCV(
-            estimator=model,
+            estimator=self.model,
             param_distributions=param_dist,
             n_iter=n_iter,
             scoring=scoring,

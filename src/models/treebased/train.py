@@ -76,16 +76,21 @@ def extract_features_from_page(args):
         return None
 
 
-def load_data_and_labels_parallel(folder_path: Path, label_map: dict[tuple[str, int], int], max_workers: int = None):
+def load_data_and_labels_parallel(
+    folder_path: Path, label_map: dict[tuple[str, int], int], max_workers: int = None
+) -> tuple[list[list[float]], list[int], list[tuple[str, str]]]:
     """Loads data and labels from PDF files using parallel processing.
 
     Args:
-        folder_path: Path to the folder containing PDF files.
-        label_map: Mapping from (filename, page_number) to label ID.
-        max_workers: Maximum number of parallel workers. If None, uses CPU count.
+        folder_path (Path): Path to the folder containing PDF files.
+        label_map (dict[tuple[str, int], int]): Mapping from (filename, page_number) to label ID.
+        max_workers (int): Maximum number of parallel workers. If None, uses CPU count.
 
     Returns:
-        Tuple of (features_list, labels_list) in deterministic order.
+        tuple[list[list[float]], list[int], list[tuple[str, str]]]: For each item in the lists returns,
+            * list[float]: Extracted features
+            * int: Class label
+            * tuple[str, str]: Item key as filename and page index
     """
     file_paths = get_pdf_files(folder_path)
 
@@ -119,22 +124,38 @@ def load_data_and_labels_parallel(folder_path: Path, label_map: dict[tuple[str, 
 
     # Reconstruct features and labels in ORIGINAL ORDER (deterministic)
     all_features = []
+    keys = []
     labels = []
     for key in task_keys:
         if key in results:
             all_features.append(results[key])
             labels.append(label_map[key])
+            keys.append(key)
         else:
             logger.warning(f"Missing result for {key}, skipping")
 
-    return all_features, labels
+    return all_features, labels, keys
 
 
-def load_data_and_labels_sequential(folder_path: Path, label_map: dict[tuple[str, int], int]):
-    """Sequential version for comparison/fallback."""
+def load_data_and_labels_sequential(
+    folder_path: Path, label_map: dict[tuple[str, int], int]
+) -> tuple[list[list[float]], list[int], list[tuple[str, str]]]:
+    """Loads data and labels from PDF files (sequential version for comparison/fallback).
+
+    Args:
+        folder_path (Path): Path to the folder containing PDF files.
+        label_map (dict[tuple[str, int], int]): Mapping from (filename, page_number) to label ID.
+
+    Returns:
+        tuple[list[list[float]], list[int], list[tuple[str, str]]]: For each item in the lists returns,
+            * list[float]: Extracted features
+            * int: Class label
+            * tuple[str, str]: Item key as filename and page index
+    """
     file_paths = get_pdf_files(folder_path)
     all_features = []
     labels = []
+    keys = []
 
     for file_path in tqdm(file_paths, desc="Processing files"):
         filename = os.path.basename(file_path)
@@ -147,8 +168,9 @@ def load_data_and_labels_sequential(folder_path: Path, label_map: dict[tuple[str
                 features = get_features(page, page_number, matching_params, borehole_matching_params)
                 all_features.append(features)
                 labels.append(label_map[key])
+                keys.append(key)
 
-    return all_features, labels
+    return all_features, labels, keys
 
 
 def main(config_path: str, out_directory: str, tuning: bool = False, parallel: bool = True, max_workers: int = None):
@@ -171,6 +193,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
     val_folder = Path(config["val_folder_path"])
     ground_truth_path = Path(config["ground_truth_file_path"])
     trainer_name = config["model_type"]
+    ood_use = config["ood_use"]
+    ood_mode = config["ood_mode"]
 
     model_out_directory = Path(out_directory) / time.strftime("%Y%m%d-%H%M%S")
 
@@ -187,8 +211,8 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
         else load_data_and_labels_sequential
     )
 
-    X_train, y_train = load_fn(train_folder, label_lookup)
-    X_val, y_val = load_fn(val_folder, label_lookup)
+    X_train, y_train, k_train = load_fn(train_folder, label_lookup)
+    X_val, y_val, k_val = load_fn(val_folder, label_lookup)
 
     elapsed = time.time() - start_time
     print(f"\nFeature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
@@ -201,32 +225,32 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
 
     # --- Step 3: Train model
     with mlflow.start_run(run_name=trainer_name):
-        trainer.load_data(X_train, y_train, X_val, y_val)
-        # if tuning:
-        #     # TODO check tuning ?
-        #     search_params = config["tuning"]["param_grid"]
-        #     n_iter = config["tuning"].get("n_iter", 20)
-        #     scoring = config["tuning"].get("scoring", "f1_micro")
-        #     cv = config["tuning"].get("cv", 3)
+        # Load data and prepare model
 
-        #     best_params, best_score = trainer.tune_hyperparameters(
-        #         param_dist=search_params,
-        #         n_iter=n_iter,
-        #         scoring=scoring,
-        #         cv=cv,
-        #     )
-        #     trainer.config["hyperparameters"].update(best_params)
-        #     trainer.prepare_model()  # with best params
+        trainer.load_data(X_train, y_train, k_train, X_val, y_val, k_val)
+        trainer.prepare_model(ood_use=ood_use, ood_mode=ood_mode)
 
-        #     mlflow.log_params(best_params)
-        #     mlflow.log_metric("best_cv_score", best_score)
-        # else:
-        trainer.prepare_model()
+        # If tunning, run seach for best params first
+        if tuning:
+            # Create dummy model that will be tuned
+            best_params, best_score = trainer.tune_hyperparameters(
+                param_dist=config["tuning"]["param_grid"],
+                n_iter=config["tuning"].get("n_iter"),
+                scoring=config["tuning"].get("scoring"),
+                cv=config["tuning"].get("cv"),
+            )
+            trainer.config["hyperparameters"].update(best_params)
+            trainer.prepare_model(ood_use=ood_use, ood_mode=ood_mode)
 
+            mlflow.log_params(best_params)
+            mlflow.log_metric("best_cv_score", best_score)
+
+        # Train model with daat and run explain
         trainer.train()
         explain_model(trainer.model, trainer.X_train, trainer.id2label)
         trainer.save_model()
 
+        # Visualization of the results
         y_pred = trainer.model.predict(X_val)
         metrics = trainer.evaluate(y_pred)
 
@@ -241,6 +265,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
 
         # Log confusion matrix and classification report
         trainer.plot_and_log_confusion_matrix(y_pred)
+        trainer.plot_and_file_predictions(y_pred)
 
 
 if __name__ == "__main__":

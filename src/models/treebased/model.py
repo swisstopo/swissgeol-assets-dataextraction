@@ -68,16 +68,19 @@ class TreeBasedModel:
 class XGBOODClassifier(XGBClassifier):
     """Out of distribution (OOD) XGBoost classifier."""
 
-    def __init__(self, mode: str = "gmm", **kwargs):
+    def __init__(self, **kwargs):
         """Initialisation of the XGBoostOOD classifier.
 
         Args:
-            mode (str): Mode used to estimate threshold. Defaults to "gmm".
             kwargs (dict): Additional parameters.
         """
         if kwargs.get("num_class") is None:
             raise ValueError("num_class must be provided")
-        self.mode = mode
+
+        if kwargs.get("mode") is None:
+            raise ValueError("mode must be provided")
+
+        self.mode = kwargs.get("mode")
         self.id_ood = label2id[PageClasses.UNKNOWN]
         self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
         # XGBoost's init can overwrite attrs set after it
