@@ -131,8 +131,6 @@ def compute_text_features(
     """Computes 24 numerical features used for XGBoost page classification models."""
     if not lines:
         return [0.0] * 24
-    # if not lines:
-    #     return [0.0] * 23  # Handle empty pages (15 base + 8 borehole features)
 
     page_text = page.get_text("text") or ""
     keywords_list_score = max_title_page_keyword_score(page_text)
