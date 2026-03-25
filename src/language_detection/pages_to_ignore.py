@@ -1,3 +1,5 @@
+from swissgeol_doc_processing.text.textline import TextLine
+
 title_page_substrings = {
     "page_de_garde_1": [
         ["PAGE DE GARDE", "P A G E DE G A R D E"],
@@ -126,8 +128,14 @@ def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
     return sum(matches) / len(matches)
 
 
-def max_title_page_keyword_score(text: str) -> float:
+def max_title_page_keyword_score(lines: list[TextLine]) -> float:
     """Return the best keyword-match score across all predefined title-page patterns."""
+    if not lines:
+        return 0.0
+
+    # Reconstruct page text from extracted lines
+    text = "\n".join(line.text for line in lines if line.text)
+
     if not text:
         return 0.0
 

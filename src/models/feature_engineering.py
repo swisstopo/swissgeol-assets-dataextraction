@@ -132,8 +132,7 @@ def compute_text_features(
     if not lines:
         return [0.0] * 24
 
-    page_text = page.get_text("text") or ""
-    keywords_list_score = max_title_page_keyword_score(page_text)
+    keywords_list_score = max_title_page_keyword_score(lines)
 
     (
         word_per_line,
