@@ -80,6 +80,7 @@ def test_detailbild_case(patched_title_patterns):
 
     assert score == pytest.approx(8 / 9)
 
+
 def test_belegblatt_case(patched_title_patterns):
     # 6491_1.pdf
     text = """EB
