@@ -128,7 +128,6 @@ def compute_text_features(
     Returns:
         list: A list of 24 computed feature values for the page. If no text lines are found, returns a zero vector.
     """
-    """Computes 24 numerical features used for XGBoost page classification models."""
     if not lines:
         return [0.0] * 24
 
