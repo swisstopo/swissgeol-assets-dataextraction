@@ -114,9 +114,30 @@ def normalize_text(text: str) -> str:
 
 
 def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
-    """Return the fraction of substring groups that match the text.
+    """Return the fraction of keyword groups found in the given text.
 
-    A group matches if at least one alternative in that group is present.
+    Each element of substrings is a group of alternative strings. A group
+    is considered matched if at least one of its alternatives appears in the
+    text. The returned score is the number of matched groups divided by the total number of groups.
+
+    Example:
+        substrings = [
+            ["PAGE DE GARDE", "P A G E DE G A R D E"],    # group 1 — two alternatives
+            ["No AGS"],                                   # group 2 — one alternative
+            ["Commettants"],                              # group 3 — one alternative
+        ]
+
+        # If the text contains "PAGE DE GARDE" and "No AGS" but not "Commettants":
+        # → 2 out of 3 groups matched → returns 0.667
+
+    Args:
+        text: The raw page text to search within.
+        substrings: A list of keyword groups. Each group is a list of
+            alternative strings — only one alternative needs to match
+            for the group to count as matched.
+
+    Returns:
+        A float in [0.0, 1.0]: the proportion of groups that matched.
     """
     if not substrings:
         return 0.0
