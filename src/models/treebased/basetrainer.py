@@ -189,24 +189,22 @@ class XGBoostTrainer(TreeBasedTrainer):
 
     model_name = "xgboost_model"
 
-    def prepare_model(self, ood_use: bool, ood_mode: str) -> None:
-        """Prepares the XGBoost model for training.
-
-        Args:
-            ood_use (bool): If True, uses `XGBOODClassifier` with OOD
-                detection; otherwise uses a standard `XGBClassifier`.
-            ood_mode (str): OOD threshold estimation strategy. One of
-                `gmm` (Gaussian Mixture Model) or `hnorm`
-                (half-normal distribution).
-        """
+    def prepare_model(self, ood_use: bool) -> None:
         """Prepares the XGBoost model for training."""
         hyperparams = self.config.get("hyperparameters", {})
+        hyperparams_ood = self.config.get("hyperparameters_ood", {})
 
         if not ood_use:
-            self.model = XGBClassifier(objective="multi:softprob", num_class=self.num_labels, **hyperparams)
+            self.model = XGBClassifier(
+                objective="multi:softprob",
+                num_class=self.num_labels,
+                **hyperparams,
+            )
         else:
             self.model = XGBOODClassifier(
-                objective="multi:softprob", mode=ood_mode, num_class=self.num_labels, **hyperparams
+                objective="multi:softprob",
+                num_class=self.num_labels,
+                **(hyperparams | hyperparams_ood),
             )
 
     def tune_hyperparameters(

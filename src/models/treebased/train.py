@@ -201,7 +201,6 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
     ground_truth_path = Path(config["ground_truth_file_path"])
     trainer_name = config["model_type"]
     ood_use = config["ood_use"]
-    ood_mode = config["ood_mode"]
 
     model_out_directory = Path(out_directory) / time.strftime("%Y%m%d-%H%M%S")
 
@@ -235,7 +234,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
         # Load data and prepare model
 
         trainer.load_data(X_train, y_train, k_train, X_val, y_val, k_val)
-        trainer.prepare_model(ood_use=ood_use, ood_mode=ood_mode)
+        trainer.prepare_model(ood_use=ood_use)
 
         # If tuning, run search for best params first
         if tuning:
@@ -247,7 +246,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
                 cv=config["tuning"].get("cv"),
             )
             trainer.config["hyperparameters"].update(best_params)
-            trainer.prepare_model(ood_use=ood_use, ood_mode=ood_mode)
+            trainer.prepare_model(ood_use=ood_use)
 
             mlflow.log_params(best_params)
             mlflow.log_metric("best_cv_score", best_score)

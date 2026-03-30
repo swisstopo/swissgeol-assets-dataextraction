@@ -80,13 +80,8 @@ class XGBOODClassifier(XGBClassifier):
         Args:
             kwargs (dict): Additional parameters.
         """
-        if kwargs.get("num_class") is None:
-            raise ValueError("num_class must be provided")
-
-        if kwargs.get("mode") is None:
-            raise ValueError("mode must be provided")
-
-        self.mode = kwargs.pop("mode")
+        self.ood_mode = kwargs.pop("ood_mode")
+        self.ood_confidence = kwargs.pop("ood_confidence")
         self.id_ood = label2id[PageClasses.UNKNOWN]
         self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
         super().__init__(**kwargs)
@@ -101,11 +96,12 @@ class XGBOODClassifier(XGBClassifier):
             dict: Updated parameters
         """
         params = super().get_params(deep=deep)
-        params["mode"] = self.mode
+        params["ood_mode"] = self.ood_mode
+        params["ood_confidence"] = self.ood_confidence
         return params
 
     @staticmethod
-    def _estimate_from_half_normal(p: NDArray[np.float64], conf: float = 0.95) -> float:
+    def _estimate_from_half_normal(p: NDArray[np.float64], confidence: float = 0.95) -> float:
         """Estimate the OOD threshold for a class using a half-normal distribution fit.
 
         Fits a half-normal distribution to the complement of the class probabilities (1 - p1),
@@ -113,17 +109,17 @@ class XGBOODClassifier(XGBClassifier):
 
         Args:
             p (NDArray[np.float64]): In-distribution class probabilities for samples of that class.
-            conf (float, optional): Confidence quantile used to set the threshold. Defaults to 0.95.
+            confidence (float, optional): Confidence quantile used to set the threshold. Defaults to 0.95.
 
         Returns:
             float: Probability threshold below which a sample is considered out-of-distribution.
         """
         _, sigma = halfnorm.fit(1 - p, floc=0)
-        return 1 - halfnorm.ppf(conf, scale=sigma)
+        return 1 - halfnorm.ppf(confidence, scale=sigma)
 
     @staticmethod
     def _estimate_from_gmm(
-        p: NDArray[np.float64], p_ood: NDArray[np.float64], conf: float = 0.01, n_estimate: int = 1000
+        p: NDArray[np.float64], p_ood: NDArray[np.float64], confidence: float = 0.01, n_estimate: int = 1000
     ) -> float:
         """Estimate the OOD threshold between two distributions using a Gaussian Mixture Model.
 
@@ -134,7 +130,7 @@ class XGBOODClassifier(XGBClassifier):
         Args:
             p (NDArray[np.float64]): In-distribution class probabilities for samples of that class.
             p_ood (NDArray[np.float64]): OOD class probabilities for the OOD samples.
-            conf (float, optional): Confidence quantile used to set the threshold. Defaults to 0.05.
+            confidence (float, optional): Confidence quantile used to set the threshold. Defaults to 0.05.
             n_estimate (int, optional): Number of points used to sweep [0, 1] when searching for the
                 decision boundary. Defaults to 1000.
 
@@ -149,7 +145,7 @@ class XGBOODClassifier(XGBClassifier):
         # Find threshold: i.e., where probability is conf for p mixtures
         x_sweep = np.linspace(0, 1, num=n_estimate, endpoint=False).reshape(-1, 1)
         p_sweep = gmm.predict_proba(x_sweep)
-        err_sweep = (p_sweep[:, id_class] - conf) ** 2
+        err_sweep = (p_sweep[:, id_class] - confidence) ** 2
 
         return x_sweep[err_sweep.argmin()].item()
 
@@ -171,12 +167,12 @@ class XGBOODClassifier(XGBClassifier):
             p_ood = self.predict_proba(X[y == self.id_ood, :])[:, c]
 
             # Estimate threshold based on selected mode
-            if self.mode == "gmm":
-                threshold = self._estimate_from_gmm(p=p_xc, p_ood=p_ood)
-            elif self.mode == "hnorm":
-                threshold = self._estimate_from_half_normal(p=p_xc)
+            if self.ood_mode == "gmm":
+                threshold = self._estimate_from_gmm(p=p_xc, p_ood=p_ood, confidence=self.ood_confidence)
+            elif self.ood_mode == "hnorm":
+                threshold = self._estimate_from_half_normal(p=p_xc, confidence=self.ood_confidence)
             else:
-                raise NotImplementedError(f"Unknown mode {self.mode=}")
+                raise NotImplementedError(f"Unknown mode {self.ood_mode=}")
 
             thresholds[c] = threshold
         return thresholds

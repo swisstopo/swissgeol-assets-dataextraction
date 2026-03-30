@@ -3,12 +3,8 @@ model_type: xgboost
 train_folder_path: "data/single_pages_splits/train"
 val_folder_path: "data/single_pages_splits/validation"
 ground_truth_file_path: "data/gt_single_pages.json"
-
-# Parameters for out of distribution (OOD) detection
 # Enable OOD (use unknown class as outliers)
 ood_use: True
-# Mode used to determine confidence threshold ("gmm" or "hnorm")
-ood_mode: "gmm"
 
 # Feature names to track (23 features total)
 feature_names:
@@ -48,6 +44,11 @@ hyperparameters:
   colsample_bytree: 1
   eval_metric: mlogloss
 
+hyperparameters_ood:
+  # Parameters for out of distribution (OOD) detection
+  ood_mode: "gmm"
+  ood_confidence: 0.05
+
 tuning:
   n_iter: 50
   cv: 3
@@ -58,3 +59,6 @@ tuning:
     learning_rate: [0.01, 0.03, 0.05, 0.1, 0.2]
     subsample: [0.6, 0.8, 1.0]
     colsample_bytree: [0.6, 0.8, 1.0]
+  param_grid_ood:
+    ood_mode: ["gmm", "hnorm"]
+    ood_confidence: [0.01, 0.05, 0.1, 0.5, 0.9, 0.95, 0.99]
