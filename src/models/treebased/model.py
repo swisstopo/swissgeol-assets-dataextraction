@@ -91,6 +91,19 @@ class XGBOODClassifier(XGBClassifier):
         self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
         super().__init__(**kwargs)
 
+    def get_params(self, deep: bool = True) -> dict:
+        """Update parameters for cross validation search.
+
+        Args:
+            deep (bool, optional): Deep copy. Defaults to True.
+
+        Returns:
+            dict: Updated parameters
+        """
+        params = super().get_params(deep=deep)
+        params["mode"] = self.mode
+        return params
+
     @staticmethod
     def _estimate_from_half_normal(p: NDArray[np.float64], conf: float = 0.95) -> float:
         """Estimate the OOD threshold for a class using a half-normal distribution fit.
@@ -110,7 +123,7 @@ class XGBOODClassifier(XGBClassifier):
 
     @staticmethod
     def _estimate_from_gmm(
-        p: NDArray[np.float64], p_ood: NDArray[np.float64], conf: float = 0.5, n_estimate: int = 1000
+        p: NDArray[np.float64], p_ood: NDArray[np.float64], conf: float = 0.01, n_estimate: int = 1000
     ) -> float:
         """Estimate the OOD threshold between two distributions using a Gaussian Mixture Model.
 
@@ -121,7 +134,7 @@ class XGBOODClassifier(XGBClassifier):
         Args:
             p (NDArray[np.float64]): In-distribution class probabilities for samples of that class.
             p_ood (NDArray[np.float64]): OOD class probabilities for the OOD samples.
-            conf (float, optional): Confidence quantile used to set the threshold. Defaults to 0.5.
+            conf (float, optional): Confidence quantile used to set the threshold. Defaults to 0.05.
             n_estimate (int, optional): Number of points used to sweep [0, 1] when searching for the
                 decision boundary. Defaults to 1000.
 
