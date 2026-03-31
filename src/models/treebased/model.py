@@ -100,6 +100,20 @@ class XGBOODClassifier(XGBClassifier):
         params["ood_confidence"] = self.ood_confidence
         return params
 
+    def get_xgb_params(self) -> dict:
+        # Used to silence CV warning about unused params
+        params = super().get_xgb_params()
+        params.pop("ood_mode", None)
+        params.pop("ood_confidence", None)
+        return params
+
+    def set_params(self, **params):
+        if "ood_mode" in params:
+            self.ood_mode = params.pop("ood_mode")
+        if "ood_confidence" in params:
+            self.ood_confidence = params.pop("ood_confidence")
+        return super().set_params(**params)
+
     @staticmethod
     def _estimate_from_half_normal(p: NDArray[np.float64], confidence: float = 0.95) -> float:
         """Estimate the OOD threshold for a class using a half-normal distribution fit.
@@ -119,7 +133,11 @@ class XGBOODClassifier(XGBClassifier):
 
     @staticmethod
     def _estimate_from_gmm(
-        p: NDArray[np.float64], p_ood: NDArray[np.float64], confidence: float = 0.01, n_estimate: int = 1000
+        p: NDArray[np.float64],
+        p_ood: NDArray[np.float64],
+        confidence: float = 0.01,
+        n_estimate: int = 1000,
+        random_state: int = 42,
     ) -> float:
         """Estimate the OOD threshold between two distributions using a Gaussian Mixture Model.
 
@@ -133,12 +151,13 @@ class XGBOODClassifier(XGBClassifier):
             confidence (float, optional): Confidence quantile used to set the threshold. Defaults to 0.05.
             n_estimate (int, optional): Number of points used to sweep [0, 1] when searching for the
                 decision boundary. Defaults to 1000.
+            random_state (int, optional): Random state for reproducibility.
 
         Returns:
             float: Probability threshold that best separates in-distribution from OOD samples.
         """
         # Fit GMM to estimate distribution (assume Gaussian, even if not really)
-        gmm = GaussianMixture(n_components=2, random_state=0)
+        gmm = GaussianMixture(n_components=2, random_state=random_state)
         gmm.fit(np.concatenate([p, p_ood]).reshape(-1, 1))
         id_class = np.argmax(gmm.means_)
 

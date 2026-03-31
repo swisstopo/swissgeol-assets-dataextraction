@@ -12,7 +12,7 @@ from sklearn.metrics import (
     confusion_matrix,
     precision_recall_fscore_support,
 )
-from sklearn.model_selection import RandomizedSearchCV
+from sklearn.model_selection import GridSearchCV
 
 from src.evaluation import save_csv
 from src.models.treebased.model import XGBClassifier, XGBOODClassifier
@@ -189,51 +189,50 @@ class XGBoostTrainer(TreeBasedTrainer):
 
     model_name = "xgboost_model"
 
-    def prepare_model(self, ood_use: bool) -> None:
+    def __init__(self, config: dict, output_path: Path):
+        super().__init__(config, output_path)
+        # Extract configuration variables for model
+        self.ood_use = config.get("ood_use", False)
+
+        # Choose model backbone
+        self.model_builder = XGBOODClassifier if self.ood_use else XGBClassifier
+
+        # Set base parameters (add OOD if activates)
+        self.hyperparams = config.get("hyperparameters", {})
+        if self.ood_use:
+            hyperparams_ood = self.config.get("hyperparameters_ood", {})
+            self.hyperparams.update(hyperparams_ood)
+
+    def prepare_model(self) -> None:
         """Prepares the XGBoost model for training."""
-        hyperparams = self.config.get("hyperparameters", {})
-        hyperparams_ood = self.config.get("hyperparameters_ood", {})
+        self.model = self.model_builder(objective="multi:softprob", num_class=self.num_labels, **self.hyperparams)
 
-        if not ood_use:
-            self.model = XGBClassifier(
-                objective="multi:softprob",
-                num_class=self.num_labels,
-                **hyperparams,
-            )
-        else:
-            self.model = XGBOODClassifier(
-                objective="multi:softprob",
-                num_class=self.num_labels,
-                **(hyperparams | hyperparams_ood),
-            )
-
-    def tune_hyperparameters(
-        self, param_dist: dict, n_iter: int = 20, scoring: str = "f1_micro", cv: int = 3, random_state: int = 42
-    ) -> tuple[dict, float]:
-        """Runs RandomizedSearchCV to tune hyperparameters for XGBoost.
+    def tune_hyperparameters(self, param_dist: dict, scoring: str = "f1_micro", cv: int = 3) -> tuple[dict, float]:
+        """Runs GridSearchCV to tune hyperparameters for XGBoost.
 
         Args:
             param_dist: Dictionary with parameters to search.
-            n_iter: Number of parameter settings that are sampled.
             scoring: Scoring method to use for evaluation.
             cv: Number of folds in cross-validation.
-            random_state (int): Random seed for reproducibility.
 
         Returns:
             tuple[dict, float]: A tuple of (best_params, best_score) where
                 * best_params: Best hyperparameters found during tuning.
                 * best_score: Best score achieved during tuning.
         """
+        # Only consider params that are part of the hyperparameters set
+        param_dist = {k: v for k, v in param_dist.items() if k in self.hyperparams}
+
         # Initialize XGBoost model with default parameters
-        search = RandomizedSearchCV(
+        search = GridSearchCV(
             estimator=self.model,
-            param_distributions=param_dist,
-            n_iter=n_iter,
+            param_grid=param_dist,
             scoring=scoring,
             cv=cv,
             verbose=1,
-            random_state=random_state,
             n_jobs=-1,
         )
+
+        # Fit random search and return best params
         search.fit(self.X_train, self.y_train)
         return search.best_params_, search.best_score_
