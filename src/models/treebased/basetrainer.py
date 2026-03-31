@@ -115,13 +115,13 @@ class TreeBasedTrainer(abc.ABC):
 
     def plot_and_log_feature_importance(self) -> None:
         """Plots and logs the feature importance of the trained model."""
-        # Get feature importances and sort them
         if not hasattr(self.model, "feature_importances_"):
             raise ValueError("Model does not have feature importances. Ensure it is a tree-based model.")
 
         if self.feature_names is None:
             raise ValueError("Feature names are not provided in the configuration.")
 
+        # Get feature importances and sort them
         importances = self.model.feature_importances_
         indices = np.argsort(importances)[::-1]
         sorted_names = [self.feature_names[i] for i in indices]
