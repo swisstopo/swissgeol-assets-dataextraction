@@ -248,8 +248,6 @@ def main(
             logger.info(f"Hyperparameters: {best_params}")
             trainer.hyperparams.update(best_params)
             trainer.prepare_model()
-
-            mlflow.log_params(best_params)
             mlflow.log_metric("best_cv_score", best_score)
 
         # Train model with data and run explain
@@ -262,7 +260,7 @@ def main(
         metrics = trainer.evaluate(y_pred)
 
         # Log to mlflow
-        mlflow.log_params(trainer.config.get("hyperparameters", {}))
+        mlflow.log_params(trainer.hyperparams)
         mlflow.log_metrics(metrics)
         mlflow.log_artifact(str(model_out_directory))
 
