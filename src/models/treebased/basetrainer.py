@@ -13,9 +13,10 @@ from sklearn.metrics import (
     precision_recall_fscore_support,
 )
 from sklearn.model_selection import GridSearchCV
+from xgboost import XGBClassifier
 
 from src.evaluation import save_csv
-from src.models.treebased.model import XGBClassifier, XGBOODClassifier
+from src.models.treebased.model import XGBOODClassifier
 from src.page_classes import id2label, num_labels
 
 
@@ -71,7 +72,7 @@ class TreeBasedTrainer(abc.ABC):
         Args:
             X_train (list[list[float]]): Training features.
             y_train (list[int]): Training labels.
-            k_train (list[tuple[str, int]]):  Keys (filename, page number) for each training sample.
+            k_train (list[tuple[str, int]]): Keys (filename, page number) for each training sample.
             X_val (list[list[float]]): Validation features.
             y_val (list[int]): Validation labels.
             k_val (list[tuple[str, int]]): Keys (filename, page number) for each validation sample.
@@ -197,8 +198,8 @@ class XGBoostTrainer(TreeBasedTrainer):
         # Choose model backbone
         self.model_builder = XGBOODClassifier if self.ood_use else XGBClassifier
 
-        # Set base parameters (add OOD if activates)
-        self.hyperparams = config.get("hyperparameters", {})
+        # Set base parameters (add OOD if activated) - make copy to avoid overwritting
+        self.hyperparams = dict(config.get("hyperparameters", {}))
         if self.ood_use:
             hyperparams_ood = self.config.get("hyperparameters_ood", {})
             self.hyperparams.update(hyperparams_ood)
@@ -223,7 +224,7 @@ class XGBoostTrainer(TreeBasedTrainer):
         # Only consider params that are part of the hyperparameters set
         param_dist = {k: v for k, v in param_dist.items() if k in self.hyperparams}
 
-        # Initialize XGBoost model with default parameters
+        # Run grid search over the pre-initialized model.
         search = GridSearchCV(
             estimator=self.model,
             param_grid=param_dist,
@@ -233,6 +234,6 @@ class XGBoostTrainer(TreeBasedTrainer):
             n_jobs=-1,
         )
 
-        # Fit random search and return best params
+        # Fit grid search and return best params
         search.fit(self.X_train, self.y_train)
         return search.best_params_, search.best_score_

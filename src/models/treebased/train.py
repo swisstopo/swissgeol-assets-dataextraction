@@ -71,20 +71,20 @@ def extract_features_from_page(args):
             page = doc[page_number - 1]
             features = get_features(page, page_number, matching_params, borehole_matching_params)
             return (filename, page_number, features)
-    except Exception as e:
-        logger.exception(f"Error processing {filename} page {page_number}: {e}")
+    except Exception:
+        logger.exception(f"Error processing {filename} page {page_number}")
         return None
 
 
 def load_data_and_labels_parallel(
-    folder_path: Path, label_map: dict[tuple[str, int], int], max_workers: int = None
+    folder_path: Path, label_map: dict[tuple[str, int], int], max_workers: int | None = None
 ) -> tuple[list[list[float]], list[int], list[tuple[str, int]]]:
     """Loads data and labels from PDF files using parallel processing.
 
     Args:
         folder_path (Path): Path to the folder containing PDF files.
         label_map (dict[tuple[str, int], int]): Mapping from (filename, page_number) to label ID.
-        max_workers (int): Maximum number of parallel workers. If None, uses CPU count.
+        max_workers (int | None): Maximum number of parallel workers. If None, uses CPU count.
 
     Returns:
         tuple[list[list[float]], list[int], list[tuple[str, int]]]: For each item in the lists returns,
@@ -139,7 +139,7 @@ def load_data_and_labels_parallel(
 
 def load_data_and_labels_sequential(
     folder_path: Path, label_map: dict[tuple[str, int], int]
-) -> tuple[list[list[float]], list[int], list[tuple[str, str]]]:
+) -> tuple[list[list[float]], list[int], list[tuple[str, int]]]:
     """Loads data and labels from PDF files (sequential version for comparison/fallback).
 
     Args:
@@ -150,7 +150,7 @@ def load_data_and_labels_sequential(
         tuple[list[list[float]], list[int], list[tuple[str, str]]]: For each item in the lists returns,
             * list[float]: Extracted features
             * int: Class label
-            * tuple[str, str]: Item key as filename and page index
+            * tuple[str, int]: Item key as filename and page index
     """
     file_paths = get_pdf_files(folder_path)
     all_features = []
@@ -173,7 +173,9 @@ def load_data_and_labels_sequential(
     return all_features, labels, keys
 
 
-def main(config_path: str, out_directory: str, tuning: bool = False, parallel: bool = True, max_workers: int = None):
+def main(
+    config_path: str, out_directory: str, tuning: bool = False, parallel: bool = True, max_workers: int | None = None
+):
     """Train an XGBoost page classifier.
 
     Loads features from PDF files, trains an XGBoost model (with optional
@@ -187,7 +189,7 @@ def main(config_path: str, out_directory: str, tuning: bool = False, parallel: b
         tuning (bool): Whether to perform hyperparameter tuning before
             training. Default is False.
         parallel (bool): Whether to extract features in parallel. Default is True.
-        max_workers (int): Maximum number of worker processes for parallel
+        max_workers (int | None): Maximum number of worker processes for parallel
             feature extraction. If None, uses the CPU count.
     """
     if not mlflow_tracking:

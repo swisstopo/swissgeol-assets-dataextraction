@@ -81,7 +81,7 @@ class XGBOODClassifier(XGBClassifier):
             kwargs (dict): Additional parameters.
         """
         # Update number of classes to correct number
-        kwargs["num_class"] = kwargs["num_class"] - 1
+        # kwargs["num_class"] = kwargs["num_class"] - 1
         self.ood_mode = kwargs.pop("ood_mode")
         self.ood_confidence = kwargs.pop("ood_confidence")
         self.id_ood = label2id[PageClasses.UNKNOWN]
@@ -137,7 +137,7 @@ class XGBOODClassifier(XGBClassifier):
     def _estimate_from_gmm(
         p: NDArray[np.float64],
         p_ood: NDArray[np.float64],
-        confidence: float = 0.01,
+        confidence: float = 0.05,
         n_estimate: int = 1000,
         random_state: int = 42,
     ) -> float:
@@ -170,7 +170,7 @@ class XGBOODClassifier(XGBClassifier):
 
         return x_sweep[err_sweep.argmin()].item()
 
-    def _estimate_thresholds(self, X: NDArray[np.float64], y: NDArray[np.float64]) -> NDArray[np.float64]:
+    def _estimate_thresholds(self, X: NDArray[np.float64], y: NDArray[np.int64]) -> NDArray[np.float64]:
         """Estimate thresholds for each class in OOD detection.
 
         Args:
@@ -198,7 +198,7 @@ class XGBOODClassifier(XGBClassifier):
             thresholds[c] = threshold
         return thresholds
 
-    def fit(self, X: NDArray[np.float64], y: NDArray[np.float64], **kwargs) -> Self:
+    def fit(self, X: NDArray[np.float64], y: NDArray[np.int64], **kwargs) -> Self:
         """Fit model.
 
         Args:
