@@ -108,11 +108,6 @@ title_page_substrings = {
 }
 
 
-def normalize_text(text: str) -> str:
-    """Normalize page text before keyword matching."""
-    return " ".join(text.upper().split())
-
-
 def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
     """Return the fraction of keyword groups found in the given text.
 
@@ -141,11 +136,7 @@ def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
     """
     if not substrings:
         return 0.0
-
-    normalized_text = normalize_text(text)
-    matches = [
-        any(candidate.upper() in normalized_text for candidate in substring_group) for substring_group in substrings
-    ]
+    matches = [any(candidate.upper() in text for candidate in substring_group) for substring_group in substrings]
     return sum(matches) / len(matches)
 
 
