@@ -80,10 +80,12 @@ class XGBOODClassifier(XGBClassifier):
         Args:
             kwargs (dict): Additional parameters.
         """
+        # Update number of classes to correct number
+        kwargs["num_class"] = kwargs["num_class"] - 1
         self.ood_mode = kwargs.pop("ood_mode")
         self.ood_confidence = kwargs.pop("ood_confidence")
         self.id_ood = label2id[PageClasses.UNKNOWN]
-        self.thresholds = np.zeros(kwargs.get("num_class") - 1, dtype=np.float64)
+        self.thresholds = np.zeros(kwargs["num_class"], dtype=np.float64)
         super().__init__(**kwargs)
 
     def get_params(self, deep: bool = True) -> dict:
