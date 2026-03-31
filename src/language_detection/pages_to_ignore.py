@@ -136,7 +136,7 @@ def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
     """
     if not substrings:
         return 0.0
-    matches = [any(candidate.upper() in text for candidate in substring_group) for substring_group in substrings]
+    matches = [any(candidate in text for candidate in substring_group) for substring_group in substrings]
     return sum(matches) / len(matches)
 
 
