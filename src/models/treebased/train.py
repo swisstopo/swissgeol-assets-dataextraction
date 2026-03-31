@@ -147,7 +147,7 @@ def load_data_and_labels_sequential(
         label_map (dict[tuple[str, int], int]): Mapping from (filename, page_number) to label ID.
 
     Returns:
-        tuple[list[list[float]], list[int], list[tuple[str, str]]]: For each item in the lists returns,
+        tuple[list[list[float]], list[int], list[tuple[str, int]]]: For each item in the lists returns,
             * list[float]: Extracted features
             * int: Class label
             * tuple[str, int]: Item key as filename and page index
@@ -208,7 +208,7 @@ def main(
     # --- Step 1: Load dataset train and validation
     label_lookup = build_filename_to_label_map(ground_truth_path)
 
-    print(f"\nFeature extraction mode: {'PARALLEL' if parallel else 'SEQUENTIAL'}")
+    logger.info(f"\nFeature extraction mode: {'PARALLEL' if parallel else 'SEQUENTIAL'}")
 
     # Choose loading strategy
     start_time = time.time()
@@ -222,7 +222,7 @@ def main(
     X_val, y_val, k_val = load_fn(val_folder, label_lookup)
 
     elapsed = time.time() - start_time
-    print(f"\nFeature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
+    logger.info(f"\nFeature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
 
     # --- Step 2: Build model trained
     if trainer_name != "xgboost":
@@ -272,7 +272,7 @@ def main(
 
         # Log confusion matrix and classification report
         trainer.plot_and_log_confusion_matrix(y_pred)
-        trainer.plot_and_file_predictions(y_pred)
+        trainer.log_predictions_csv(y_pred)
 
 
 if __name__ == "__main__":

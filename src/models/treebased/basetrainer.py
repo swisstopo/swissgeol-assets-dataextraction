@@ -160,7 +160,7 @@ class TreeBasedTrainer(abc.ABC):
             json.dump(report_dict, f, indent=2)
         mlflow.log_artifact(str(report_path))
 
-    def plot_and_file_predictions(self, y_pred: list) -> None:
+    def log_predictions_csv(self, y_pred: list) -> None:
         """Create a per-page classification report and save it as a CSV.
 
         Args:

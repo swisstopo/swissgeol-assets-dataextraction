@@ -81,15 +81,21 @@ class XGBOODClassifier(XGBClassifier):
             kwargs (dict): Additional parameters.
         """
         # Update number of classes to correct number
-        # kwargs["num_class"] = kwargs["num_class"] - 1
         self.ood_mode = kwargs.pop("ood_mode")
         self.ood_confidence = kwargs.pop("ood_confidence")
         self.id_ood = label2id[PageClasses.UNKNOWN]
-        self.thresholds = np.zeros(kwargs["num_class"], dtype=np.float64)
+        self.thresholds = np.zeros(kwargs["num_class"] - 1, dtype=np.float64)
         super().__init__(**kwargs)
 
+    def get_xgb_params(self) -> dict:
+        """Used to silence CV warning about unused params."""
+        params = super().get_xgb_params()
+        params.pop("ood_mode", None)
+        params.pop("ood_confidence", None)
+        return params
+
     def get_params(self, deep: bool = True) -> dict:
-        """Update parameters for cross validation search.
+        """Get parameters for cross validation search.
 
         Args:
             deep (bool, optional): Deep copy. Defaults to True.
@@ -102,14 +108,8 @@ class XGBOODClassifier(XGBClassifier):
         params["ood_confidence"] = self.ood_confidence
         return params
 
-    def get_xgb_params(self) -> dict:
-        # Used to silence CV warning about unused params
-        params = super().get_xgb_params()
-        params.pop("ood_mode", None)
-        params.pop("ood_confidence", None)
-        return params
-
-    def set_params(self, **params):
+    def set_params(self, **params) -> Self:
+        """Set parameters for cross validation search."""
         if "ood_mode" in params:
             self.ood_mode = params.pop("ood_mode")
         if "ood_confidence" in params:
@@ -175,7 +175,7 @@ class XGBOODClassifier(XGBClassifier):
 
         Args:
             X (NDArray[np.float64]): Data features.
-            y (NDArray[np.float64]): Data classes.
+            y (NDArray[np.int64]): Data classes.
 
         Returns:
             NDArray[np.float64]: Per-class probability thresholds. Predictions whose max probability
@@ -203,7 +203,7 @@ class XGBOODClassifier(XGBClassifier):
 
         Args:
             X (NDArray[np.float64]): Training features.
-            y (NDArray[np.float64]): Training labels (integer class IDs).
+            y (NDArray[np.int64]): Training labels (integer class IDs).
             **kwargs: Additional keyword arguments passed to
                 `XGBClassifier.fit()`.
 
