@@ -6,9 +6,10 @@ ground_truth_file_path: "data/gt_single_pages.json"
 # Enable OOD (use unknown class as outliers)
 ood_use: true
 
-# Feature names to track (23 features total)
+# Feature names to track (24 features total)
 feature_names:
-  # Text/word features (6)
+  # Text/word features (7)
+  - Keywords List
   - Words Per Line
   - Word Density
   - Mean Left

@@ -76,6 +76,9 @@ ignore = ["D102", "D105", "D107", "D100", "D103", "SIM108"]
 [tool.ruff.lint.pydocstyle]
 convention = "google"
 
+[tool.uv]
+exclude-newer = "7 days"
+
 # ---- Configuration for package building
 [tool.hatch.build.targets.wheel]
 packages = ["src"]

@@ -1,3 +1,5 @@
+from swissgeol_doc_processing.text.textline import TextLine
+
 title_page_substrings = {
     "page_de_garde_1": [
         ["PAGE DE GARDE", "P A G E DE G A R D E"],
@@ -104,6 +106,54 @@ title_page_substrings = {
         ["STICHWOERTER"],
     ],
 }
+
+
+def substring_match_ratio(text: str, substrings: list[list[str]]) -> float:
+    """Return the fraction of keyword groups found in the given text.
+
+    Each element of substrings is a group of alternative strings. A group
+    is considered matched if at least one of its alternatives appears in the
+    text. The returned score is the number of matched groups divided by the total number of groups.
+
+    Example:
+        substrings = [
+            ["PAGE DE GARDE", "P A G E DE G A R D E"],    # group 1 — two alternatives
+            ["No AGS"],                                   # group 2 — one alternative
+            ["Commettants"],                              # group 3 — one alternative
+        ]
+
+        # If the text contains "PAGE DE GARDE" and "No AGS" but not "Commettants":
+        # → 2 out of 3 groups matched → returns 0.667
+
+    Args:
+        text: The raw page text to search within.
+        substrings: A list of keyword groups. Each group is a list of
+            alternative strings — only one alternative needs to match
+            for the group to count as matched.
+
+    Returns:
+        A float in [0.0, 1.0]: the proportion of groups that matched.
+    """
+    if not substrings:
+        return 0.0
+    matches = [any(candidate in text for candidate in substring_group) for substring_group in substrings]
+    return sum(matches) / len(matches)
+
+
+def max_title_page_keyword_score(lines: list[TextLine]) -> float:
+    """Return the best keyword-match score across all predefined title-page patterns."""
+    if not lines:
+        return 0.0
+
+    # Reconstruct page text from extracted lines
+    text = "\n".join(line.text for line in lines if line.text)
+
+    if not text:
+        return 0.0
+
+    return max(
+        substring_match_ratio(text, pattern_substrings) for pattern_substrings in title_page_substrings.values()
+    )
 
 
 def is_belegblatt(text: str) -> bool:
