@@ -250,6 +250,10 @@ def main(
             trainer.prepare_model()
             mlflow.log_metric("best_cv_score", best_score)
 
+        # Log to mlflow
+        mlflow.log_params(trainer.hyperparams)
+        mlflow.log_artifact(str(model_out_directory))
+
         # Train model with data and run explain
         trainer.train()
         explain_model(trainer.model, trainer.X_train, trainer.id2label)
@@ -257,12 +261,7 @@ def main(
 
         # Visualization of the results
         y_pred = trainer.model.predict(X_val)
-        metrics = trainer.evaluate(y_pred)
-
-        # Log to mlflow
-        mlflow.log_params(trainer.hyperparams)
-        mlflow.log_metrics(metrics)
-        mlflow.log_artifact(str(model_out_directory))
+        trainer.log_metrics(y_pred)
 
         if trainer.feature_names:
             mlflow.log_dict({"features": trainer.feature_names}, "features.json")

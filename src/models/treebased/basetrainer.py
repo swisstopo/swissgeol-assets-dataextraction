@@ -10,7 +10,6 @@ from sklearn.metrics import (
     ConfusionMatrixDisplay,
     classification_report,
     confusion_matrix,
-    precision_recall_fscore_support,
 )
 from sklearn.model_selection import GridSearchCV
 from xgboost import XGBClassifier
@@ -90,7 +89,7 @@ class TreeBasedTrainer(abc.ABC):
             raise ValueError("Model is not prepared. Call prepare_model() before training.")
         self.model.fit(self.X_train, self.y_train)
 
-    def evaluate(self, y_pred) -> dict:
+    def log_metrics(self, y_pred) -> dict:
         """Evaluates the model's performance on the validation set.
 
         Args:
@@ -99,11 +98,14 @@ class TreeBasedTrainer(abc.ABC):
         Returns:
             dict: A dictionary containing precision, recall, and F1 score (micro, macro).
         """
-        precision, recall, f1, _ = precision_recall_fscore_support(
-            self.y_val, y_pred, average="micro", zero_division=0
-        )
-        _, _, f1_macro, _ = precision_recall_fscore_support(self.y_val, y_pred, average="macro", zero_division=0)
-        return {"precision_micro": precision, "recall_micro": recall, "f1_micro": f1, "f1_macro": f1_macro}
+        # Also log classification report as JSON
+        class_names = [self.id2label[i] for i in sorted(self.id2label)]
+        report_dict = classification_report(self.y_val, y_pred, target_names=class_names, output_dict=True)
+        report_path = self.model_dir / "classification_report.json"
+        with open(report_path, "w") as f:
+            json.dump(report_dict, f, indent=2)
+        mlflow.log_artifact(str(report_path))
+        self.log_nested_metrics(report_dict)
 
     def save_model(self, filename: Path = "model.joblib") -> Path:
         """Saves the trained model to the specified file."""
@@ -152,14 +154,6 @@ class TreeBasedTrainer(abc.ABC):
         plt.savefig(fig_path)
         plt.close()
         mlflow.log_artifact(str(fig_path))
-
-        # Also log classification report as JSON
-        report_dict = classification_report(self.y_val, y_pred, target_names=class_names, output_dict=True)
-        report_path = self.model_dir / "classification_report.json"
-        with open(report_path, "w") as f:
-            json.dump(report_dict, f, indent=2)
-        mlflow.log_artifact(str(report_path))
-        self.log_nested_metrics(report_dict)
 
     @staticmethod
     def log_nested_metrics(metrics: dict, prefix: str = "", sep: str = "/"):
