@@ -88,7 +88,13 @@ class XGBOODClassifier(XGBClassifier):
         super().__init__(**kwargs)
 
     def get_xgb_params(self) -> dict:
-        """Used to silence CV warning about unused params."""
+        """Return XGBoost-native parameters, excluding OOD-specific keys.
+
+        Overrides the parent method which does not recognise them and would raise a warning.
+
+        Returns:
+            dict: XGBoost parameters without OOD keys.
+        """
         params = super().get_xgb_params()
         params.pop("ood_mode", None)
         params.pop("ood_confidence", None)
@@ -109,7 +115,11 @@ class XGBOODClassifier(XGBClassifier):
         return params
 
     def set_params(self, **params) -> Self:
-        """Set parameters for cross validation search."""
+        """Set parameters for cross validation search.
+
+        Returns:
+             Self: The updated classifier instance.
+        """
         if "ood_mode" in params:
             self.ood_mode = params.pop("ood_mode")
         if "ood_confidence" in params:

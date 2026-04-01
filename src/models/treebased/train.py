@@ -34,7 +34,15 @@ borehole_matching_params = swissgeol_read_params("matching_params.yml")
 
 
 def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int]:
-    """Build a map from filename to class ID based on the ground truth JSON."""
+    """Build a map from (filename, page) to class ID based on the ground truth JSON.
+
+    Args:
+        gt_json_path (Path): Path to the ground truth JSON file.
+
+    Returns:
+        dict[tuple[str, int], int]: Mapping from ``(filename, page_number)`` to
+            the integer class ID of the active label for that page.
+    """
     with open(gt_json_path) as f:
         gt_data = json.load(f)
 
@@ -54,13 +62,17 @@ def build_filename_to_label_map(gt_json_path: Path) -> dict[tuple[str, int], int
 
 
 def extract_features_from_page(args):
-    """Extract features from a single page (used for multiprocessing).
+    """Extract features from a single PDF page.
 
     Args:
-        args: Tuple of (file_path, page_number, matching_params, borehole_matching_params)
+        args (tuple): Packed arguments in the form
+            - ``file_path`` (str): Path to the PDF file.
+            - ``page_number`` (int): indexed page number to process.
+            - ``matching_params`` (dict): Matching configuration.
+            - ``borehole_matching_params`` (dict): Borehole matching configuration.
 
     Returns:
-        Tuple of (filename, page_number, features) or None if error
+        tuple[str, int, list[float]] | None: Keyed features.
     """
     file_path, page_number, matching_params, borehole_matching_params = args
     filename = os.path.basename(file_path)

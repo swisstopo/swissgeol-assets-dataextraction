@@ -94,11 +94,11 @@ class TreeBasedTrainer(abc.ABC):
             raise ValueError("Model is not prepared. Call prepare_model() before training.")
         self.model.fit(self.X_train, self.y_train)
 
-    def log_metrics(self, y_pred) -> None:
-        """Evaluates the model's performance on the validation set.
+    def log_metrics(self, y_pred: list[int]) -> None:
+        """Logs classification metrics and saves the report for the validation set.
 
         Args:
-            y_pred (list): Predicted labels for the validation set.
+            y_pred (list[int]): Predicted class IDs for the validation set.
         """
         # Also log classification report as JSON
         report_dict = classification_report(self.y_val, y_pred, target_names=self.class_names, output_dict=True)
@@ -109,7 +109,14 @@ class TreeBasedTrainer(abc.ABC):
         self.log_nested_metrics(report_dict)
 
     def save_model(self, filename: Path = "model.joblib") -> Path:
-        """Saves the trained model to the specified file."""
+        """Saves the trained model to the specified file.
+
+        Args:
+            filename (Path): Output filename relative to model_dir. Defaults to "model.joblib".
+
+        Returns:
+            Path: Full path to the saved model file.
+        """
         path = self.model_dir / filename
         joblib.dump(self.model, path)
         signature = mlflow.models.infer_signature(self.X_train[:1], self.model.predict(self.X_train[:1]))
@@ -160,7 +167,7 @@ class TreeBasedTrainer(abc.ABC):
         """Recursive log of nested metrics with prefix.
 
         Args:
-            metrics (dict): List of nested features
+            metrics (dict): Nested dictionary of metric names to values (or sub-dicts).
             prefix (str, optional): Metric prefix
             sep (str, optional): Separator between keys. Defaults to "/".
         """
@@ -201,6 +208,16 @@ class XGBoostTrainer(TreeBasedTrainer):
     model_name = "xgboost_model"
 
     def __init__(self, config: dict, output_path: Path):
+        """Initializes the XGBoostTrainer with configuration and output path.
+
+        Args:
+            config (dict): Configuration dictionary. In addition to the base fields,
+                supports the following keys:
+                - ``ood_use`` (bool): Whether to enable OOD detection. Defaults to False.
+                - ``hyperparameters`` (dict): Base XGBoost hyperparameters.
+                - ``hyperparameters_ood`` (dict): Additional OOD-specific parameters.
+            output_path (Path): Directory where the trained model will be saved.
+        """
         super().__init__(config, output_path)
         # Extract configuration variables for model
         self.ood_use = config.get("ood_use", False)
