@@ -159,6 +159,24 @@ class TreeBasedTrainer(abc.ABC):
         with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=2)
         mlflow.log_artifact(str(report_path))
+        self.log_nested_metrics(report_dict)
+
+    @staticmethod
+    def log_nested_metrics(metrics: dict, prefix: str = "", sep: str = "/"):
+        """Recursive log of nested metrics with prefix.
+
+        Args:
+            metrics (dict): List of nested features
+            prefix (str, optional): Metric prefix
+            sep (str, optional): Separator between keys. Defaults to "/".
+        """
+        for key, value in metrics.items():
+            key_short = key.replace(" ", "")
+            full_key = f"{prefix}{sep}{key_short}" if prefix else key_short
+            if isinstance(value, dict):
+                TreeBasedTrainer.log_nested_metrics(value, prefix=full_key, sep=sep)
+            else:
+                mlflow.log_metric(full_key, value)
 
     def log_predictions_csv(self, y_pred: list) -> None:
         """Create a per-page classification report and save it as a CSV.
