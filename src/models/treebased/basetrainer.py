@@ -52,6 +52,11 @@ class TreeBasedTrainer(abc.ABC):
         self.model_dir = output_path
         self.model_dir.mkdir(parents=True, exist_ok=True)
 
+    @property
+    def class_names(self) -> list[str]:
+        """Return class names as list."""
+        return [self.id2label[i] for i in sorted(self.id2label)]
+
     @abc.abstractmethod
     def prepare_model(self) -> None:
         """Prepares the model for training. This method should be implemented by subclasses."""
@@ -89,18 +94,14 @@ class TreeBasedTrainer(abc.ABC):
             raise ValueError("Model is not prepared. Call prepare_model() before training.")
         self.model.fit(self.X_train, self.y_train)
 
-    def log_metrics(self, y_pred) -> dict:
+    def log_metrics(self, y_pred) -> None:
         """Evaluates the model's performance on the validation set.
 
         Args:
             y_pred (list): Predicted labels for the validation set.
-
-        Returns:
-            dict: A dictionary containing precision, recall, and F1 score (micro, macro).
         """
         # Also log classification report as JSON
-        class_names = [self.id2label[i] for i in sorted(self.id2label)]
-        report_dict = classification_report(self.y_val, y_pred, target_names=class_names, output_dict=True)
+        report_dict = classification_report(self.y_val, y_pred, target_names=self.class_names, output_dict=True)
         report_path = self.model_dir / "classification_report.json"
         with open(report_path, "w") as f:
             json.dump(report_dict, f, indent=2)
@@ -145,9 +146,8 @@ class TreeBasedTrainer(abc.ABC):
         Args:
             y_pred (list): Predicted labels for the validation set.
         """
-        class_names = [self.id2label[i] for i in sorted(self.id2label)]
         cm = confusion_matrix(self.y_val, y_pred)
-        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=class_names)
+        disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=self.class_names)
         disp.plot(xticks_rotation="vertical")
         plt.tight_layout()
         fig_path = self.model_dir / "confusion_matrix.png"
@@ -178,12 +178,10 @@ class TreeBasedTrainer(abc.ABC):
         Args:
             y_pred (list): List of predicted class IDs for the validation set.
         """
-        class_names = [self.id2label[i] for i in sorted(self.id2label)]
-
         # Create output table structure
         output_table = [["Filename", "Page", "Ground truth", "Prediction"]]
         for y_gt, y_pr, key in zip(self.y_val, y_pred, self.k_val, strict=True):
-            output_table.append([key[0], key[1], class_names[y_gt], class_names[y_pr]])
+            output_table.append([key[0], key[1], self.class_names[y_gt], self.class_names[y_pr]])
 
         # Log results to CSV file
         report_path = self.model_dir / "summary_files.csv"
@@ -210,7 +208,7 @@ class XGBoostTrainer(TreeBasedTrainer):
         # Choose model backbone
         self.model_builder = XGBOODClassifier if self.ood_use else XGBClassifier
 
-        # Set base parameters (add OOD if activated) - make copy to avoid overwritting
+        # Set base parameters (add OOD if activated) - make copy to avoid overwriting
         self.hyperparams = dict(config.get("hyperparameters", {}))
         if self.ood_use:
             hyperparams_ood = self.config.get("hyperparameters_ood", {})
