@@ -136,24 +136,19 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
     return {"title": stats}
 
 
-def compute_stats(
-    predictions: list[DocumentGroundTruth], ground_truths: list[DocumentGroundTruth]
-) -> tuple[dict, dict]:
+def compute_stats(predictions: dict[str, DocumentPage], ground_truths: dict[str, DocumentPage]) -> tuple[dict, dict]:
     """Compute classification and title extraction statistics against ground truth.
 
     Args:
-        predictions (list[DocumentGroundTruth]): Predicted document annotations.
-        ground_truths (list[DocumentGroundTruth]): Ground truth document annotations.
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truths (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
 
     Returns:
         tuple[dict, dict]: A tuple of (classification_stats, title_stats), each as per-label
             confusion dictionaries.
     """
-    pred_keyed = groundtruth_doc_to_pages(predictions)
-    gt_keyed = groundtruth_doc_to_pages(ground_truths)
-
     # Evaluate on the intersection so we don't crash when pages are missing
-    pred_keys, gt_keys = set(pred_keyed.keys()), set(gt_keyed.keys())
+    pred_keys, gt_keys = set(predictions.keys()), set(ground_truths.keys())
 
     missing_in_pred = gt_keys - pred_keys
     missing_in_gt = pred_keys - gt_keys
@@ -162,58 +157,41 @@ def compute_stats(
     if missing_in_gt:
         logger.info(f"{len(missing_in_gt)} predicted pages missing in GT (e.g., {next(iter(missing_in_gt))}).")
 
-    classification_stats = compute_classification_stats(pred_keyed, gt_keyed)
-    title_stats = compute_title_stats(pred_keyed, gt_keyed)
+    classification_stats = compute_classification_stats(predictions, ground_truths)
+    title_stats = compute_title_stats(predictions, ground_truths)
 
     return classification_stats, title_stats
 
 
-def compute_page_level_rows(predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage]) -> list[dict]:
-    """Build one row per page with ground truth and predicted labels and titles.
+def save_page_level_predictions(
+    predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage], csv_path: Path
+) -> Path:
+    """Write page-level ground truth vs prediction rows to a CSV file.
 
     Args:
         predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
         ground_truth (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
-
-    Returns:
-        list[dict]: Rows with filename, page, gt/pred title, and gt/pred per-label values.
-    """
-    rows = []
-    common_keys = sorted(predictions.keys() & ground_truth.keys())
-    for key in common_keys:
-        filename, _, page = key.rpartition("-")
-        pred_page = predictions[key]
-        gt_page = ground_truth[key]
-        row: dict = {
-            "filename": filename,
-            "page": page,
-            "gt_title": gt_page.title or "",
-            "pred_title": pred_page.title or "",
-        }
-        for label in LABELS:
-            row[f"gt_{label}"] = int(gt_page.classification.get(label, 0))
-            row[f"pred_{label}"] = int(pred_page.classification.get(label, 0))
-        rows.append(row)
-    return rows
-
-
-def save_page_level_predictions(rows: list[dict], csv_path: Path) -> Path:
-    """Write page-level ground truth vs prediction rows to a CSV file.
-
-    Args:
-        rows (list[dict]): Rows produced by compute_page_level_rows().
         csv_path (Path): Destination path for the output CSV file.
 
     Returns:
         Path: The path to the written CSV file.
     """
-    if not rows:
-        return csv_path
-    fieldnames = list(rows[0].keys())
     with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=fieldnames)
+        writer = csv.DictWriter(f, fieldnames=["filename", "page", "gt_title", "pred_title", "gt_class", "pred_class"])
         writer.writeheader()
-        writer.writerows(rows)
+        for key in sorted(predictions.keys() & ground_truth.keys()):
+            filename, _, page = key.rpartition("-")
+            pred_page, gt_page = predictions[key], ground_truth[key]
+            writer.writerow(
+                {
+                    "filename": filename,
+                    "page": page,
+                    "gt_title": gt_page.title or "",
+                    "pred_title": pred_page.title or "",
+                    "gt_class": next((k for k, v in gt_page.classification.items() if v), ""),
+                    "pred_class": next((k for k, v in pred_page.classification.items() if v), ""),
+                }
+            )
     return csv_path
 
 
@@ -326,12 +304,11 @@ def evaluate_results(
     pred_keyed = groundtruth_doc_to_pages(pred_list)
     gt_keyed = groundtruth_doc_to_pages(gt_list)
 
-    stats_classification, stats_title = compute_stats(pred_list, gt_list)
+    stats_classification, stats_title = compute_stats(pred_keyed, gt_keyed)
     stats_classification_path = save_stats(stats_classification, output_dir / "evaluation_metrics_classification.csv")
     stats_title_path = save_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
 
-    page_level_rows = compute_page_level_rows(pred_keyed, gt_keyed)
-    page_level_path = save_page_level_predictions(page_level_rows, output_dir / "page_level_predictions.csv")
+    page_level_path = save_page_level_predictions(pred_keyed, gt_keyed, output_dir / "page_level_predictions.csv")
 
     if mlflow_tracking:
         log_metrics_to_mlflow(stats_classification, stats_title)
