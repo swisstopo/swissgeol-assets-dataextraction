@@ -195,7 +195,7 @@ def save_page_level_predictions(
     return csv_path
 
 
-def save_stats(stats_classification: dict, csv_path: Path) -> Path:
+def save_classification_stats(stats_classification: dict, csv_path: Path) -> Path:
     """Save per-label confusion statistics to a CSV file.
 
     Args:
@@ -206,23 +206,16 @@ def save_stats(stats_classification: dict, csv_path: Path) -> Path:
         Path: The path to the written CSV file.
     """
     with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(
-            [
-                "Label",
-                "True_Positives",
-                "False_Negatives",
-                "False_Positives",
-            ]
-        )
+        writer = csv.DictWriter(f, fieldnames=["label", "true_positives", "false_negatives", "false_positives"])
+        writer.writeheader()
         for label, s in stats_classification.items():
             writer.writerow(
-                [
-                    label,
-                    s["true_positives"],
-                    s["false_negatives"],
-                    s["false_positives"],
-                ]
+                {
+                    "label": label,
+                    "true_positives": s["true_positives"],
+                    "false_negatives": s["false_negatives"],
+                    "false_positives": s["false_positives"],
+                }
             )
     return csv_path
 
@@ -305,8 +298,10 @@ def evaluate_results(
     gt_keyed = groundtruth_doc_to_pages(gt_list)
 
     stats_classification, stats_title = compute_stats(pred_keyed, gt_keyed)
-    stats_classification_path = save_stats(stats_classification, output_dir / "evaluation_metrics_classification.csv")
-    stats_title_path = save_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
+    stats_classification_path = save_classification_stats(
+        stats_classification, output_dir / "evaluation_metrics_classification.csv"
+    )
+    stats_title_path = save_classification_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
 
     page_level_path = save_page_level_predictions(pred_keyed, gt_keyed, output_dir / "page_level_predictions.csv")
 
