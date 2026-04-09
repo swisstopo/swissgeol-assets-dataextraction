@@ -132,7 +132,7 @@ def document_to_boreprofiles(
             language=lang,
             title=borehole.metadata.name.feature.name if borehole.metadata.name else None,
         )
-        for borehole in prediction.borehole_predictions_list
+        for borehole in prediction.predictions.borehole_predictions_list
     ]
 
     # Add dummy pages if any missed
