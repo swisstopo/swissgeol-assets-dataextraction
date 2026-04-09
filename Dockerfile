@@ -1,3 +1,4 @@
+# --- Temporary stage used only during the build process
 FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -10,13 +11,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY pyproject.toml uv.lock ./
-
 # Install production dependencies only
-RUN uv sync --frozen --no-dev --no-install-project
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project --compile
 
-
-FROM python:3.13-slim-bookworm AS runtime
+# --- Final stage that becomes the actual shipped Docker image (starts fresh)
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS runtime
 
 ENV MLFLOW_TRACKING="False"
 ENV TMP_PATH=/tmp
@@ -34,16 +34,14 @@ WORKDIR /app
 COPY --from=builder /app/.venv /app/.venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-COPY src/ ./src/
+RUN useradd --create-home --shell /bin/bash app
+USER app
+COPY --chown=app:app src/ ./src/
 COPY api/ ./api/
 COPY config/ ./config/
 COPY models/ ./models/
 COPY prompts/ ./prompts/
 COPY main.py ./
-
-RUN useradd --create-home --shell /bin/bash app \
- && chown -R app:app /app
-USER app
 
 EXPOSE 8000
 
