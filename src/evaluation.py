@@ -177,7 +177,7 @@ def save_page_level_predictions(
         Path: The path to the written CSV file.
     """
     with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["filename", "page", "gt_title", "pred_title", "gt_class", "pred_class"])
+        writer = csv.DictWriter(f, fieldnames=["filename", "page", "pred_class", "gt_class", "pred_title", "gt_title"])
         writer.writeheader()
         for key in sorted(predictions.keys() & ground_truth.keys()):
             filename, _, page = key.rpartition("-")
