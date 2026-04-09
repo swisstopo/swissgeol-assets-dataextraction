@@ -138,24 +138,19 @@ def compute_title_stats(predictions: dict[str, DocumentPage], ground_truth: dict
     return {"title": stats}
 
 
-def compute_stats(
-    predictions: list[DocumentGroundTruth], ground_truths: list[DocumentGroundTruth]
-) -> tuple[dict, dict]:
+def compute_stats(predictions: dict[str, DocumentPage], ground_truths: dict[str, DocumentPage]) -> tuple[dict, dict]:
     """Compute classification and title extraction statistics against ground truth.
 
     Args:
-        predictions (list[DocumentGroundTruth]): Predicted document annotations.
-        ground_truths (list[DocumentGroundTruth]): Ground truth document annotations.
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truths (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
 
     Returns:
         tuple[dict, dict]: A tuple of (classification_stats, title_stats), each as per-label
             confusion dictionaries.
     """
-    pred_keyed = groundtruth_doc_to_pages(predictions)
-    gt_keyed = groundtruth_doc_to_pages(ground_truths)
-
     # Evaluate on the intersection so we don't crash when pages are missing
-    pred_keys, gt_keys = set(pred_keyed.keys()), set(gt_keyed.keys())
+    pred_keys, gt_keys = set(predictions.keys()), set(ground_truths.keys())
 
     missing_in_pred = gt_keys - pred_keys
     missing_in_gt = pred_keys - gt_keys
@@ -164,10 +159,40 @@ def compute_stats(
     if missing_in_gt:
         logger.info(f"{len(missing_in_gt)} predicted pages missing in GT (e.g., {next(iter(missing_in_gt))}).")
 
-    classification_stats = compute_classification_stats(pred_keyed, gt_keyed)
-    title_stats = compute_title_stats(pred_keyed, gt_keyed)
+    classification_stats = compute_classification_stats(predictions, ground_truths)
+    title_stats = compute_title_stats(predictions, ground_truths)
 
     return classification_stats, title_stats
+
+
+def save_page_level_predictions(
+    predictions: dict[str, DocumentPage], ground_truth: dict[str, DocumentPage], csv_path: Path
+) -> Path:
+    """Write page-level ground truth vs prediction rows to a CSV file.
+
+    Args:
+        predictions (dict[str, DocumentPage]): Keyed predictions ('filename-page').
+        ground_truth (dict[str, DocumentPage]): Keyed ground truth ('filename-page').
+        csv_path (Path): Destination path for the output CSV file.
+
+    Returns:
+        Path: The path to the written CSV file.
+    """
+    return save_csv(
+        header=["filename", "page", "pred_class", "gt_class", "pred_title", "gt_title"],
+        contents=[
+            [
+                key.rpartition("-")[0],
+                key.rpartition("-")[2],
+                ground_truth[key].title or "",
+                predictions[key].title or "",
+                next((k for k, v in ground_truth[key].classification.items() if v), ""),
+                next((k for k, v in predictions[key].classification.items() if v), ""),
+            ]
+            for key in sorted(predictions.keys() & ground_truth.keys())
+        ],
+        csv_path=csv_path,
+    )
 
 
 def save_csv(header: Sequence[Any], contents: Sequence[Sequence[Any]], csv_path: Path) -> Path:
@@ -191,7 +216,7 @@ def save_csv(header: Sequence[Any], contents: Sequence[Sequence[Any]], csv_path:
     return csv_path
 
 
-def save_stats(stats_classification: dict, csv_path: Path) -> Path:
+def save_classification_stats(stats_classification: dict, csv_path: Path) -> Path:
     """Save per-label confusion statistics to a CSV file.
 
     Args:
@@ -201,24 +226,19 @@ def save_stats(stats_classification: dict, csv_path: Path) -> Path:
     Returns:
         Path: The path to the written CSV file.
     """
-    header = [
-        "Label",
-        "True_Positives",
-        "False_Negatives",
-        "False_Positives",
-    ]
-
-    content = [
-        [
-            label,
-            s["true_positives"],
-            s["false_negatives"],
-            s["false_positives"],
-        ]
-        for label, s in stats_classification.items()
-    ]
-
-    return save_csv(header=header, contents=content, csv_path=csv_path)
+    return save_csv(
+        header=["Label", "True_Positives", "False_Negatives", "False_Positives"],
+        contents=[
+            [
+                label,
+                s["true_positives"],
+                s["false_negatives"],
+                s["false_positives"],
+            ]
+            for label, s in stats_classification.items()
+        ],
+        csv_path=csv_path,
+    )
 
 
 def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None:
@@ -295,13 +315,21 @@ def evaluate_results(
     if not gt_list or not pred_list:
         return None, None
 
-    stats_classification, stats_title = compute_stats(pred_list, gt_list)
-    stats_classification_path = save_stats(stats_classification, output_dir / "evaluation_metrics_classification.csv")
-    stats_title_path = save_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
+    pred_keyed = groundtruth_doc_to_pages(pred_list)
+    gt_keyed = groundtruth_doc_to_pages(gt_list)
+
+    stats_classification, stats_title = compute_stats(pred_keyed, gt_keyed)
+    stats_classification_path = save_classification_stats(
+        stats_classification, output_dir / "evaluation_metrics_classification.csv"
+    )
+    stats_title_path = save_classification_stats(stats_title, output_dir / "evaluation_metrics_title.csv")
+
+    page_level_path = save_page_level_predictions(pred_keyed, gt_keyed, output_dir / "page_level_predictions.csv")
 
     if mlflow_tracking:
         log_metrics_to_mlflow(stats_classification, stats_title)
         mlflow.log_artifact(str(stats_classification_path))
         mlflow.log_artifact(str(stats_title_path))
+        mlflow.log_artifact(str(page_level_path))
 
     return stats_classification_path, stats_title_path
