@@ -2,7 +2,7 @@ import csv
 import json
 import logging
 import os
-from collections.abc import Iterable
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Any
 
@@ -170,19 +170,23 @@ def compute_stats(
     return classification_stats, title_stats
 
 
-def save_csv(content: Iterable[Iterable[Any]], csv_path: Path) -> Path:
+def save_csv(header: Sequence[Any], contents: Sequence[Sequence[Any]], csv_path: Path) -> Path:
     """Save content as a csv file.
 
     Args:
-        content (Iterable[Iterable[Any]]): Content to write.
-        csv_path (Path): Path where to store results.
+        header (Sequence[Any]): Column headers.
+        contents (Sequence[Sequence[Any]]): Rows to write. Each row must have
+            the same number of elements as header.
+        csv_path (Path): Destination path. Overwritten if it already exists.
 
     Returns:
         Path: Output path of written data
     """
+    n_cols = len(header)
     with open(csv_path, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerows(content)
+        writer = csv.DictWriter(f, fieldnames=header)
+        writer.writeheader()
+        writer.writerows([{header[i]: content[i] for i in range(n_cols)} for content in contents])
 
     return csv_path
 
@@ -198,12 +202,10 @@ def save_stats(stats_classification: dict, csv_path: Path) -> Path:
         Path: The path to the written CSV file.
     """
     header = [
-        [
-            "Label",
-            "True_Positives",
-            "False_Negatives",
-            "False_Positives",
-        ]
+        "Label",
+        "True_Positives",
+        "False_Negatives",
+        "False_Positives",
     ]
 
     content = [
@@ -216,7 +218,7 @@ def save_stats(stats_classification: dict, csv_path: Path) -> Path:
         for label, s in stats_classification.items()
     ]
 
-    return save_csv(content=header + content, csv_path=csv_path)
+    return save_csv(header=header, contents=content, csv_path=csv_path)
 
 
 def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None:

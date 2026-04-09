@@ -185,14 +185,16 @@ class TreeBasedTrainer(abc.ABC):
         Args:
             y_pred (list): List of predicted class IDs for the validation set.
         """
-        # Create output table structure
-        output_table = [["Filename", "Page", "Ground truth", "Prediction"]]
-        for y_gt, y_pr, key in zip(self.y_val, y_pred, self.k_val, strict=True):
-            output_table.append([key[0], key[1], self.class_names[y_gt], self.class_names[y_pr]])
-
         # Log results to CSV file
         report_path = self.model_dir / "summary_files.csv"
-        save_csv(output_table, report_path)
+        save_csv(
+            header=["Filename", "Page", "Ground truth", "Prediction"],
+            contents=[
+                [key[0], key[1], self.class_names[y_gt], self.class_names[y_pr]]
+                for y_gt, y_pr, key in zip(self.y_val, y_pred, self.k_val, strict=True)
+            ],
+            csv_path=report_path,
+        )
 
         # Save to mlflow
         mlflow.log_artifact(str(report_path))

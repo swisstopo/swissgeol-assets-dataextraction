@@ -234,7 +234,7 @@ def main(
     X_val, y_val, k_val = load_fn(val_folder, label_lookup)
 
     elapsed = time.time() - start_time
-    logger.info(f"\nFeature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
+    logger.info(f"Feature extraction completed in {elapsed:.1f}s ({len(X_train) + len(X_val)} pages)")
 
     # --- Step 2: Build model trained
     if trainer_name != "xgboost":

@@ -68,10 +68,33 @@ class TreeBasedModel:
 class XGBOODClassifier(XGBClassifier):
     """XGBoost classifier with out-of-distribution (OOD) detection.
 
-    Extends `XGBClassifier` to filter low-confidence predictions.
-    Any sample whose predicted-class probability falls below that class threshold is
-    reassigned to the OOD class (`PageClasses.UNKNOWN`).
+    Extends `XGBClassifier` to identify low-confidence predictions and reassign them
+    to the OOD class (`PageClasses.UNKNOWN`). The classifier learns per-class probability
+    thresholds from training data.
 
+    **Training**:
+        1. XGBoost is trained on all in-distribution samples only (OOD samples are excluded
+           from the XGBoost fitting step so the model is never asked to learn the OOD class).
+        2. After fitting, per-class thresholds are estimated from the training data (including
+           OOD samples).
+
+    **Threshold estimation**:
+        For each in-distribution class *c*, the method collects the predicted probabilities
+        for class *c* on correctly-labelled samples of that class (`p`) and on OOD samples
+        (`p_ood`). Two modes are supported, selected via `ood_mode`:
+
+        - `hnorm`: fits a half-normal distribution to the in-distribution scores only
+          and returns the lower tail at quantile `(1 - ood_confidence)`. Does **not** use
+          OOD samples.
+        - `gmm`: fits a 2-component Gaussian Mixture Model to the combined in- and
+          OOD scores. Then finds the decision boundary where probability score to belong to OOD
+          is `1 - ood_confidence`. Uses OOD samples directly to calibrate the boundary.
+
+    **Prediction**:
+        1. Compute class probabilities for each sample.
+        2. The predicted class is the argmax over probabilities.
+        3. If the max probability for that class is below the learned threshold for the given class,
+           the sample is reassigned to the OOD class.
     """
 
     def __init__(self, **kwargs):
