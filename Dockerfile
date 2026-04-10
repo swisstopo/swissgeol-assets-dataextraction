@@ -16,7 +16,7 @@ COPY pyproject.toml uv.lock ./
 RUN uv sync --frozen --no-dev --no-install-project --compile
 
 # --- Final stage that becomes the actual shipped Docker image (starts fresh)
-FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS runtime
+FROM python:3.13-slim-bookworm AS runtime
 
 ENV MLFLOW_TRACKING="False"
 ENV TMP_PATH=/tmp

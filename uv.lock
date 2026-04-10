@@ -8,7 +8,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-04-02T09:21:19.097856Z"
+exclude-newer = "2026-04-03T12:25:34.490807Z"
 exclude-newer-span = "P7D"
 
 [[package]]
@@ -3060,7 +3060,7 @@ requires-dist = [
     { name = "shap", specifier = "==0.49.1" },
     { name = "shapely", specifier = "==2.1.2" },
     { name = "swissgeol-assets-dataextraction", extras = ["dev", "test", "lint", "experiment-tracking"], marker = "extra == 'all'" },
-    { name = "swissgeol-boreholes-dataextraction", url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0-dev4/swissgeol_boreholes_dataextraction-1.0.0.dev4-py3-none-any.whl" },
+    { name = "swissgeol-boreholes-dataextraction", url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl" },
     { name = "tabulate", specifier = ">=0.9.0,<0.10.0" },
     { name = "tqdm", specifier = ">=4.67.1,<5.0.0" },
     { name = "uvicorn", specifier = "==0.35.0" },
@@ -3070,8 +3070,8 @@ provides-extras = ["dev", "test", "lint", "experiment-tracking", "all"]
 
 [[package]]
 name = "swissgeol-boreholes-dataextraction"
-version = "1.0.0.dev4"
-source = { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0-dev4/swissgeol_boreholes_dataextraction-1.0.0.dev4-py3-none-any.whl" }
+version = "1.0.0"
+source = { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl" }
 dependencies = [
     { name = "awslambdaric" },
     { name = "backoff" },
@@ -3101,7 +3101,7 @@ dependencies = [
     { name = "uvicorn" },
 ]
 wheels = [
-    { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0-dev4/swissgeol_boreholes_dataextraction-1.0.0.dev4-py3-none-any.whl", hash = "sha256:6d53a2b825e819b143cada291ecad9556055cf7b5a5908cb993ee3c879af006d" },
+    { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl", hash = "sha256:6cd25505175d6f00f2ff00fb5625e9593df91710f5c7012340f355a8a239d976" },
 ]
 
 [package.metadata]

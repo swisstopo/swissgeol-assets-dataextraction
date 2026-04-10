@@ -63,7 +63,7 @@ all = [
 
 # ---- Configuration for UV
 [tool.uv.sources]
-swissgeol-boreholes-dataextraction = { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0-dev4/swissgeol_boreholes_dataextraction-1.0.0.dev4-py3-none-any.whl" }
+swissgeol-boreholes-dataextraction = { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl" }
 
 # ---- Configuration for Ruff
 [tool.ruff]
