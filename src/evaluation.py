@@ -181,37 +181,35 @@ def save_page_level_predictions(
     return save_csv(
         header=["filename", "page", "pred_class", "gt_class", "pred_title", "gt_title"],
         contents=[
-            [
-                key.rpartition("-")[0],
-                key.rpartition("-")[2],
-                ground_truth[key].title or "",
-                predictions[key].title or "",
-                next((k for k, v in ground_truth[key].classification.items() if v), ""),
-                next((k for k, v in predictions[key].classification.items() if v), ""),
-            ]
+            {
+                "filename": key.rpartition("-")[0],
+                "page": key.rpartition("-")[2],
+                "pred_class": ground_truth[key].title or "",
+                "gt_class": predictions[key].title or "",
+                "pred_title": next((k for k, v in ground_truth[key].classification.items() if v), ""),
+                "gt_title": next((k for k, v in predictions[key].classification.items() if v), ""),
+            }
             for key in sorted(predictions.keys() & ground_truth.keys())
         ],
         csv_path=csv_path,
     )
 
 
-def save_csv(header: Sequence[Any], contents: Sequence[Sequence[Any]], csv_path: Path) -> Path:
+def save_csv(header: Sequence[Any], contents: Sequence[dict[str, Any]], csv_path: Path) -> Path:
     """Save content as a csv file.
 
     Args:
         header (Sequence[Any]): Column headers.
-        contents (Sequence[Sequence[Any]]): Rows to write. Each row must have
-            the same number of elements as header.
+        contents (Sequence[dict[str, Any]]): Rows to write.
         csv_path (Path): Destination path. Overwritten if it already exists.
 
     Returns:
         Path: Output path of written data
     """
-    n_cols = len(header)
     with open(csv_path, "w", newline="") as f:
         writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
-        writer.writerows([{header[i]: content[i] for i in range(n_cols)} for content in contents])
+        writer.writerows(contents)
 
     return csv_path
 
@@ -229,12 +227,12 @@ def save_classification_stats(stats_classification: dict, csv_path: Path) -> Pat
     return save_csv(
         header=["Label", "True_Positives", "False_Negatives", "False_Positives"],
         contents=[
-            [
-                label,
-                s["true_positives"],
-                s["false_negatives"],
-                s["false_positives"],
-            ]
+            {
+                "Label": label,
+                "True_Positives": s["true_positives"],
+                "False_Negatives": s["false_negatives"],
+                "False_Positives": s["false_positives"],
+            }
             for label, s in stats_classification.items()
         ],
         csv_path=csv_path,

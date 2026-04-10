@@ -190,7 +190,12 @@ class TreeBasedTrainer(abc.ABC):
         save_csv(
             header=["Filename", "Page", "Ground truth", "Prediction"],
             contents=[
-                [key[0], key[1], self.class_names[y_gt], self.class_names[y_pr]]
+                {
+                    "Filename": key[0],
+                    "Page": key[1],
+                    "Ground truth": self.class_names[y_gt],
+                    "Prediction": self.class_names[y_pr],
+                }
                 for y_gt, y_pr, key in zip(self.y_val, y_pred, self.k_val, strict=True)
             ],
             csv_path=report_path,
