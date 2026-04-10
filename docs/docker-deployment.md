@@ -53,3 +53,12 @@ If you are using a local MinIO instance for file serving, `localhost` inside the
 ```bash
 LOCAL_S3_ENDPOINT="http://host.docker.internal:9000"
 ```
+
+## Run from Github Packages
+
+The built Docker image for development is present on the repository under the Pakages. To run it locally use:
+
+```
+docker pull ghcr.io/swisstopo/swissgeol-assets-dataextraction-api:edge
+docker run -p 8000:8000 -v $(pwd)/.env:/app/.env.api:ro ghcr.io/swisstopo/swissgeol-assets-dataextraction-api:edge
+```

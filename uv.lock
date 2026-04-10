@@ -8,7 +8,7 @@ resolution-markers = [
 ]
 
 [options]
-exclude-newer = "2026-03-23T11:12:06.620389Z"
+exclude-newer = "2026-04-03T12:25:34.490807Z"
 exclude-newer-span = "P7D"
 
 [[package]]
@@ -1540,26 +1540,6 @@ wheels = [
 ]
 
 [[package]]
-name = "moto"
-version = "5.1.10"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "boto3" },
-    { name = "botocore" },
-    { name = "cryptography" },
-    { name = "jinja2" },
-    { name = "python-dateutil" },
-    { name = "requests" },
-    { name = "responses" },
-    { name = "werkzeug" },
-    { name = "xmltodict" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/c4/72/9bc9b4917b816f5a82fc8f0fbd477c2a669d35a7d7941ae15a5411e266d6/moto-5.1.10.tar.gz", hash = "sha256:d6bdc8f82a1e503502927cc0a3da22014f836094d0bf399bb0f695754ae6c7a6", size = 7087004, upload-time = "2025-08-11T20:59:45.542Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c4/37/9b9cb5597eecc2ebfde2f65a8265f3669f6724ebe82bf9b155a3421039f8/moto-5.1.10-py3-none-any.whl", hash = "sha256:9ec1a21a924f97470af225b2bfa854fe46c1ad30fb44655eba458206dedf28b5", size = 5246859, upload-time = "2025-08-11T20:59:43.22Z" },
-]
-
-[[package]]
 name = "mypy-boto3-s3"
 version = "1.42.37"
 source = { registry = "https://pypi.org/simple" }
@@ -2178,38 +2158,6 @@ wheels = [
 ]
 
 [[package]]
-name = "pyinstrument"
-version = "5.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/80/ce/824ee634994e612156f7b84eaf50b8523c676ebfed8d8dd12939a82f4c15/pyinstrument-5.1.1.tar.gz", hash = "sha256:bc401cda990b3c1cfe8e0e0473cbd605df3c63b73478a89ac4ab108f2184baa8", size = 264730, upload-time = "2025-08-12T11:35:43.426Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/52/65/dc0fcc6122e6f484ffa48260d1023e1fe90e53da8d69a7de656205af91ba/pyinstrument-5.1.1-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:5272cff6eea21163b2105f6a80c907315e0f567720621e6d5672dc01bf71ee48", size = 130287, upload-time = "2025-08-12T11:34:32.436Z" },
-    { url = "https://files.pythonhosted.org/packages/90/96/8a6cab312342f1ad7322b459dcbdb2e041251b7bbe4c1d0dd38ccbf2ae20/pyinstrument-5.1.1-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:d4e7dc5a4aee37a44ff2e63db3127f2044dd95edcae240cb95915adbf223d4be", size = 122879, upload-time = "2025-08-12T11:34:33.506Z" },
-    { url = "https://files.pythonhosted.org/packages/8a/89/1ad1ae703951832a34ec6b32354c6df1d0690b0333b7b8396c92afcdc23e/pyinstrument-5.1.1-cp311-cp311-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:602d55121df1d88aeb6d8ebc801597fdcb9718f78d602ae81458d65c56f25d24", size = 146412, upload-time = "2025-08-12T11:34:34.975Z" },
-    { url = "https://files.pythonhosted.org/packages/a5/70/588ec07eeaa5d5d4aff2d47c8010379e9b39a7aee7e3fda625a0ce4f5838/pyinstrument-5.1.1-cp311-cp311-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:63b5a788ff955e0597bc95463e64d5fa3747017524fdc02a0f5d12d5117cf2b9", size = 144885, upload-time = "2025-08-12T11:34:36.546Z" },
-    { url = "https://files.pythonhosted.org/packages/0a/8f/119ad44d454edb927434bb53d8a69904ecaa47ec56f95c688c557a9590de/pyinstrument-5.1.1-cp311-cp311-musllinux_1_2_aarch64.whl", hash = "sha256:7f66038ec55a12e5510689240cdc745f8e98c90b93363f745106976e5cfb7397", size = 145530, upload-time = "2025-08-12T11:34:37.726Z" },
-    { url = "https://files.pythonhosted.org/packages/8e/31/d53b20d1967ba78574807c5940251c0f238e8e3515ee9c4f20207eb09199/pyinstrument-5.1.1-cp311-cp311-musllinux_1_2_x86_64.whl", hash = "sha256:110a08b6e7fa9542eb37c337e79467913d364a03bc2062f85566ba96bc82f54e", size = 144708, upload-time = "2025-08-12T11:34:38.855Z" },
-    { url = "https://files.pythonhosted.org/packages/48/18/78ccb35dd265e83c0b7404a501004387b2e2390a0a44b6e4a004307931d1/pyinstrument-5.1.1-cp311-cp311-win32.whl", hash = "sha256:a223d5e9226ccede5bf2fbd4d13ce0aeb5120501b633ba85290ed94df37d3623", size = 124151, upload-time = "2025-08-12T11:34:40.392Z" },
-    { url = "https://files.pythonhosted.org/packages/43/c0/3eb94aa2c2f0b8d49e290d4df662e21e707eb4a23f3b938239634fbfdc17/pyinstrument-5.1.1-cp311-cp311-win_amd64.whl", hash = "sha256:16ce582a7b56287d338a8b59688458341aab5c6abda970ba50b2f7b3fd69f89d", size = 124942, upload-time = "2025-08-12T11:34:41.564Z" },
-    { url = "https://files.pythonhosted.org/packages/76/3a/7824caf1fb419d0108f375a15b28cdd7ace8593f1ea56ef8276fddce9526/pyinstrument-5.1.1-cp312-cp312-macosx_10_13_universal2.whl", hash = "sha256:bcd6a03bdf180d73bc8dc7371e09dda089a48057095584e5f2818df1c820525b", size = 130306, upload-time = "2025-08-12T11:34:42.624Z" },
-    { url = "https://files.pythonhosted.org/packages/3a/54/60ddd5eae617e29b58de774d178f4e4f7cdffd07ed1de36f976927ce69d3/pyinstrument-5.1.1-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:5ffa0948c1e268356dcf930c128624f34037ce92ee865fa4c056dee067aee4c5", size = 122817, upload-time = "2025-08-12T11:34:44.182Z" },
-    { url = "https://files.pythonhosted.org/packages/35/12/35b694bfa58050607eedc80a68f64e6195c738249101a0dcbed0657147e7/pyinstrument-5.1.1-cp312-cp312-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:c95adf98a920f2039eb0065966f980452a7af794bab387e9bfe8af3c681affa0", size = 148053, upload-time = "2025-08-12T11:34:45.589Z" },
-    { url = "https://files.pythonhosted.org/packages/5d/4a/338b891f9119cf747153301d5d095942f378032309cd385e53857d03c2d2/pyinstrument-5.1.1-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:bcb46ca8596b375c27850d4d06a1ce94ed78074774d35cbed3ccd28b663c5ba6", size = 146817, upload-time = "2025-08-12T11:34:46.668Z" },
-    { url = "https://files.pythonhosted.org/packages/3b/cc/186cdb048fee445bbf9bd18819287a61b57b66ec68cfc47bc3c1e38b1ae6/pyinstrument-5.1.1-cp312-cp312-musllinux_1_2_aarch64.whl", hash = "sha256:3fc16597d26b24a46bf3455686300c0b8a3eb565ebc82396f402c031dccc0145", size = 146914, upload-time = "2025-08-12T11:34:47.878Z" },
-    { url = "https://files.pythonhosted.org/packages/b8/d1/533309830dd356d43e54d7feebaffab357f08568972285c609e98f7e6119/pyinstrument-5.1.1-cp312-cp312-musllinux_1_2_x86_64.whl", hash = "sha256:5aa135b4bd9667ddcb25fa582f4db77c5117ef207cb10ae901a8e4c5d5cde0e0", size = 146533, upload-time = "2025-08-12T11:34:49.015Z" },
-    { url = "https://files.pythonhosted.org/packages/b8/df/2a656d6b1bd68ecfbb73c557906274a40ec7219dd92980fc1324997cf93e/pyinstrument-5.1.1-cp312-cp312-win32.whl", hash = "sha256:d15e37f8074b3043fca7aa985cb2079d2c221ccb0d27f059451ede800c801645", size = 124286, upload-time = "2025-08-12T11:34:50.285Z" },
-    { url = "https://files.pythonhosted.org/packages/51/af/144d331cc9734e9141ac1a75f3ce904074ebc93dfe43cab44049ba8c8c28/pyinstrument-5.1.1-cp312-cp312-win_amd64.whl", hash = "sha256:5c27d5cef0e809f213e5a94143c397d948650f5142c91dcce3611f584779183e", size = 125032, upload-time = "2025-08-12T11:34:51.369Z" },
-    { url = "https://files.pythonhosted.org/packages/36/d4/b94f47aa7d301f6cdf5924bb75caacd0d0a1852bd4e876e3a64fc5798dad/pyinstrument-5.1.1-cp313-cp313-macosx_10_13_universal2.whl", hash = "sha256:45af421c60c943a7f1619afabeba4951d4cc16b4206490d7d5b7ef5a4e2dfd42", size = 130315, upload-time = "2025-08-12T11:34:52.91Z" },
-    { url = "https://files.pythonhosted.org/packages/1e/42/1bc2f28e139f69a0918d5d5dc1d59e65c640d4da9dd153fa48c2a8a87dd9/pyinstrument-5.1.1-cp313-cp313-macosx_11_0_arm64.whl", hash = "sha256:2603db3d745a65de66c96929ab9b0fcce050511eb24e32856ea2458785b8917f", size = 122805, upload-time = "2025-08-12T11:34:54.201Z" },
-    { url = "https://files.pythonhosted.org/packages/a8/85/2f0c9115cd8a01e0a18d0650d9f3f20ff71e8ca17bd4af60dd3a0cb76f8a/pyinstrument-5.1.1-cp313-cp313-manylinux2014_aarch64.manylinux_2_17_aarch64.manylinux_2_28_aarch64.whl", hash = "sha256:2fe32492100efaa1b0a488c237fe420fdaf141646733a31a97f96c4e1fa6bbf8", size = 148210, upload-time = "2025-08-12T11:34:55.662Z" },
-    { url = "https://files.pythonhosted.org/packages/86/62/3c73a63e6913378cc7e9ffb5af1e50836511eee83b7c7bf252fad7ec24e4/pyinstrument-5.1.1-cp313-cp313-manylinux2014_x86_64.manylinux_2_17_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:999b5373f8b1e846357923063ae5c9275ad8a85ed4e0a42960a349288d1f5007", size = 146995, upload-time = "2025-08-12T11:34:57.133Z" },
-    { url = "https://files.pythonhosted.org/packages/ab/8b/d21f4b6d8849881e9572967818e3e6d2dcb212e7dfa89e4e356d359db32b/pyinstrument-5.1.1-cp313-cp313-musllinux_1_2_aarch64.whl", hash = "sha256:58a2f69052178ec624e4df0cf546eda48b3a381572ac1cb3272b4c163888af9d", size = 147029, upload-time = "2025-08-12T11:34:58.255Z" },
-    { url = "https://files.pythonhosted.org/packages/8a/4d/1e43cecf2bcf4a3dd1100f4fc7a3da6438a65d0b95ca7b8ab5d094ea7c0b/pyinstrument-5.1.1-cp313-cp313-musllinux_1_2_x86_64.whl", hash = "sha256:4d9bbc00d2e258edbefeb39b61ad4636099b08acd1effdd40d76883a13e7bf5a", size = 146668, upload-time = "2025-08-12T11:34:59.401Z" },
-    { url = "https://files.pythonhosted.org/packages/34/48/00322b48e7adb665d04303b487454eb0c13a76ec0af8da20f452098fcc12/pyinstrument-5.1.1-cp313-cp313-win32.whl", hash = "sha256:cf2d8933e2aeaa02d4cb6279d83ef11ee882fb243fff96e3378153a730aadd6e", size = 124288, upload-time = "2025-08-12T11:35:00.514Z" },
-    { url = "https://files.pythonhosted.org/packages/f5/14/d56515a110f74799aefc7489c1578ce4d99a4d731309559a427f954e7abc/pyinstrument-5.1.1-cp313-cp313-win_amd64.whl", hash = "sha256:2402683a92617066b13a6d48f904396dcd15938016875b392534df027660eed4", size = 125041, upload-time = "2025-08-12T11:35:01.913Z" },
-]
-
-[[package]]
 name = "pymupdf"
 version = "1.26.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2501,20 +2449,6 @@ wheels = [
 ]
 
 [[package]]
-name = "responses"
-version = "0.26.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "pyyaml" },
-    { name = "requests" },
-    { name = "urllib3" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/9f/b4/b7e040379838cc71bf5aabdb26998dfbe5ee73904c92c1c161faf5de8866/responses-0.26.0.tar.gz", hash = "sha256:c7f6923e6343ef3682816ba421c006626777893cb0d5e1434f674b649bac9eb4", size = 81303, upload-time = "2026-02-19T14:38:05.574Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ce/04/7f73d05b556da048923e31a0cc878f03be7c5425ed1f268082255c75d872/responses-0.26.0-py3-none-any.whl", hash = "sha256:03ec4409088cd5c66b71ecbbbd27fe2c58ddfad801c66203457b3e6a04868c37", size = 35099, upload-time = "2026-02-19T14:38:03.847Z" },
-]
-
-[[package]]
 name = "rich"
 version = "14.3.3"
 source = { registry = "https://pypi.org/simple" }
@@ -2783,28 +2717,6 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/c8/e9/2e3a46c304e7fa21eaa70612f60354e32699c7102eb961f67448e222ad7c/sentry_sdk-2.54.0.tar.gz", hash = "sha256:2620c2575128d009b11b20f7feb81e4e4e8ae08ec1d36cbc845705060b45cc1b", size = 413813, upload-time = "2026-03-02T15:12:41.355Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/53/39/be412cc86bc6247b8f69e9383d7950711bd86f8d0a4a4b0fe8fad685bc21/sentry_sdk-2.54.0-py2.py3-none-any.whl", hash = "sha256:fd74e0e281dcda63afff095d23ebcd6e97006102cdc8e78a29f19ecdf796a0de", size = 439198, upload-time = "2026-03-02T15:12:39.546Z" },
-]
-
-[[package]]
-name = "setuptools"
-version = "80.9.0"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/18/5d/3bf57dcd21979b887f014ea83c24ae194cfcd12b9e0fda66b957c69d1fca/setuptools-80.9.0.tar.gz", hash = "sha256:f36b47402ecde768dbfafc46e8e4207b4360c654f1f3bb84475f0a28628fb19c", size = 1319958, upload-time = "2025-05-27T00:56:51.443Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/a3/dc/17031897dae0efacfea57dfd3a82fdd2a2aeb58e0ff71b77b87e44edc772/setuptools-80.9.0-py3-none-any.whl", hash = "sha256:062d34222ad13e0cc312a4c02d73f059e86a4acbfbdea8f8f76b28c99f306922", size = 1201486, upload-time = "2025-05-27T00:56:49.664Z" },
-]
-
-[[package]]
-name = "setuptools-scm"
-version = "8.3.1"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "packaging" },
-    { name = "setuptools" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/b9/19/7ae64b70b2429c48c3a7a4ed36f50f94687d3bfcd0ae2f152367b6410dff/setuptools_scm-8.3.1.tar.gz", hash = "sha256:3d555e92b75dacd037d32bafdf94f97af51ea29ae8c7b234cf94b7a5bd242a63", size = 78088, upload-time = "2025-04-23T11:53:19.739Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/ab/ac/8f96ba9b4cfe3e4ea201f23f4f97165862395e9331a424ed325ae37024a8/setuptools_scm-8.3.1-py3-none-any.whl", hash = "sha256:332ca0d43791b818b841213e76b1971b7711a960761c5bea5fc5cdb5196fbce3", size = 43935, upload-time = "2025-04-23T11:53:17.922Z" },
 ]
 
 [[package]]
@@ -3148,7 +3060,7 @@ requires-dist = [
     { name = "shap", specifier = "==0.49.1" },
     { name = "shapely", specifier = "==2.1.2" },
     { name = "swissgeol-assets-dataextraction", extras = ["dev", "test", "lint", "experiment-tracking"], marker = "extra == 'all'" },
-    { name = "swissgeol-boreholes-dataextraction", url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.144/swissgeol_boreholes_dataextraction-1.0.144-py3-none-any.whl" },
+    { name = "swissgeol-boreholes-dataextraction", url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl" },
     { name = "tabulate", specifier = ">=0.9.0,<0.10.0" },
     { name = "tqdm", specifier = ">=4.67.1,<5.0.0" },
     { name = "uvicorn", specifier = "==0.35.0" },
@@ -3158,8 +3070,8 @@ provides-extras = ["dev", "test", "lint", "experiment-tracking", "all"]
 
 [[package]]
 name = "swissgeol-boreholes-dataextraction"
-version = "1.0.144"
-source = { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.144/swissgeol_boreholes_dataextraction-1.0.144-py3-none-any.whl" }
+version = "1.0.0"
+source = { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl" }
 dependencies = [
     { name = "awslambdaric" },
     { name = "backoff" },
@@ -3172,7 +3084,6 @@ dependencies = [
     { name = "httpx" },
     { name = "levenshtein" },
     { name = "mangum" },
-    { name = "moto" },
     { name = "nltk" },
     { name = "numpy" },
     { name = "opencv-python-headless" },
@@ -3180,7 +3091,6 @@ dependencies = [
     { name = "pillow" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
-    { name = "pyinstrument" },
     { name = "pymupdf" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
@@ -3188,22 +3098,22 @@ dependencies = [
     { name = "regex" },
     { name = "scikit-image" },
     { name = "scikit-learn" },
-    { name = "setuptools" },
-    { name = "setuptools-scm" },
     { name = "uvicorn" },
 ]
 wheels = [
-    { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.144/swissgeol_boreholes_dataextraction-1.0.144-py3-none-any.whl", hash = "sha256:bca543d3404005bee316f286f2bbeea08b078069b5e3ba745ae7b897829d49b9" },
+    { url = "https://github.com/swisstopo/swissgeol-boreholes-dataextraction/releases/download/v1.0.0/swissgeol_boreholes_dataextraction-1.0.0-py3-none-any.whl", hash = "sha256:6cd25505175d6f00f2ff00fb5625e9593df91710f5c7012340f355a8a239d976" },
 ]
 
 [package.metadata]
 requires-dist = [
+    { name = "accelerate", marker = "extra == 'all'", specifier = "==1.10.0" },
     { name = "accelerate", marker = "extra == 'deep-learning'", specifier = "==1.10.0" },
     { name = "awslambdaric", specifier = "==3.1.1" },
     { name = "backoff", specifier = "==2.2.1" },
     { name = "boto3", specifier = "==1.40.12" },
     { name = "click", specifier = "==8.2.1" },
     { name = "compound-split", specifier = "==1.0.2" },
+    { name = "datasets", marker = "extra == 'all'", specifier = "==4.0.0" },
     { name = "datasets", marker = "extra == 'deep-learning'", specifier = "==4.0.0" },
     { name = "fast-langdetect", specifier = "==1.0.0" },
     { name = "fastapi", specifier = "==0.116.1" },
@@ -3211,21 +3121,29 @@ requires-dist = [
     { name = "httpx", specifier = "==0.28.1" },
     { name = "levenshtein", specifier = "==0.27.1" },
     { name = "mangum", specifier = "==0.19.0" },
+    { name = "matplotlib", marker = "extra == 'all'", specifier = "==3.10.5" },
     { name = "matplotlib", marker = "extra == 'visualize'", specifier = "==3.10.5" },
+    { name = "mlflow", marker = "extra == 'all'", specifier = "==3.3.1" },
     { name = "mlflow", marker = "extra == 'experiment-tracking'", specifier = "==3.3.1" },
-    { name = "moto", specifier = "==5.1.10" },
+    { name = "moto", marker = "extra == 'all'", specifier = "==5.1.10" },
+    { name = "moto", marker = "extra == 'test'", specifier = "==5.1.10" },
     { name = "nltk", specifier = "==3.9.1" },
     { name = "numpy", specifier = "==2.2.6" },
     { name = "opencv-python-headless", specifier = "==4.12.0.88" },
     { name = "pandas", specifier = "==2.3.1" },
     { name = "pillow", specifier = "==11.3.0" },
+    { name = "pre-commit", marker = "extra == 'all'", specifier = "==4.3.0" },
     { name = "pre-commit", marker = "extra == 'lint'", specifier = "==4.3.0" },
     { name = "pydantic", specifier = "==2.11.7" },
     { name = "pydantic-settings", specifier = "==2.10.1" },
+    { name = "pygit2", marker = "extra == 'all'", specifier = "==1.18.2" },
     { name = "pygit2", marker = "extra == 'experiment-tracking'", specifier = "==1.18.2" },
-    { name = "pyinstrument", specifier = "==5.1.1" },
+    { name = "pyinstrument", marker = "extra == 'all'", specifier = "==5.1.1" },
+    { name = "pyinstrument", marker = "extra == 'devtools'", specifier = "==5.1.1" },
     { name = "pymupdf", specifier = "==1.26.3" },
+    { name = "pytest", marker = "extra == 'all'", specifier = "==8.4.1" },
     { name = "pytest", marker = "extra == 'test'", specifier = "==8.4.1" },
+    { name = "pytest-cov", marker = "extra == 'all'", specifier = "==6.2.1" },
     { name = "pytest-cov", marker = "extra == 'test'", specifier = "==6.2.1" },
     { name = "python-dotenv", specifier = "==1.1.1" },
     { name = "pyyaml", specifier = "==6.0.2" },
@@ -3233,15 +3151,15 @@ requires-dist = [
     { name = "regex", specifier = "==2025.7.34" },
     { name = "scikit-image", specifier = "==0.25.2" },
     { name = "scikit-learn", specifier = "==1.7.1" },
-    { name = "setuptools", specifier = "==80.9.0" },
-    { name = "setuptools-scm", specifier = "==8.3.1" },
-    { name = "swissgeol-boreholes-dataextraction", extras = ["deep-learning", "devtools", "experiment-tracking", "groundwater-illustration-matching", "lint", "test", "visualize"], marker = "extra == 'all'" },
+    { name = "torch", marker = "extra == 'all'", specifier = "==2.8.0" },
     { name = "torch", marker = "extra == 'deep-learning'", specifier = "==2.8.0" },
+    { name = "tqdm", marker = "extra == 'all'", specifier = "==4.67.1" },
     { name = "tqdm", marker = "extra == 'devtools'", specifier = "==4.67.1" },
+    { name = "transformers", marker = "extra == 'all'", specifier = "==4.55.2" },
     { name = "transformers", marker = "extra == 'deep-learning'", specifier = "==4.55.2" },
     { name = "uvicorn", specifier = "==0.35.0" },
 ]
-provides-extras = ["test", "lint", "experiment-tracking", "visualize", "devtools", "deep-learning", "all"]
+provides-extras = ["all", "deep-learning", "devtools", "experiment-tracking", "lint", "test", "visualize"]
 
 [[package]]
 name = "tabulate"
@@ -3611,15 +3529,6 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/3b/d5/6c60111482f41fd680eb0e81e016498bea313cc00a6a4a41b38c8b45bd5c/xgboost-3.0.5-py3-none-manylinux_2_28_aarch64.whl", hash = "sha256:d0fe44aaca76e9c4598d3be98ae94661aa53e4c4ceb161dc7183258f0e6fc138", size = 4602832, upload-time = "2025-09-05T09:27:29.547Z" },
     { url = "https://files.pythonhosted.org/packages/64/ad/61a86228e981b15361ff963e84648b1a29ab43debd95f7c2b3ef9d94dca1/xgboost-3.0.5-py3-none-manylinux_2_28_x86_64.whl", hash = "sha256:a03210a3e54c9e543f480db9636fee57247cfcd1ae850b353aeac59eea5ca350", size = 94872848, upload-time = "2025-09-05T09:40:26.786Z" },
     { url = "https://files.pythonhosted.org/packages/00/5a/f43bad68b31269a72bdd66102732ea4473e98f421ee9f71379e35dcb56f5/xgboost-3.0.5-py3-none-win_amd64.whl", hash = "sha256:660774249d28a729ba8d22dd3d2c048c56e58f65a683b25ef3252e3383fe956f", size = 56826727, upload-time = "2025-09-05T09:23:55.462Z" },
-]
-
-[[package]]
-name = "xmltodict"
-version = "1.0.4"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/19/70/80f3b7c10d2630aa66414bf23d210386700aa390547278c789afa994fd7e/xmltodict-1.0.4.tar.gz", hash = "sha256:6d94c9f834dd9e44514162799d344d815a3a4faec913717a9ecbfa5be1bb8e61", size = 26124, upload-time = "2026-02-22T02:21:22.074Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/38/34/98a2f52245f4d47be93b580dae5f9861ef58977d73a79eb47c58f1ad1f3a/xmltodict-1.0.4-py3-none-any.whl", hash = "sha256:a4a00d300b0e1c59fc2bfccb53d7b2e88c32f200df138a0dd2229f842497026a", size = 13580, upload-time = "2026-02-22T02:21:21.039Z" },
 ]
 
 [[package]]
