@@ -4,7 +4,7 @@ train_folder_path: "data/single_pages_splits/train"
 val_folder_path: "data/single_pages_splits/validation"
 ground_truth_file_path: "data/gt_single_pages.json"
 # Enable OOD (use unknown class as outliers)
-ood_use: true
+ood_use: false
 
 # Feature names to track (24 features total)
 feature_names:
@@ -40,9 +40,9 @@ feature_names:
 hyperparameters:
   n_estimators: 500
   max_depth: 5
-  learning_rate: 0.1
+  learning_rate: 0.025
   subsample: 0.6
-  colsample_bytree: 0.8
+  colsample_bytree: 1.0
   eval_metric: mlogloss
 
 hyperparameters_ood:
@@ -54,10 +54,10 @@ tuning:
   cv: 3
   scoring: "f1_macro"
   param_grid:
-    n_estimators: [400, 500, 600]
-    max_depth: [4, 5, 6]
-    learning_rate: [0.05, 0.1, 0.2]
-    subsample: [0.4, 0.6, 0.8]
+    n_estimators: [300, 400, 500, 600]
+    max_depth: [5, 6, 7]
+    learning_rate: [0.025, 0.05, 0.1]
+    subsample: [0.6, 0.8, 1.0]
     colsample_bytree: [0.6, 0.8, 1.0]
     ood_mode: ["gmm", "hnorm"]
-    ood_confidence: [0.01, 0.05, 0.1, 0.5, 0.95]
+    ood_confidence: [0.05, 0.1, 0.5, 0.95]
