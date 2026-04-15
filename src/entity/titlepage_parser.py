@@ -26,6 +26,8 @@ _INSTITUTION_KEYWORDS: frozenset[str] = frozenset(
         "département",
         "departement",
         "kantonales",
+        "prof",
+        "dr",
     }
 )
 
@@ -37,10 +39,17 @@ class TitleCandidateTextBlock:
     text: str
     line_count: int
     rect: pymupdf.Rect
+    font_size: float
     font_consistency: float
     isolation: float
 
-    def __init__(self, text_block: TextBlock, rect: Rect, font_consistency: float = 1.0):
+    def __init__(
+        self,
+        text_block: TextBlock,
+        rect: Rect,
+        font_size: float = 0.0,
+        font_consistency: float = 1.0,
+    ):
         """Create a scale invariant text block.
 
         The normalized text block is contained in a fictive [0, 0, 1, 1] rect.
@@ -48,8 +57,9 @@ class TitleCandidateTextBlock:
         Args:
             text_block (TextBlock): Input text block.
             rect (Rect): Size of the page linked to text block.
+            font_size (float): Median span font size in points for this block.
             font_consistency (float): Pre-computed font uniformity score; 1.0 if all
-                spans share the same font size, 0.5 otherwise.
+                spans share the same font size within 1 pt, 0.5 otherwise.
         """
         self.text = text_block.text
         self.line_count = text_block.line_count
@@ -59,6 +69,7 @@ class TitleCandidateTextBlock:
             text_block.rect.x1 / rect.width,
             text_block.rect.y1 / rect.height,
         )
+        self.font_size = font_size
         self.font_consistency = font_consistency
         self.isolation = 1.0  # assigned externally by _assign_isolation_scores
 
@@ -90,8 +101,11 @@ class TitleCandidateTextBlock:
 
     @property
     def font(self) -> float:
-        """Return an approximate normalised font size (block height per line)."""
-        return self.rect.height / max(self.line_count, 1)
+        """Return an approximate normalised font size (block height per line), squared.
+
+        Squaring amplifies the advantage of larger-font blocks over smaller ones.
+        """
+        return (self.rect.height / max(self.line_count, 1)) ** 2
 
     @property
     def highness(self) -> float:
@@ -132,11 +146,11 @@ class TitleCandidateTextBlock:
         A higher score indicates a stronger title candidate.
 
         Returns:
-            float: Non-negative composite score; 0 if any signal is False/zero.
+            float: Non-negative composite score; 0 if any binary signal is False/zero.
         """
         return (
             self.font
-            * self.horizontality
+            # * self.horizontality
             * self.verticality
             * self.length
             * self.non_numericality
@@ -144,7 +158,7 @@ class TitleCandidateTextBlock:
             * self.all_caps
             * self.no_institution
             * self.isolation
-            * self.font_consistency
+            # * self.font_consistency
         )
 
 
@@ -170,16 +184,17 @@ def _assign_isolation_scores(candidates: list[TitleCandidateTextBlock]) -> None:
         cand.isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
 
 
-def _block_font_consistency(page_dict: dict, block_rect: pymupdf.Rect) -> float:
-    """Return a font-size uniformity score for the spans overlapping the given block.
+def _block_font_metrics(page_dict: dict, block_rect: pymupdf.Rect) -> tuple[float, float]:
+    """Return the median font size and uniformity score for spans overlapping the block.
 
     Args:
         page_dict: Output of ``page.get_text("dict")``.
         block_rect: Unnormalized bounding box of the text block (page coordinates).
 
     Returns:
-        float: 1.0 if all overlapping spans share the same font size within 1 pt,
-               0.5 otherwise.
+        tuple[float, float]: ``(median_font_size, consistency)`` where ``consistency``
+            is 1.0 if all overlapping spans share the same font size within 1 pt,
+            0.5 otherwise. ``median_font_size`` is 0.0 when no spans are found.
     """
     sizes = [
         span["size"]
@@ -189,9 +204,55 @@ def _block_font_consistency(page_dict: dict, block_rect: pymupdf.Rect) -> float:
         for span in line["spans"]
         if span["text"].strip() and pymupdf.Rect(span["bbox"]).intersects(block_rect)
     ]
-    if len(sizes) <= 1:
-        return 1.0
-    return 1.0 if (max(sizes) - min(sizes)) < 1.0 else 0.5
+    if not sizes:
+        return 0.0, 1.0
+    sizes_sorted = sorted(sizes)
+    mid = len(sizes_sorted) // 2
+    median = (sizes_sorted[mid] + sizes_sorted[~mid]) / 2
+    consistency = 1.0 if (max(sizes) - min(sizes)) < 1.0 else 0.5
+    return median, consistency
+
+
+def _merge_title_continuation(
+    top: TitleCandidateTextBlock,
+    candidates: list[TitleCandidateTextBlock],
+) -> str:
+    """Extend the top candidate downward by merging vertically adjacent continuation blocks.
+
+    A block is appended when it immediately follows the current bottom edge (gap ≤ 3×
+    the top block's line height), shares a similar font size (within 1 pt), and does not
+    trigger the institution keyword penalty — which stops the merge at author or
+    affiliation lines.
+
+    Args:
+        top: The highest-scoring title candidate.
+        candidates: All candidates for the page.
+
+    Returns:
+        The full merged title text.
+    """
+    top_line_height = top.rect.height / max(top.line_count, 1)
+    max_gap = max(top_line_height * 3, 0.02)
+
+    below = sorted(
+        (c for c in candidates if c is not top and c.rect.y0 >= top.rect.y1),
+        key=lambda c: c.rect.y0,
+    )
+
+    parts = [top.text]
+    current_bottom = top.rect.y1
+
+    for candidate in below:
+        if candidate.rect.y0 - current_bottom > max_gap:
+            break
+        if top.font_size > 0 and candidate.font_size > 0 and abs(candidate.font_size - top.font_size) > 1.0:
+            break
+        if candidate.no_institution < 1.0:
+            break
+        parts.append(candidate.text)
+        current_bottom = candidate.rect.y1
+
+    return " ".join(parts)
 
 
 def extract_title_from_page(page: pymupdf.Page) -> str:
@@ -212,16 +273,20 @@ def extract_title_from_page(page: pymupdf.Page) -> str:
     text_blocks = create_text_blocks(lines)
 
     page_dict = page.get_text("dict")
-    title_candidates = [
-        TitleCandidateTextBlock(
-            text_block=text_block,
-            rect=page.rect,
-            font_consistency=_block_font_consistency(page_dict, text_block.rect),
+    title_candidates = []
+    for text_block in text_blocks:
+        font_size, font_consistency = _block_font_metrics(page_dict, text_block.rect)
+        title_candidates.append(
+            TitleCandidateTextBlock(
+                text_block=text_block,
+                rect=page.rect,
+                font_size=font_size,
+                font_consistency=font_consistency,
+            )
         )
-        for text_block in text_blocks
-    ]
-
     _assign_isolation_scores(title_candidates)
     title_candidates = sorted(title_candidates, key=lambda x: x.score, reverse=True)
-
     return title_candidates[0].text if title_candidates else ""
+    # if not title_candidates:
+    #     return ""
+    # return _merge_title_continuation(title_candidates[0], title_candidates)
