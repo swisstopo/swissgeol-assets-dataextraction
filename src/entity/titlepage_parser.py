@@ -1,10 +1,9 @@
-"""Convert title / section document to processed entries."""
+"""Title extraction from PDF section-header pages."""
 
 import re
 from dataclasses import dataclass
 
 import pymupdf
-from pymupdf import Rect
 from swissgeol_doc_processing.text.extract_text import extract_text_lines
 from swissgeol_doc_processing.text.textblock import TextBlock
 
@@ -34,58 +33,52 @@ _INSTITUTION_KEYWORDS: frozenset[str] = frozenset(
 
 @dataclass
 class TitleCandidateTextBlock:
-    """A scale-invariant text block candidate for title detection."""
+    """A normalized text block candidate for title scoring.
+
+    All positional attributes are expressed in page-relative coordinates
+    so that scores are comparable across pages of different sizes.
+    """
 
     text: str
     line_count: int
     rect: pymupdf.Rect
     font_size: float
-    font_consistency: float
     isolation: float
 
     def __init__(
         self,
         text_block: TextBlock,
-        rect: Rect,
+        page_rect: pymupdf.Rect,
         font_size: float = 0.0,
-        font_consistency: float = 1.0,
     ):
-        """Create a scale invariant text block.
+        """Create a normalized title candidate from a raw text block.
 
-        The normalized text block is contained in a fictive [0, 0, 1, 1] rect.
+        Coordinates are scaled to the unit square [0, 0, 1, 1] relative to the page.
 
         Args:
-            text_block (TextBlock): Input text block.
-            rect (Rect): Size of the page linked to text block.
-            font_size (float): Median span font size in points for this block.
-            font_consistency (float): Pre-computed font uniformity score; 1.0 if all
-                spans share the same font size within 1 pt, 0.5 otherwise.
+            text_block: Raw text block from the page.
+            page_rect: Bounding rectangle of the page (page coordinates).
+            font_size: Median span font size in points for this block.
         """
         self.text = text_block.text
         self.line_count = text_block.line_count
         self.rect = pymupdf.Rect(
-            text_block.rect.x0 / rect.width,
-            text_block.rect.y0 / rect.height,
-            text_block.rect.x1 / rect.width,
-            text_block.rect.y1 / rect.height,
+            text_block.rect.x0 / page_rect.width,
+            text_block.rect.y0 / page_rect.height,
+            text_block.rect.x1 / page_rect.width,
+            text_block.rect.y1 / page_rect.height,
         )
         self.font_size = font_size
-        self.font_consistency = font_consistency
         self.isolation = 1.0  # assigned externally by _assign_isolation_scores
 
     @property
     def length(self) -> float:
-        """Return True if the text contains more than 5 characters."""
+        """Return 1.0 if the text contains more than 5 characters, 0.0 otherwise."""
         return float(len(self.text) > 5)
 
     @property
-    def horizontality(self) -> float:
-        """Return True if the block starts in the left 40% of the page width."""
-        return float(self.rect.x0 < 0.4)
-
-    @property
     def verticality(self) -> float:
-        """Return True if the block ends in the upper 75% of the page height."""
+        """Return 1.0 if the block ends in the upper 75 % of the page, 0.0 otherwise."""
         return float(self.rect.y1 < 0.75)
 
     @property
@@ -96,14 +89,14 @@ class TitleCandidateTextBlock:
             float: Value in [0, 1]; 1.0 means no digits, 0.0 means all digits.
         """
         n_digits = len(re.findall(r"\d", self.text))
-        n_total = len(self.text)
-        return 1 - (n_digits / max(n_total, 1))
+        return 1 - (n_digits / max(len(self.text), 1))
 
     @property
     def font(self) -> float:
-        """Return an approximate normalised font size (block height per line), squared.
+        """Return a normalized font-size proxy (block height per line), squared.
 
-        Squaring amplifies the advantage of larger-font blocks over smaller ones.
+        Uses the block's normalized height divided by its line count as a proxy for
+        font size. Squaring amplifies the advantage of larger-font blocks over smaller ones.
         """
         return (self.rect.height / max(self.line_count, 1)) ** 2
 
@@ -139,18 +132,15 @@ class TitleCandidateTextBlock:
     def score(self) -> float:
         """Return a composite title-likelihood score.
 
-        Multiplies all heuristic signals: font size, horizontal position,
-        vertical position, text length, non-numericality, highness,
-        all-caps boost, institution keyword penalty, block isolation,
-        and font-size consistency.
-        A higher score indicates a stronger title candidate.
+        Multiplies heuristic signals: font-size proxy, vertical position, text length,
+        non-numericality, page height position, all-caps boost, institution keyword
+        penalty, and block isolation. A higher score indicates a stronger title candidate.
 
         Returns:
-            float: Non-negative composite score; 0 if any binary signal is False/zero.
+            float: Non-negative composite score; 0 if any binary signal is zero.
         """
         return (
             self.font
-            # * self.horizontality
             * self.verticality
             * self.length
             * self.non_numericality
@@ -158,7 +148,6 @@ class TitleCandidateTextBlock:
             * self.all_caps
             * self.no_institution
             * self.isolation
-            # * self.font_consistency
         )
 
 
@@ -166,35 +155,33 @@ def _assign_isolation_scores(candidates: list[TitleCandidateTextBlock]) -> None:
     """Set isolation on each candidate based on vertical gap to its nearest neighbour.
 
     Scores range from 0.5 (block immediately adjacent to another) to 1.0
-    (block separated by ≥10 % of the normalised page height).
+    (block separated by ≥ 10 % of the normalized page height).
     Candidates are modified in-place.
 
     Args:
-        candidates: All scored candidates for the page.
+        candidates: All title candidates for the page.
     """
     if len(candidates) <= 1:
         return
-    for i, cand in enumerate(candidates):
+    for cand in candidates:
         min_gap = min(
             max(0.0, max(cand.rect.y0, other.rect.y0) - min(cand.rect.y1, other.rect.y1))
-            for j, other in enumerate(candidates)
-            if i != j
+            for other in candidates
+            if other is not cand
         )
         # A gap of 0.1 (10 % of page height) is treated as fully isolated.
         cand.isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
 
 
-def _block_font_metrics(page_dict: dict, block_rect: pymupdf.Rect) -> tuple[float, float]:
-    """Return the median font size and uniformity score for spans overlapping the block.
+def _median_block_font_size(page_dict: dict, block_rect: pymupdf.Rect) -> float:
+    """Return the median font size across all text spans overlapping the block.
 
     Args:
         page_dict: Output of ``page.get_text("dict")``.
-        block_rect: Unnormalized bounding box of the text block (page coordinates).
+        block_rect: Bounding box of the text block in page coordinates (not normalized).
 
     Returns:
-        tuple[float, float]: ``(median_font_size, consistency)`` where ``consistency``
-            is 1.0 if all overlapping spans share the same font size within 1 pt,
-            0.5 otherwise. ``median_font_size`` is 0.0 when no spans are found.
+        Median span font size in points, or 0.0 if no spans overlap the block.
     """
     sizes = [
         span["size"]
@@ -205,88 +192,36 @@ def _block_font_metrics(page_dict: dict, block_rect: pymupdf.Rect) -> tuple[floa
         if span["text"].strip() and pymupdf.Rect(span["bbox"]).intersects(block_rect)
     ]
     if not sizes:
-        return 0.0, 1.0
+        return 0.0
     sizes_sorted = sorted(sizes)
     mid = len(sizes_sorted) // 2
-    median = (sizes_sorted[mid] + sizes_sorted[~mid]) / 2
-    consistency = 1.0 if (max(sizes) - min(sizes)) < 1.0 else 0.5
-    return median, consistency
-
-
-def _merge_title_continuation(
-    top: TitleCandidateTextBlock,
-    candidates: list[TitleCandidateTextBlock],
-) -> str:
-    """Extend the top candidate downward by merging vertically adjacent continuation blocks.
-
-    A block is appended when it immediately follows the current bottom edge (gap ≤ 3×
-    the top block's line height), shares a similar font size (within 1 pt), and does not
-    trigger the institution keyword penalty — which stops the merge at author or
-    affiliation lines.
-
-    Args:
-        top: The highest-scoring title candidate.
-        candidates: All candidates for the page.
-
-    Returns:
-        The full merged title text.
-    """
-    top_line_height = top.rect.height / max(top.line_count, 1)
-    max_gap = max(top_line_height * 3, 0.02)
-
-    below = sorted(
-        (c for c in candidates if c is not top and c.rect.y0 >= top.rect.y1),
-        key=lambda c: c.rect.y0,
-    )
-
-    parts = [top.text]
-    current_bottom = top.rect.y1
-
-    for candidate in below:
-        if candidate.rect.y0 - current_bottom > max_gap:
-            break
-        if top.font_size > 0 and candidate.font_size > 0 and abs(candidate.font_size - top.font_size) > 1.0:
-            break
-        if candidate.no_institution < 1.0:
-            break
-        parts.append(candidate.text)
-        current_bottom = candidate.rect.y1
-
-    return " ".join(parts)
+    return (sizes_sorted[mid] + sizes_sorted[~mid]) / 2
 
 
 def extract_title_from_page(page: pymupdf.Page) -> str:
     """Extract the most likely title string from a single PDF page.
 
-    Builds text blocks from the page's text lines, wraps them as
-    scale-invariant blocks, scores them by title-likelihood, and returns
-    the text of the highest-scoring candidate.
+    Builds text blocks from the page's text lines, scores them by title-likelihood,
+    and returns the text of the highest-scoring candidate.
 
     Args:
-        page (pymupdf.Page): The PDF page to analyse.
+        page: The PDF page to analyse.
 
     Returns:
-        str: Detected title for the page.
+        Detected title text, or an empty string if no candidates are found.
     """
-    # Extract text segments from page and convert to text blocks
     lines = extract_text_lines(page)
     text_blocks = create_text_blocks(lines)
 
     page_dict = page.get_text("dict")
-    title_candidates = []
-    for text_block in text_blocks:
-        font_size, font_consistency = _block_font_metrics(page_dict, text_block.rect)
-        title_candidates.append(
-            TitleCandidateTextBlock(
-                text_block=text_block,
-                rect=page.rect,
-                font_size=font_size,
-                font_consistency=font_consistency,
-            )
+    title_candidates = [
+        TitleCandidateTextBlock(
+            text_block=text_block,
+            page_rect=page.rect,
+            font_size=_median_block_font_size(page_dict, text_block.rect),
         )
+        for text_block in text_blocks
+    ]
     _assign_isolation_scores(title_candidates)
-    title_candidates = sorted(title_candidates, key=lambda x: x.score, reverse=True)
+    title_candidates.sort(key=lambda x: x.score, reverse=True)
     return title_candidates[0].text if title_candidates else ""
-    # if not title_candidates:
-    #     return ""
-    # return _merge_title_continuation(title_candidates[0], title_candidates)
