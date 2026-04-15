@@ -163,7 +163,7 @@ class TreeBasedTrainer(abc.ABC):
         mlflow.log_artifact(str(fig_path))
 
     @staticmethod
-    def log_nested_metrics(metrics: dict, prefix: str = "", sep: str = "/"):
+    def log_nested_metrics(metrics: dict, prefix: str = "", sep: str = "/") -> None:
         """Recursive log of nested metrics with prefix.
 
         Args:
@@ -179,11 +179,11 @@ class TreeBasedTrainer(abc.ABC):
             else:
                 mlflow.log_metric(full_key, value)
 
-    def log_predictions_csv(self, y_pred: list) -> None:
+    def log_predictions_csv(self, y_pred: list[int]) -> None:
         """Create a per-page classification report and save it as a CSV.
 
         Args:
-            y_pred (list): List of predicted class IDs for the validation set.
+            y_pred (list[int]): List of predicted class IDs for the validation set.
         """
         # Log results to CSV file
         report_path = self.model_dir / "summary_files.csv"

@@ -140,6 +140,9 @@ class XGBOODClassifier(XGBClassifier):
     def set_params(self, **params) -> Self:
         """Set parameters for cross validation search.
 
+        Args:
+            **params: Parameters to set.
+
         Returns:
              Self: The updated classifier instance.
         """
@@ -263,7 +266,7 @@ class XGBOODClassifier(XGBClassifier):
         # Compute probability over all classes and get argmax/max
         y_proba = super().predict_proba(X, **kwargs)
         y_label = y_proba.argmax(axis=1)
-        y_label_th = y_proba.max(axis=1)
+        y_max_proba = y_proba.max(axis=1)
         # Replace prediction where threshold is not met
-        y_label[self.thresholds[y_label] > y_label_th] = self.id_ood
+        y_label[self.thresholds[y_label] > y_max_proba] = self.id_ood
         return y_label

@@ -184,10 +184,10 @@ def save_page_level_predictions(
             {
                 "filename": key.rpartition("-")[0],
                 "page": key.rpartition("-")[2],
-                "pred_class": ground_truth[key].title or "",
-                "gt_class": predictions[key].title or "",
-                "pred_title": next((k for k, v in ground_truth[key].classification.items() if v), ""),
-                "gt_title": next((k for k, v in predictions[key].classification.items() if v), ""),
+                "pred_class": next((k for k, v in predictions[key].classification.items() if v), ""),
+                "gt_class": next((k for k, v in ground_truth[key].classification.items() if v), ""),
+                "pred_title": predictions[key].title or "",
+                "gt_title": ground_truth[key].title or "",
             }
             for key in sorted(predictions.keys() & ground_truth.keys())
         ],
@@ -225,13 +225,13 @@ def save_classification_stats(stats_classification: dict, csv_path: Path) -> Pat
         Path: The path to the written CSV file.
     """
     return save_csv(
-        header=["Label", "True_Positives", "False_Negatives", "False_Positives"],
+        header=["label", "true_Positives", "false_negatives", "false_positives"],
         contents=[
             {
-                "Label": label,
-                "True_Positives": s["true_positives"],
-                "False_Negatives": s["false_negatives"],
-                "False_Positives": s["false_positives"],
+                "label": label,
+                "true_positives": s["true_positives"],
+                "false_negatives": s["false_negatives"],
+                "false_positives": s["false_positives"],
             }
             for label, s in stats_classification.items()
         ],
