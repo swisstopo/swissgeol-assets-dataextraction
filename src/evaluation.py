@@ -225,7 +225,7 @@ def save_classification_stats(stats_classification: dict, csv_path: Path) -> Pat
         Path: The path to the written CSV file.
     """
     return save_csv(
-        header=["label", "true_Positives", "false_negatives", "false_positives"],
+        header=["label", "true_positives", "false_negatives", "false_positives"],
         contents=[
             {
                 "label": label,
