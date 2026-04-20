@@ -42,33 +42,25 @@ class TitleCandidateTextBlock:
     text: str
     line_count: int
     rect: pymupdf.Rect
-    font_size: float
     isolation: float
 
-    def __init__(
-        self,
-        text_block: TextBlock,
-        page_rect: pymupdf.Rect,
-        font_size: float = 0.0,
-    ):
+    def __init__(self, text_block: TextBlock, rect: pymupdf.Rect):
         """Create a normalized title candidate from a raw text block.
 
         Coordinates are scaled to the unit square [0, 0, 1, 1] relative to the page.
 
         Args:
             text_block: Raw text block from the page.
-            page_rect: Bounding rectangle of the page (page coordinates).
-            font_size: Median span font size in points for this block.
+            rect: Bounding rectangle of the page (page coordinates).
         """
         self.text = text_block.text
         self.line_count = text_block.line_count
         self.rect = pymupdf.Rect(
-            text_block.rect.x0 / page_rect.width,
-            text_block.rect.y0 / page_rect.height,
-            text_block.rect.x1 / page_rect.width,
-            text_block.rect.y1 / page_rect.height,
+            text_block.rect.x0 / rect.width,
+            text_block.rect.y0 / rect.height,
+            text_block.rect.x1 / rect.width,
+            text_block.rect.y1 / rect.height,
         )
-        self.font_size = font_size
         self.isolation = 1.0  # assigned externally by _assign_isolation_scores
 
     @property
@@ -173,31 +165,6 @@ def _assign_isolation_scores(candidates: list[TitleCandidateTextBlock]) -> None:
         cand.isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
 
 
-def _median_block_font_size(page_dict: dict, block_rect: pymupdf.Rect) -> float:
-    """Return the median font size across all text spans overlapping the block.
-
-    Args:
-        page_dict: Output of ``page.get_text("dict")``.
-        block_rect: Bounding box of the text block in page coordinates (not normalized).
-
-    Returns:
-        Median span font size in points, or 0.0 if no spans overlap the block.
-    """
-    sizes = [
-        span["size"]
-        for block in page_dict.get("blocks", [])
-        if block.get("type") == 0  # text blocks only
-        for line in block["lines"]
-        for span in line["spans"]
-        if span["text"].strip() and pymupdf.Rect(span["bbox"]).intersects(block_rect)
-    ]
-    if not sizes:
-        return 0.0
-    sizes_sorted = sorted(sizes)
-    mid = len(sizes_sorted) // 2
-    return (sizes_sorted[mid] + sizes_sorted[~mid]) / 2
-
-
 def extract_title_from_page(page: pymupdf.Page) -> str:
     """Extract the most likely title string from a single PDF page.
 
@@ -213,15 +180,7 @@ def extract_title_from_page(page: pymupdf.Page) -> str:
     lines = extract_text_lines(page)
     text_blocks = create_text_blocks(lines)
 
-    page_dict = page.get_text("dict")
-    title_candidates = [
-        TitleCandidateTextBlock(
-            text_block=text_block,
-            page_rect=page.rect,
-            font_size=_median_block_font_size(page_dict, text_block.rect),
-        )
-        for text_block in text_blocks
-    ]
+    title_candidates = [TitleCandidateTextBlock(text_block=text_block, rect=page.rect) for text_block in text_blocks]
     _assign_isolation_scores(title_candidates)
     title_candidates.sort(key=lambda x: x.score, reverse=True)
     return title_candidates[0].text if title_candidates else ""
