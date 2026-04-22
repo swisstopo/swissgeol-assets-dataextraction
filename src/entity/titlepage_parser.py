@@ -42,7 +42,6 @@ class TitleCandidateTextBlock:
     text: str
     line_count: int
     rect: pymupdf.Rect
-    isolation: float
 
     def __init__(self, text_block: TextBlock, rect: pymupdf.Rect):
         """Create a normalized title candidate from a raw text block.
@@ -61,7 +60,7 @@ class TitleCandidateTextBlock:
             text_block.rect.x1 / rect.width,
             text_block.rect.y1 / rect.height,
         )
-        self.isolation = 1.0  # assigned externally by _assign_isolation_scores
+        self._isolation: float = 1.0
 
     @property
     def length(self) -> float:
@@ -108,6 +107,27 @@ class TitleCandidateTextBlock:
         return 1.5 if alpha and all(c.isupper() for c in alpha) else 1.0
 
     @property
+    def isolation(self) -> float:
+        """Return the isolation score set by assign_isolation."""
+        return self._isolation
+
+    def assign_isolation(self, candidates: list["TitleCandidateTextBlock"]) -> None:
+        """Set isolation based on the vertical gap to the nearest other candidate.
+
+        Scores range from 0.5 (immediately adjacent) to 1.0 (gap ≥ 10 % of page height).
+
+        Args:
+            candidates: All title candidates for the page, including self.
+        """
+        others = [other for other in candidates if other is not self]
+        if not others:
+            return
+        min_gap = min(
+            max(0.0, max(self.rect.y0, other.rect.y0) - min(self.rect.y1, other.rect.y1)) for other in others
+        )
+        self._isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
+
+    @property
     def no_institution(self) -> float:
         """Return a penalty factor when institution or author keywords are detected.
 
@@ -117,7 +137,7 @@ class TitleCandidateTextBlock:
         Returns:
             float: 0.2 if an institution keyword is found as a whole word, 1.0 otherwise.
         """
-        words = set(re.split(r"[\s,;.:()\[\]/]+", self.text.lower()))
+        words = set(re.findall(r"\w+", self.text.lower()))
         return 0.2 if words & _INSTITUTION_KEYWORDS else 1.0
 
     @property
@@ -143,28 +163,6 @@ class TitleCandidateTextBlock:
         )
 
 
-def _assign_isolation_scores(candidates: list[TitleCandidateTextBlock]) -> None:
-    """Set isolation on each candidate based on vertical gap to its nearest neighbour.
-
-    Scores range from 0.5 (block immediately adjacent to another) to 1.0
-    (block separated by ≥ 10 % of the normalized page height).
-    Candidates are modified in-place.
-
-    Args:
-        candidates: All title candidates for the page.
-    """
-    if len(candidates) <= 1:
-        return
-    for cand in candidates:
-        min_gap = min(
-            max(0.0, max(cand.rect.y0, other.rect.y0) - min(cand.rect.y1, other.rect.y1))
-            for other in candidates
-            if other is not cand
-        )
-        # A gap of 0.1 (10 % of page height) is treated as fully isolated.
-        cand.isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
-
-
 def extract_title_from_page(page: pymupdf.Page) -> str:
     """Extract the most likely title string from a single PDF page.
 
@@ -181,6 +179,7 @@ def extract_title_from_page(page: pymupdf.Page) -> str:
     text_blocks = create_text_blocks(lines)
 
     title_candidates = [TitleCandidateTextBlock(text_block=text_block, rect=page.rect) for text_block in text_blocks]
-    _assign_isolation_scores(title_candidates)
+    for cand in title_candidates:
+        cand.assign_isolation(title_candidates)
     title_candidates.sort(key=lambda x: x.score, reverse=True)
     return title_candidates[0].text if title_candidates else ""
