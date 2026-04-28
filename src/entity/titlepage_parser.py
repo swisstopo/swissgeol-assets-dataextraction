@@ -84,12 +84,12 @@ class TitleCandidateTextBlock:
 
     @property
     def font(self) -> float:
-        """Return a normalized font-size proxy (block height per line), squared.
+        """Return the area (width × height) of the text block in page-relative coordinates.
 
-        Uses the block's normalized height divided by its line count as a proxy for
-        font size. Squaring amplifies the advantage of larger-font blocks over smaller ones.
+        Rewards blocks that occupy real page area rather than just per-line height,
+        so a narrow single-word stamp is not unfairly boosted over a wide title.
         """
-        return (self.rect.height / max(self.line_count, 1)) ** 2
+        return self.rect.width * self.rect.height
 
     @property
     def highness(self) -> float:
