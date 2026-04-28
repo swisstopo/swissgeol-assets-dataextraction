@@ -2,7 +2,9 @@ import csv
 import json
 import logging
 import os
+from collections.abc import Sequence
 from pathlib import Path
+from typing import Any
 
 from dotenv import load_dotenv
 from Levenshtein import ratio
@@ -176,22 +178,39 @@ def save_page_level_predictions(
     Returns:
         Path: The path to the written CSV file.
     """
+    return save_csv(
+        header=["filename", "page", "pred_class", "gt_class", "pred_title", "gt_title"],
+        contents=[
+            {
+                "filename": key.rpartition("-")[0],
+                "page": key.rpartition("-")[2],
+                "pred_class": next((k for k, v in predictions[key].classification.items() if v), ""),
+                "gt_class": next((k for k, v in ground_truth[key].classification.items() if v), ""),
+                "pred_title": predictions[key].title or "",
+                "gt_title": ground_truth[key].title or "",
+            }
+            for key in sorted(predictions.keys() & ground_truth.keys())
+        ],
+        csv_path=csv_path,
+    )
+
+
+def save_csv(header: Sequence[Any], contents: Sequence[dict[str, Any]], csv_path: Path) -> Path:
+    """Save content as a csv file.
+
+    Args:
+        header (Sequence[Any]): Column headers.
+        contents (Sequence[dict[str, Any]]): Rows to write.
+        csv_path (Path): Destination path. Overwritten if it already exists.
+
+    Returns:
+        Path: Output path of written data
+    """
     with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["filename", "page", "pred_class", "gt_class", "pred_title", "gt_title"])
+        writer = csv.DictWriter(f, fieldnames=header)
         writer.writeheader()
-        for key in sorted(predictions.keys() & ground_truth.keys()):
-            filename, _, page = key.rpartition("-")
-            pred_page, gt_page = predictions[key], ground_truth[key]
-            writer.writerow(
-                {
-                    "filename": filename,
-                    "page": page,
-                    "gt_title": gt_page.title or "",
-                    "pred_title": pred_page.title or "",
-                    "gt_class": next((k for k, v in gt_page.classification.items() if v), ""),
-                    "pred_class": next((k for k, v in pred_page.classification.items() if v), ""),
-                }
-            )
+        writer.writerows(contents)
+
     return csv_path
 
 
@@ -205,19 +224,19 @@ def save_classification_stats(stats_classification: dict, csv_path: Path) -> Pat
     Returns:
         Path: The path to the written CSV file.
     """
-    with open(csv_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["label", "true_positives", "false_negatives", "false_positives"])
-        writer.writeheader()
-        for label, s in stats_classification.items():
-            writer.writerow(
-                {
-                    "label": label,
-                    "true_positives": s["true_positives"],
-                    "false_negatives": s["false_negatives"],
-                    "false_positives": s["false_positives"],
-                }
-            )
-    return csv_path
+    return save_csv(
+        header=["label", "true_positives", "false_negatives", "false_positives"],
+        contents=[
+            {
+                "label": label,
+                "true_positives": s["true_positives"],
+                "false_negatives": s["false_negatives"],
+                "false_positives": s["false_positives"],
+            }
+            for label, s in stats_classification.items()
+        ],
+        csv_path=csv_path,
+    )
 
 
 def log_metrics_to_mlflow(stats_classification: dict, stats_title: dict) -> None:

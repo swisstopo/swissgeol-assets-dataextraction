@@ -117,23 +117,13 @@ To train the classifier, use:
 ```bash
 python -m src.models.treebased.train \
     --config-file-path config/xgboost_config.yml \
-    --out-directory models/xgboost_model
-```
-
-For faster training, use `train_parallel.py` which parallelizes the feature extraction step:
-
-```bash
-python -m src.models.treebased.train_parallel \
-    --config-file-path config/xgboost_config.yml \
     --out-directory models/xgboost_model \
     --max-workers 8
 ```
 
-Use `--max-workers N` to limit the number of parallel workers (defaults to CPU count) and `--tuning` to enable hyperparameter tuning for the XGBoost algorithm.
+Use `--max-workers N` to limit the number of parallel workers (defaults to CPU count) and `--tuning` to enable hyperparameter tuning for the XGBoost algorithm. You can disable parallel data loading using the flag `--sequential`. The trained model will be saved under `models/xgboost_model`.
 
-
-The trained model will be saved under `models/xgboost_model`. For macOS users, if you encounter OpenMP issues, install the library via Homebrew first:
-
+For macOS users, if you encounter OpenMP issues, install the library via Homebrew first:
 ```bash
  brew install libomp
 ```
