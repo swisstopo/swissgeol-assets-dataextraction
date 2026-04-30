@@ -83,13 +83,13 @@ class TitleCandidateTextBlock:
         return 1 - (n_digits / max(len(self.text), 1))
 
     @property
-    def font(self) -> float:
+    def text_area(self) -> float:
         """Return the area (width × height) of the text block in page-relative coordinates.
 
         Rewards blocks that occupy real page area rather than just per-line height,
         so a narrow single-word stamp is not unfairly boosted over a wide title.
         """
-        return self.rect.width * self.rect.height
+        return self.rect.width * self.rect.height / max(self.line_count, 1)
 
     @property
     def highness(self) -> float:
@@ -112,9 +112,12 @@ class TitleCandidateTextBlock:
         return self._isolation
 
     def assign_isolation(self, candidates: list["TitleCandidateTextBlock"]) -> None:
-        """Set isolation based on the vertical gap to the nearest other candidate.
+        """Set isolation based on the 2D bounding-box distance to the nearest other candidate.
 
-        Scores range from 0.5 (immediately adjacent) to 1.0 (gap ≥ 10 % of page height).
+        Uses both horizontal and vertical gaps so that side-by-side blocks in a
+        two-column layout are not treated as adjacent to the title.
+        Scores range from 0.5 (touching or overlapping) to 1.0 (distance ≥ 10 % of
+        the normalised page diagonal).
 
         Args:
             candidates: All title candidates for the page, including self.
@@ -122,10 +125,14 @@ class TitleCandidateTextBlock:
         others = [other for other in candidates if other is not self]
         if not others:
             return
-        min_gap = min(
-            max(0.0, max(self.rect.y0, other.rect.y0) - min(self.rect.y1, other.rect.y1)) for other in others
-        )
-        self._isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
+
+        def _bbox_dist(other: "TitleCandidateTextBlock") -> float:
+            dx = max(0.0, max(self.rect.x0, other.rect.x0) - min(self.rect.x1, other.rect.x1))
+            dy = max(0.0, max(self.rect.y0, other.rect.y0) - min(self.rect.y1, other.rect.y1))
+            return (dx**2 + dy**2) ** 0.5
+
+        min_dist = min(_bbox_dist(other) for other in others)
+        self._isolation = 0.5 + 0.5 * min(min_dist / 0.1, 1.0)
 
     @property
     def no_institution(self) -> float:
@@ -144,7 +151,7 @@ class TitleCandidateTextBlock:
     def score(self) -> float:
         """Return a composite title-likelihood score.
 
-        Multiplies heuristic signals: font-size proxy, vertical position, text length,
+        Multiplies heuristic signals: text area proxy, vertical position, text length,
         non-numericality, page height position, all-caps boost, institution keyword
         penalty, and block isolation. A higher score indicates a stronger title candidate.
 
@@ -152,7 +159,7 @@ class TitleCandidateTextBlock:
             float: Non-negative composite score; 0 if any binary signal is zero.
         """
         return (
-            self.font
+            self.text_area
             * self.verticality
             * self.length
             * self.non_numericality
