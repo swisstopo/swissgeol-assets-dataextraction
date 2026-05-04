@@ -112,7 +112,7 @@ class TitleCandidateTextBlock:
         return self._isolation
 
     def assign_isolation(self, candidates: list["TitleCandidateTextBlock"]) -> None:
-        """"Set isolation based on the vertical gap to the nearest other candidate.
+        """Set isolation based on the vertical gap to the nearest other candidate.
 
         Scores range from 0.5 (immediately adjacent) to 1.0 (gap ≥ 10 % of page height).
 
