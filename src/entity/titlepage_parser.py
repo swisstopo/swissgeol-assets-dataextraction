@@ -60,7 +60,6 @@ class TitleCandidateTextBlock:
             text_block.rect.x1 / rect.width,
             text_block.rect.y1 / rect.height,
         )
-        self._isolation: float = 1.0
 
     @property
     def length(self) -> float:
@@ -106,13 +105,8 @@ class TitleCandidateTextBlock:
         alpha = [c for c in self.text if c.isalpha()]
         return 1.5 if alpha and all(c.isupper() for c in alpha) else 1.0
 
-    @property
-    def isolation(self) -> float:
-        """Return the isolation score set by assign_isolation."""
-        return self._isolation
-
-    def assign_isolation(self, candidates: list["TitleCandidateTextBlock"]) -> None:
-        """Set isolation based on the vertical gap to the nearest other candidate.
+    def isolation(self, candidates: list["TitleCandidateTextBlock"]) -> float:
+        """Return the isolation score based on the vertical gap to the nearest other candidate.
 
         Scores range from 0.5 (immediately adjacent) to 1.0 (gap ≥ 10 % of page height).
 
@@ -121,12 +115,11 @@ class TitleCandidateTextBlock:
         """
         others = [other for other in candidates if other is not self]
         if not others:
-            return
-
+            return 1.0
         min_gap = min(
             max(0.0, max(self.rect.y0, other.rect.y0) - min(self.rect.y1, other.rect.y1)) for other in others
         )
-        self._isolation = 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
+        return 0.5 + 0.5 * min(min_gap / 0.1, 1.0)
 
     @property
     def no_institution(self) -> float:
@@ -141,13 +134,15 @@ class TitleCandidateTextBlock:
         words = set(re.findall(r"\w+", self.text.lower()))
         return 0.2 if words & _INSTITUTION_KEYWORDS else 1.0
 
-    @property
-    def score(self) -> float:
+    def score(self, candidates: list["TitleCandidateTextBlock"]) -> float:
         """Return a composite title-likelihood score.
 
         Multiplies heuristic signals: text area proxy, vertical position, text length,
         non-numericality, page height position, all-caps boost, institution keyword
         penalty, and block isolation. A higher score indicates a stronger title candidate.
+
+        Args:
+            candidates: All title candidates for the page, including self.
 
         Returns:
             float: Non-negative composite score; 0 if any binary signal is zero.
@@ -160,7 +155,7 @@ class TitleCandidateTextBlock:
             * self.highness
             * self.all_caps
             * self.no_institution
-            * self.isolation
+            * self.isolation(candidates)
         )
 
 
@@ -180,7 +175,5 @@ def extract_title_from_page(page: pymupdf.Page) -> str:
     text_blocks = create_text_blocks(lines)
 
     title_candidates = [TitleCandidateTextBlock(text_block=text_block, rect=page.rect) for text_block in text_blocks]
-    for cand in title_candidates:
-        cand.assign_isolation(title_candidates)
-    title_candidates.sort(key=lambda x: x.score, reverse=True)
+    title_candidates.sort(key=lambda x: x.score(title_candidates), reverse=True)
     return title_candidates[0].text if title_candidates else ""
