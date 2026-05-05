@@ -175,5 +175,5 @@ def extract_title_from_page(page: pymupdf.Page) -> str:
     text_blocks = create_text_blocks(lines)
 
     title_candidates = [TitleCandidateTextBlock(text_block=text_block, rect=page.rect) for text_block in text_blocks]
-    title_candidates.sort(key=lambda x: x.score(title_candidates), reverse=True)
+    title_candidates = sorted(title_candidates, key=lambda x: x.score(title_candidates), reverse=True)
     return title_candidates[0].text if title_candidates else ""
