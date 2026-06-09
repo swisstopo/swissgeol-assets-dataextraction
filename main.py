@@ -2,17 +2,28 @@ import argparse
 import json
 import logging
 import os
+from itertools import groupby
 from pathlib import Path
 
 from dotenv import load_dotenv
+from swissgeol_doc_processing.utils.file_utils import read_params as swissgeol_read_params
 
 from src.classifiers.classifier_factory import ClassifierTypes, create_classifier
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
+from src.entity.borehole_parser import document_to_boreprofiles
+from src.page_classes import PageClasses
+from src.page_structure import (
+    ProcessedEntities,
+    ProcessorDocument,
+    ProcessorDocumentEntities,
+    ProcessorPage,
+)
 from src.pdf_processor import PDFProcessor
-from src.utils import get_pdf_files, read_params
+from src.utils.utility import get_pdf_files, read_params
 
 # Load .env and check MLFlow
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 
 if mlflow_tracking:
     import mlflow
@@ -24,8 +35,22 @@ logger = logging.getLogger(__name__)
 
 
 def setup_mlflow(
-    input_path: Path, ground_truth_path: Path, model_path: str, matching_params: dict, classifier_name: str
+    input_path: Path,
+    matching_params: dict,
+    ground_truth_path: Path | None,
+    model_path: str | None = None,
+    classifier_name: str | None = None,
 ):
+    """Configure MLflow tracking with experiment metadata and git information.
+
+    Args:
+        input_path (Path): Path to input PDF directory.
+        matching_params (dict): Dictionary of matching parameters.
+        ground_truth_path (Path | None): Path to ground truth JSON file, or None to skip.
+        model_path (str | None): Path to pretrained model file, or None to use the default.
+        classifier_name (str | None): Name of the classifier being used, or None if not applicable.
+
+    """
     mlflow.set_experiment("PDF Page Classification")
     mlflow.start_run()
 
@@ -50,7 +75,17 @@ def setup_mlflow(
         logger.warning(f"Could not attach Git metadata to MLflow: {e}")
 
 
-def flatten_dict(d, parent_key="", sep=".") -> dict:
+def flatten_dict(d: dict, parent_key: str = "", sep: str = ".") -> dict:
+    """Flatten a nested dictionary into a single-level dictionary.
+
+    Args:
+        d (dict): Dictionary to flatten.
+        parent_key (str): Parent key prefix for nested keys.
+        sep (str): Separator character for joining keys (default ".").
+
+    Returns:
+        dict: A flattened dictionary with separated keys.
+    """
     items = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
@@ -61,70 +96,259 @@ def flatten_dict(d, parent_key="", sep=".") -> dict:
     return dict(items)
 
 
+def group_consecutive(pages: list[ProcessorPage]) -> list[list[ProcessorPage]]:
+    """Group sorted pages into consecutive sequences.
+
+    Args:
+        pages (list[ProcessorPage]): Pages to group by consecutive page numbers.
+
+    Returns:
+        list[list[ProcessorPage]]: List of consecutive page groups.
+    """
+    sorted_pages = sorted(pages, key=lambda p: p.page)
+
+    return [[v for _, v in group] for _, group in groupby(enumerate(sorted_pages), key=lambda iv: iv[1].page - iv[0])]
+
+
+def forward_document(
+    pdf_files: list[Path],
+    matching_params: dict,
+    borehole_matching_params: dict,
+    model_path: str | None = None,
+    classifier_name: str = "treebased",
+    explain_model: bool = False,
+) -> list[ProcessorDocument]:
+    """Infer document classes.
+
+    Args:
+        pdf_files (list[Path]): List of documents to classify.
+        matching_params (dict): Dict of parameters for document processing.
+        borehole_matching_params (dict): Dict of parameters for borehole matching.
+        model_path (str, optional): Path to pretrained model.
+        classifier_name (str, optional): Classifier to use ("treebased", "pixtral", etc.).
+        explain_model (bool): If True, generates plots to explain the model's choices.
+
+    Returns:
+        list[ProcessorDocument]: Classified documents.
+    """
+    # Set up classifier
+    classifier_type = ClassifierTypes.infer_type(classifier_name)
+    classifier = create_classifier(
+        classifier_type, model_path, matching_params, borehole_matching_params, explain_model
+    )
+    logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
+
+    # Processed PDFs
+    processor = PDFProcessor(classifier)
+    documents_pages = processor.process_batch(pdf_files)
+
+    return documents_pages
+
+
+def reclassify_section_headers(document: ProcessorDocument) -> ProcessorDocument:
+    """Reclassify section header pages to the label of their following page.
+
+    Iterates in reverse over all pages. If a section header is the last page
+    in the document, it is set to unknown.
+
+    Args:
+        document (ProcessorDocument): Document to update.
+
+    Returns:
+        ProcessorDocument: Updated document
+    """
+    n_pages = len(document.pages)
+    pages = [page.page for page in document.pages]
+
+    if not (
+        # Pages should be ordered
+        pages == sorted(pages)
+        # Pages should be unique
+        and len(set(pages)) == len(pages)
+        # Index should start at 1
+        and pages[0] == 1
+        # Last index should be pages count
+        and len(pages) == pages[-1]
+    ):
+        raise ValueError("Document pages should be sorted, unique and continuous")
+
+    # Reverse iteration to update classes
+    for i in range(n_pages)[::-1]:
+        # Check if current page is section header
+        if document.pages[i].classification != PageClasses.SECTION_HEADER:
+            continue
+
+        # If page is last, put to unknown, otherwise set to class of next page
+        if i == n_pages - 1:
+            document.pages[i].classification = PageClasses.UNKNOWN
+        else:
+            document.pages[i].classification = document.pages[i + 1].classification
+
+    return document
+
+
+def forward_document_entities_group(
+    classification: PageClasses,
+    page_start: int,
+    page_end: int,
+    title: str | None,
+    language: str | None,
+    pdf_file: Path,
+) -> list[ProcessedEntities]:
+    """Extract entities from a group of consecutive pages with the same classification.
+
+    Args:
+        classification (PageClasses): The classification type of the page group.
+        page_start (int): First page index in the consecutive group (1-based).
+        page_end (int): Last page index in the consecutive group (1-based).
+        title (str | None): Title for the given set of documents.
+        language (str | None): Detected language of the page group.
+        pdf_file (Path): Path to the source PDF file.
+
+    Returns:
+        list[ProcessedEntities]: Extracted entities from the page group.
+    """
+    if classification == PageClasses.BOREPROFILE:
+        return document_to_boreprofiles(pdf_file=pdf_file, page_start=page_start, page_end=page_end, lang=language)
+    else:
+        return [
+            ProcessedEntities(
+                classification=classification,
+                page_start=page_start,
+                page_end=page_end,
+                language=language,
+                title=title,
+            )
+        ]
+
+
+def forward_document_entities(
+    documents: list[ProcessorDocument],
+) -> list[ProcessorDocumentEntities]:
+    """Convert classified documents pages to entities.
+
+    Args:
+        documents (list[ProcessorDocument]): List of documents to convert to entities.
+
+    Returns:
+       list[ProcessorDocumentEntities]: Processed documents entities
+    """
+    documents_entities: list[ProcessorDocumentEntities] = []
+    for document in documents:
+        # Reset list of entities for current document
+        results_entities: list[ProcessedEntities] = []
+        # Iterate over grouped entities types
+        for (pages_type, lang), pages in document.group_pages_by_type():
+            # Get pages sequences
+            entities = [
+                entity
+                for pages_group in group_consecutive(pages)  # Group consecutive [1,2,10] -> [1,2], [10]
+                for entity in forward_document_entities_group(
+                    classification=pages_type,
+                    page_start=pages_group[0].page,
+                    page_end=pages_group[-1].page,
+                    title=pages_group[0].title,
+                    language=lang,
+                    pdf_file=document.path,
+                )
+            ]
+            # Extend entry
+            results_entities.extend(entities)
+        # Create document from filename, metadata, entities
+        documents_entities.append(
+            ProcessorDocumentEntities(
+                filename=document.filename,
+                page_count=document.metadata.page_count,
+                languages=document.metadata.languages,
+                entities=results_entities,
+            )
+        )
+
+    return documents_entities
+
+
 def main(
     input_path: str,
-    ground_truth_path: str = None,
-    model_path: str = None,
-    classifier_name: str = "baseline",
+    ground_truth_path: str | None = None,
+    model_path: str | None = None,
+    classifier_name: str = "treebased",
     write_result: bool = False,
     explain_model: bool = False,
-):
+    return_entities: bool = False,
+) -> list[ProcessorDocument] | list[ProcessorDocumentEntities]:
     """Run the page classification pipeline on input documents.
 
     Args:
         input_path (str): Path to directory with PDF pages or documents.
         ground_truth_path (str, optional): Path to ground truth JSON file for evaluation.
-        model_path (str, optional): Path to pretrained LayoutLMv3 model.
-        classifier_name (str, optional): Classifier to use ("baseline", "pixtral", etc.).
-        write_result (bool): If True, writes results to prediction.json.
+        model_path (str, optional): Path to pretrained model.
+        classifier_name (str, optional): Classifier to use ("treebased", "pixtral", etc.).
+        write_result (bool): If True, and return_entities is True, writes results to prediction.json.
         explain_model (bool): If True, generates plots to explain the model's choices.
+        return_entities (bool): If True, return grouped entities instead of per-page results.
+
+    Returns:
+        list[ProcessorDocument] | list[ProcessorDocumentEntities]::
+            * A list of `ProcessorDocument` containing per-page classifications, or
+            * A list of `ProcessorDocumentEntities` containing grouped (multi-page) entities
+            when `return_entities=True`.
 
     Raises:
         ValueError: If an unsupported classifier is specified.
     """
     input_path = Path(input_path)
     ground_truth_path = Path(ground_truth_path) if ground_truth_path else None
-    pdf_files = get_pdf_files(input_path)
-    if not pdf_files:
-        logger.error("No valid PDFs found.")
-        return
-
-    matching_params = read_params("config/matching_params.yml")
+    matching_params = read_params("config/local_matching_params.yml")
+    borehole_matching_params = swissgeol_read_params("matching_params.yml")
 
     # Start MLFlow tracking
     if mlflow_tracking:
-        setup_mlflow(input_path, ground_truth_path, model_path, matching_params, classifier_name)
+        setup_mlflow(input_path, matching_params, ground_truth_path, model_path, classifier_name)
 
-    # Set up classifier
-    classifier_type = ClassifierTypes.infer_type(classifier_name)
-    classifier = create_classifier(classifier_type, model_path, matching_params, explain_model)
-    logger.info(f"Start classifying {len(pdf_files)} PDF files with {classifier.type.value} classifier")
+    # Process pages
+    pdf_files = get_pdf_files(input_path)
+    if not pdf_files:
+        logger.error("No valid PDFs found.")
+        return []
 
-    # Processed PDFs
-    processor = PDFProcessor(classifier)
-    results = processor.process_batch(pdf_files)
+    # Run individual page classification
+    documents_pages = forward_document(
+        pdf_files=pdf_files,
+        matching_params=matching_params,
+        borehole_matching_params=borehole_matching_params,
+        model_path=model_path,
+        classifier_name=classifier_name,
+        explain_model=explain_model,
+    )
 
-    if not results:
-        logger.warning("No data to save.")
-        return
-
-    # Save to JSON
-    if write_result:
-        output_file = Path("data") / "prediction.json"
-        output_file.parent.mkdir(parents=True, exist_ok=True)
-        with output_file.open("w") as json_file:
-            json.dump(results, json_file, indent=4)
-
+    # Check if GT need to be computed
     if ground_truth_path:
         from src.evaluation import evaluate_results
 
-        evaluate_results(results, ground_truth_path)
+        evaluate_results(documents_pages, ground_truth_path)
 
+    # End mlflow tracking
     if mlflow_tracking:
         mlflow.end_run()
 
-    if not write_result:
-        return results
+    # Reclassify section header pages using the label of their following page
+    documents_pages = [reclassify_section_headers(doc) for doc in documents_pages]
+
+    entities: list[ProcessorDocumentEntities] = None
+    if return_entities:
+        entities = forward_document_entities(documents=documents_pages)
+
+        # Check if data needs to be saved
+        if write_result:
+            output_file = Path("data") / "prediction.json"
+            output_file.parent.mkdir(parents=True, exist_ok=True)
+            output_file.write_text(
+                json.dumps([r.model_dump() for r in entities], indent=4),
+                encoding="utf-8",
+            )
+
+    # Return final predictions
+    return documents_pages, entities
 
 
 if __name__ == "__main__":
@@ -151,8 +375,8 @@ if __name__ == "__main__":
         "--classifier",
         type=str,
         required=False,
-        default="baseline",
-        help="Specify which classifier to use for classification. Default set to baseline.",
+        default="treebased",
+        help="Specify which classifier to use for classification. Default set to treebased.",
     )
 
     parser.add_argument(
@@ -160,7 +384,8 @@ if __name__ == "__main__":
         "--model_path",
         type=str,
         required=False,
-        help="Path to pretrained LayoutLMv3 or Tree Based model for classification.",
+        default=DEFAULT_TREEBASED_MODEL_PATH,
+        help="Path to pretrained model for classification.",
     )
     parser.add_argument(
         "-w",
@@ -178,7 +403,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     # Check if model_path is required based on classifier
-    if args.classifier.lower() in ["layoutlmv3", "treebased"] and not args.model_path:
+    if args.classifier.lower() == "treebased" and not args.model_path:
         parser.error(f"--model_path is required when using classifier '{args.classifier}'")
 
     main(
@@ -188,4 +413,5 @@ if __name__ == "__main__":
         classifier_name=args.classifier,
         write_result=args.write_results,
         explain_model=args.explain_model,
+        return_entities=True,
     )

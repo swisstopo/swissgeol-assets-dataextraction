@@ -7,9 +7,7 @@ from src.page_classes import PageClasses
 class ClassifierTypes(Enum):
     """Enum for all available classifier types."""
 
-    BASELINE = "baseline"
     PIXTRAL = "pixtral"
-    LAYOUTLMV3 = "layoutlmv3"
     TREEBASED = "treebased"
 
     @classmethod

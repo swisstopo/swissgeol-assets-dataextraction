@@ -1,5 +1,22 @@
+from enum import StrEnum
+
 from pydantic import BaseModel, ConfigDict, Field
 from pydantic.alias_generators import to_pascal
+
+from src.page_classes import PageClasses
+
+
+class PascalPageClasses(StrEnum):
+    """Enum for classifying pages into page types."""
+
+    BOREPROFILE = "Boreprofile"
+    DIAGRAM = "Diagram"
+    GEO_PROFILE = "GeoProfile"
+    MAP = "Map"
+    TABLE = "Table"
+    TEXT = "Text"
+    TITLE_PAGE = "TitlePage"
+    UNKNOWN = "Unknown"
 
 
 class MetaDataSchema(BaseModel):
@@ -29,7 +46,7 @@ class PageMetaDataSchema(BaseModel):
 class PagePrediction(BaseModel):
     """Schema for individual page prediction results including class, number and metadata."""
 
-    predicted_class: str
+    predicted_class: PascalPageClasses
     page_number: int = Field(gt=0, description="Page number must be greater than 0")
     page_metadata: PageMetaDataSchema
 
@@ -50,7 +67,7 @@ class PredictionSchema(BaseModel):
     pages: list[PagePrediction]
 
     @classmethod
-    def from_prediction(cls, prediction: dict[dict]):
+    def from_prediction(cls, prediction: dict):
         return cls(
             filename=prediction["filename"],
             metadata=MetaDataSchema.from_prediction(prediction["metadata"]),
@@ -91,12 +108,14 @@ class CollectResponse(BaseModel):
         return cls(has_finished=True, data=[PredictionSchema.from_prediction(pred) for pred in predictions])
 
 
-class ErrorResponse(BaseModel):
-    """Error response model."""
+def predicted_class(classification: PageClasses) -> PascalPageClasses:
+    """Parse the predicted class from a one-hot encoded classification dictionary.
 
-    detail: str
-
-
-def predicted_class(classification: dict) -> str:
-    """Parse the predicted class from a one-hot encoded classification dictionary."""
-    return next((to_pascal(k) for k, v in classification.items() if v == 1), "Unknown")
+    The values of the dict are the string representation of each class in the PageClasses enum.
+    """
+    try:
+        # Cast detected pages to Pascal equivalent
+        return PascalPageClasses(to_pascal(classification))
+    except ValueError:
+        # Other undefined classes such as Section Header
+        return PascalPageClasses.UNKNOWN

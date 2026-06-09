@@ -1,4 +1,5 @@
-FROM python:3.13-slim-bookworm AS builder
+# --- Temporary stage used only during the build process
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
@@ -10,20 +11,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-
 # Install production dependencies only
-RUN python -m pip install --root-user-action=ignore --no-cache-dir --upgrade pip setuptools wheel \
- && pip install --use-pep517 --root-user-action=ignore --no-cache-dir --prefix=/install .
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev --no-install-project --compile
 
-# Download FastText model
-RUN mkdir -p /models/FastText \
- && wget -q -O /models/FastText/lid.176.bin https://dl.fbaipublicfiles.com/fasttext/supervised-models/lid.176.bin
-
-
+# --- Final stage that becomes the actual shipped Docker image (starts fresh)
 FROM python:3.13-slim-bookworm AS runtime
 
-ENV FASTTEXT_MODEL_PATH="models/FastText/lid.176.bin"
 ENV MLFLOW_TRACKING="False"
 ENV TMP_PATH=/tmp
 
@@ -37,19 +31,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 WORKDIR /app
 
-COPY --from=builder /install /usr/local
+COPY --from=builder /app/.venv /app/.venv
+ENV PATH="/app/.venv/bin:$PATH"
 
-COPY --from=builder /models ./models
-COPY src/ ./src/
+RUN useradd --create-home --shell /bin/bash app
+USER app
+COPY --chown=app:app src/ ./src/
 COPY api/ ./api/
 COPY config/ ./config/
 COPY models/ ./models/
 COPY prompts/ ./prompts/
 COPY main.py ./
-
-RUN useradd --create-home --shell /bin/bash app \
- && chown -R app:app /app
-USER app
 
 EXPOSE 8000
 

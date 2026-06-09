@@ -8,15 +8,13 @@ from typing import Annotated
 from fastapi import BackgroundTasks, Depends, FastAPI, HTTPException, Response, status
 
 from api.app.shared.handlers import start_handler
-from api.app.shared.schemas import (
-    CollectPayload,
-    StartPayload,
-)
+from api.app.shared.schemas import CollectPayload, ErrorResponse, StartPayload
 from api.app.shared.settings import ApiSettings, api_settings
-from api.app.v1.schemas import CollectResponse, ErrorResponse
+from api.app.v1.schemas import CollectResponse
 from api.aws import aws
 from api.utils import task
 from main import main as script
+from src.constants import DEFAULT_TREEBASED_MODEL_PATH
 
 app = FastAPI()
 
@@ -106,11 +104,12 @@ def process(
         str(input_path),
     )
 
-    result = script(
+    documents, _ = script(
         input_path=tmp_dir,
         classifier_name="treebased",
-        model_path="models/stable/model.joblib",
+        model_path=DEFAULT_TREEBASED_MODEL_PATH,
         write_result=False,
+        return_entities=False,
     )
     shutil.rmtree(tmp_dir)
-    return result
+    return [doc.model_dump() for doc in documents]

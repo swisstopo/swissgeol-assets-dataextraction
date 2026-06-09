@@ -1,18 +1,19 @@
 """page class module."""
 
-from enum import Enum
+from enum import StrEnum
 
 
-class PageClasses(Enum):
+class PageClasses(StrEnum):
     """Enum for classifying pages into page types."""
 
-    TEXT = "text"
     BOREPROFILE = "boreprofile"
-    MAP = "map"
-    GEO_PROFILE = "geo_profile"
-    TITLE_PAGE = "title_page"
     DIAGRAM = "diagram"
+    GEO_PROFILE = "geo_profile"
+    MAP = "map"
+    SECTION_HEADER = "section_header"
     TABLE = "table"
+    TEXT = "text"
+    TITLE_PAGE = "title_page"
     UNKNOWN = "unknown"
 
 

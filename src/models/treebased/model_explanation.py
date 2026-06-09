@@ -5,15 +5,14 @@ import tempfile
 
 import numpy as np
 from dotenv import load_dotenv
-from sklearn.ensemble import RandomForestClassifier
 from xgboost import XGBClassifier
 
-from src.utils import read_params
+from src.utils.utility import read_params
 
 xg_boost_config = read_params("config/xgboost_config.yml")
 
 load_dotenv()
-mlflow_tracking = os.getenv("MLFLOW_TRACKING").lower() == "true"
+mlflow_tracking = os.getenv("MLFLOW_TRACKING") == "True"
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +31,7 @@ except ImportError:
 
 
 def explain_prediction(
-    model: XGBClassifier | RandomForestClassifier,
+    model: XGBClassifier,
     input_features: list[float],
     pred_idx: int,
     page_name: str,
@@ -41,7 +40,7 @@ def explain_prediction(
     """Generates SHAP explanations for a single prediction and logs the plots to MLflow.
 
     Args:
-        model (XGBClassifier | RandomForestClassifier): The trained model.
+        model (XGBClassifier): The trained model.
         input_features (list[float]): The input features for the prediction.
         pred_idx (int): The index of the predicted class.
         page_name (str): The name of the page being explained.
@@ -67,10 +66,12 @@ def explain_prediction(
 
         main_fig, axes = plt.subplots(4, 2, figsize=(30, 14))
         axes = axes.flatten()
-        for id, label in id2label.items():
+
+        for class_id in range(shap_values.values.shape[-1]):
+            label = id2label.get(class_id)
             fig = shap.plots.force(
-                shap_values.base_values[0, id],
-                shap_values.values[0, :, id],
+                shap_values.base_values[0, class_id],
+                shap_values.values[0, :, class_id],
                 feature_names=feature_names,
                 matplotlib=True,
                 show=False,
@@ -86,10 +87,10 @@ def explain_prediction(
             fig.savefig(buf, format="png", bbox_inches="tight", dpi=300)
             buf.seek(0)
             img = Image.open(buf)
-            ax = axes[id]
+            ax = axes[class_id]
             ax.imshow(img)
             ax.axis("off")
-            ax.set_title(f"{label}" + (" (predicted class)" if pred_idx == id else ""), fontsize=16)
+            ax.set_title(f"{label}" + (" (predicted class)" if pred_idx == class_id else ""), fontsize=16)
 
             plt.close(fig)  # Close the SHAP-generated figure
 
@@ -98,11 +99,11 @@ def explain_prediction(
         log_plt_fig_to_mlflow(tmpdir, f"{page_name}.png", "stacked_force", dpi=300)
 
 
-def explain_model(model: XGBClassifier | RandomForestClassifier, X_train: list[list[float]], id2label: dict[int, str]):
+def explain_model(model: XGBClassifier, X_train: list[list[float]], id2label: dict[int, str]):
     """Generates global SHAP explanations for the model and logs the plots to MLflow.
 
     Args:
-        model (XGBClassifier | RandomForestClassifier): The trained Tree-based model.
+        model (XGBClassifier): The trained Tree-based model.
         X_train (list[list[float]]): The training features data used for the model.
         id2label (dict[int, str]): Mapping from class IDs to class labels.
     """
@@ -127,7 +128,8 @@ def explain_model(model: XGBClassifier | RandomForestClassifier, X_train: list[l
         fig.tight_layout()
         log_plt_fig_to_mlflow(tmpdir, "abs_beeswarm_overall.png", artifact_path, pad_inches=1)
 
-        for class_id, label in id2label.items():
+        for class_id in range(shap_values.values.shape[-1]):
+            label = id2label.get(class_id)
             class_explanation = shap.Explanation(
                 values=shap_values.values[..., class_id],
                 base_values=shap_values.base_values[..., class_id],
@@ -167,9 +169,7 @@ def verify_dependencies_and_flags():
         bool: True if dependencies are met and MLflow tracking is enabled, False otherwise.
     """
     if not EXPLANATION_DEPENDENCIES:
-        logger.warning(
-            "Model explanation requested but dependencies not available. Install with: pip install '.[dev]'"
-        )
+        logger.warning("Model explanation requested but dependencies not available. Install with: uv sync --extra dev")
         return False
     if not mlflow_tracking:
         logger.warning(

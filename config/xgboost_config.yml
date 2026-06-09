@@ -1,46 +1,63 @@
 model_type: xgboost
 
 train_folder_path: "data/single_pages_splits/train"
-val_folder_path: "data/single_pages_splits/val"
+val_folder_path: "data/single_pages_splits/validation"
 ground_truth_file_path: "data/gt_single_pages.json"
+# Enable OOD (use unknown class as outliers)
+ood_use: false
 
-# Feature names to track
+# Feature names to track (24 features total)
 feature_names:
+  # Text/word features (7)
+  - Keywords List
   - Words Per Line
-  - Text zone Density
+  - Word Density
   - Mean Left
   - Text Width
-  - Line Count
   - Indent Std Dev
   - Capitalization Ratio
-  - Has Sidebar
-  - Has Borehole Keyword
-  - Num Valid Material Descriptions
+  # Map features (5)
   - Num Map Keyword Lines
   - Grid Line Length Sum
   - Non Grid Line Length Sum
   - Line Angle Entropy
-  - Line score
+  - Line Score
+  # Geo profile and diagram features (4)
   - Num Geo Profile Keywords
   - Num Unit Keyword
-  - Y scale ok
-  - X scale ok
-
+  - Y Scale OK
+  - X Scale OK
+  # Borehole features (8)
+  - Num Valid Borehole Descriptions
+  - Num Strip Logs
+  - Num Tables
+  - Num Boreholes
+  - Num Good Sidebars
+  - Best Sidebar Score
+  - Num Long or Horizontal Lines
+  - Text Line Count
 
 hyperparameters:
-  n_estimators: 600
+  n_estimators: 500
   max_depth: 5
-  learning_rate: 0.05
-  subsample: 0.8
-  colsample_bytree: 1
+  learning_rate: 0.025
+  subsample: 0.6
+  colsample_bytree: 1.0
   eval_metric: mlogloss
 
+hyperparameters_ood:
+  # Parameters for out of distribution (OOD) detection
+  ood_mode: "gmm"
+  ood_confidence: 0.05
+
 tuning:
-  n_iter: 50
   cv: 3
+  scoring: "f1_macro"
   param_grid:
-    n_estimators: [100, 200, 300, 400, 500, 600]
-    max_depth: [4, 5, 6, 7]
-    learning_rate: [0.01, 0.05, 0.1, 0.3]
+    n_estimators: [300, 400, 500, 600]
+    max_depth: [5, 6, 7]
+    learning_rate: [0.025, 0.05, 0.1]
     subsample: [0.6, 0.8, 1.0]
     colsample_bytree: [0.6, 0.8, 1.0]
+    ood_mode: ["gmm", "hnorm"]
+    ood_confidence: [0.05, 0.1, 0.5, 0.95]
