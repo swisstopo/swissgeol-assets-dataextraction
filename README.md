@@ -16,7 +16,7 @@ Features:
 
 ### 1. Installation
 
-Python >=3.11 is required. Install [uv](https://docs.astral.sh/uv/) and let it manage the environment:
+Python >=3.12 is required. Install [uv](https://docs.astral.sh/uv/) and let it manage the environment:
 
 ```bash
 curl -LsSf https://astral.sh/uv/install.sh | sh
