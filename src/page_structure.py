@@ -40,7 +40,7 @@ class PageContext:
     @property
     def geometric_lines(self) -> list[Line]:
         """Access geometric lines from extraction context."""
-        return list(self.extraction_context.all_geometric_lines)
+        return list(self.extraction_context.line_detection_result.all_geometric_lines)
 
 
 class ProcessorPageMetadata(BaseModel):
