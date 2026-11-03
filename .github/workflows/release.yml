@@ -36,7 +36,7 @@ jobs:
       version: ${{ steps.find_version.outputs.result }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v8
+        uses: actions/checkout@v7
       - name: Get tags of base commit
         id: get_base_tags
         run: |
@@ -66,7 +66,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v8
+        uses: actions/checkout@v7
       - name: Create image
         uses: ./.github/actions/create-image
         with:
@@ -87,7 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v8
+        uses: actions/checkout@v7
       - name: tag latest
         uses: ./.github/actions/tag-commit
         with:
@@ -119,7 +119,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v8
+        uses: actions/checkout@v7
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
@@ -137,7 +137,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v8
+        uses: actions/checkout@v7
       - name: Setup node
         run: |
           npm install @octokit/rest
