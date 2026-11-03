@@ -77,7 +77,7 @@ def get_features(
 
         extraction_context = extract_and_cache_page_data(page)
         lines = extraction_context.text_lines
-        geometric_lines = extraction_context.all_geometric_lines
+        geometric_lines = extraction_context.line_detection_result.all_geometric_lines
         text_blocks = create_text_blocks(lines)
 
     features = compute_text_features(

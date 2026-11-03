@@ -2,15 +2,12 @@ import logging
 import threading
 import typing
 from dataclasses import dataclass
-from typing import TypeVar
 
 from fastapi import BackgroundTasks
 
-Result = TypeVar("Result")
-
 
 @dataclass
-class Task:
+class Task[Result]:
     """Represents a background task."""
 
     file: str
@@ -18,7 +15,7 @@ class Task:
 
 
 @dataclass
-class Output:
+class Output[Result]:
     """Represents the output of a task."""
 
     ok: bool
@@ -29,7 +26,7 @@ active_tasks: dict[str, Task] = {}
 active_tasks_lock = threading.Lock()
 
 
-def start(file: str, background_tasks: BackgroundTasks, target: typing.Callable[[], Result]) -> bool:
+def start[Result](file: str, background_tasks: BackgroundTasks, target: typing.Callable[[], Result]) -> bool:
     with active_tasks_lock:
         if file in active_tasks:
             return False
@@ -52,7 +49,7 @@ def collect_result(file: str) -> Output | None:
         return task.result
 
 
-def run(file: str, target: typing.Callable[[], Result]):
+def run[Result](file: str, target: typing.Callable[[], Result]):
     try:
         logging.info(f"Starting task for file '{file}'.")
         value = target()

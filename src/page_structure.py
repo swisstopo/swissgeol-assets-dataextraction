@@ -40,7 +40,7 @@ class PageContext:
     @property
     def geometric_lines(self) -> list[Line]:
         """Access geometric lines from extraction context."""
-        return list(self.extraction_context.all_geometric_lines)
+        return list(self.extraction_context.line_detection_result.all_geometric_lines)
 
 
 class ProcessorPageMetadata(BaseModel):
@@ -127,7 +127,7 @@ class ProcessorDocument(BaseModel):
 
     def group_pages_by_type(
         self,
-    ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]:
+    ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]]]:
         """Group pages by class and language.
 
         Yields:
