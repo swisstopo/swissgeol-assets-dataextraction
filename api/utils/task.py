@@ -2,11 +2,8 @@ import logging
 import threading
 import typing
 from dataclasses import dataclass
-from typing import TypeVar
 
 from fastapi import BackgroundTasks
-
-Result = TypeVar("Result")
 
 
 @dataclass

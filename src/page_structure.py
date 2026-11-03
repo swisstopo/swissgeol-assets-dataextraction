@@ -127,7 +127,7 @@ class ProcessorDocument(BaseModel):
 
     def group_pages_by_type(
         self,
-    ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]], None, None]:
+    ) -> Generator[tuple[tuple[PageClasses, str | None], list[ProcessorPage]]]:
         """Group pages by class and language.
 
         Yields:
