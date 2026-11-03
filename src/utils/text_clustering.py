@@ -2,16 +2,15 @@
 
 from collections import defaultdict
 from collections.abc import Callable
-from typing import TypeVar
 
 import pymupdf
 from swissgeol_doc_processing.text.textblock import TextBlock
 from swissgeol_doc_processing.text.textline import TextLine, TextWord
 
-T = TypeVar("T")
 
-
-def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], tolerance: float = 10.0) -> list[list[T]]:
+def cluster_text_elements[T](
+    elements: list[T], key_fn: Callable[[T], float], tolerance: float = 10.0
+) -> list[list[T]]:
     """Cluster text elements based on coordinates of bounding box.
 
     Args:
@@ -53,7 +52,7 @@ def cluster_text_elements(elements: list[T], key_fn: Callable[[T], float], toler
     return clusters
 
 
-def cluster_connected_components(items: list[T], is_connected: Callable[[T, T], bool]) -> list[list[T]]:
+def cluster_connected_components[T](items: list[T], is_connected: Callable[[T, T], bool]) -> list[list[T]]:
     """Generic BFS clustering of items into connected components.
 
     Each item is connected to others if `is_connected(a, b)` returns True.
